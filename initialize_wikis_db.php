@@ -2,7 +2,7 @@
      ;
 $home = getenv("INSTALLDIR");
 $db = new SQLite3 ("$home/etc/wikis.db");
-if (!$db->exec ('CREATE TABLE IF NOT EXISTS wikis (
+if (!$db->exec ('CREATE TABLE wikis (
  id integer primary key autoincrement,
  wikiname varchar(32),
  userid varchar(255),
@@ -11,11 +11,24 @@ if (!$db->exec ('CREATE TABLE IF NOT EXISTS wikis (
  )'))
     die ($db->lastErrorMsg());
 
-if (!$db->exec ('CREATE TABLE IF NOT EXISTS users (
+if (!$db->exec ('CREATE TABLE users (
  userid varchar(255) primary key,
  cryptpw varchar(128),
  approved integer not null default 0,
  admin integer not null default 0
+ )'))
+    die ($db->lastErrorMsg());
+
+if (!$db->exec ('CREATE TABLE usergroups (
+ userid varchar(255),
+ groupname varchar(255)
+ )'))
+    die ($db->lastErrorMsg());
+
+if (!$db->exec ('CREATE TABLE wikipermission (
+ wikiid varchar(255),
+ userid_or_groupname varchar(255),
+ readonly integer default 1
  )'))
     die ($db->lastErrorMsg());
 
@@ -60,5 +73,29 @@ while ($row = fgets ($fh)) {
     print ".";
 }
 fclose ($fh);
+print "\n";
+
+
+print "Importing groups from .htgroup...";
+$fh = fopen ("$home/etc/.htgroup", "r");
+while ($row = fgets ($fh)) {
+    $row = explode (":", $row);
+    $group = SQLite3::escapeString ($row[0]);
+    foreach (explode (" ", $row[1]) as $userid) {
+	if ($userid == "") continue;
+	$userid = SQLite3::escapeString ($userid);
+	$db->exec ("insert into usergroups (userid, groupname) values ('$userid', '$group')");
+	print ".";
+    }
+}
+fclose ($fh);
+print "\n";
+
+
+
+print "Faking wiki permissions...";
+$db->exec ("insert into wikipermissions (wikiid, userid_or_groupname) select id, 'labmembers' from wikis");
+$db->exec ("delete from wikipermissions where wikiid in (64,65)");
+$db->exec ("insert wikipermissions (wikiid, userid_or_groupname values (64,'joshilab'),(65,'joshilab')");
 print "\n";
 

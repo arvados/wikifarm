@@ -6,6 +6,9 @@ $debug = 1;
 
 $|=1;
 
+my $openid_db;
+my $wikifarm_db;
+
 if ($debug) {
     open X, ">>", "/tmp/openidauthlog";
     select X; $|=1; select STDOUT;
@@ -14,12 +17,21 @@ if ($debug) {
 while (defined ($_ = <STDIN>)) {
     chomp;
     my $in = $_;
-    my ($wiki_db_file, $auth_openid_db_file, $wikiid, $uri, $cookie) = split (":::", $_, 5);
+    my ($wikifarm_db_file, $auth_openid_db_file, $wikiid, $uri, $cookie) = split (":::", $_, 5);
 
-    if (!$main::dbh) {
-	print X "connect to $wiki_db_file\n" if $debug;
-	dbi_connect ($auth_openid_db_file);
-	if (!$main::dbh) {
+    if (!$openid_db) {
+	print X "connect to $auth_openid_db_file\n" if $debug;
+	db_connect (\$openid_db, $auth_openid_db_file);
+	if ($openid_db) {
+	    print X "not connected yet -- uri $uri\n" if $debug;
+	    print "no\n";
+	    next;
+	}
+    }
+    if (!$wikifarm_db) {
+	print X "connect to $wikifarm_db_file\n" if $debug;
+	db_connect (\$wikifarm_db, $wikifarm_db_file);
+	if ($wikifarm_db) {
 	    print X "not connected yet -- uri $uri\n" if $debug;
 	    print "no\n";
 	    next;
@@ -27,7 +39,7 @@ while (defined ($_ = <STDIN>)) {
     }
 
     my ($session_id) = $in =~ /open_id_session_id=(\w+)/;
-    my ($user_id, $session_exists) = $main::dbh->selectrow_array (
+    my ($user_id, $session_exists) = $openid_db->selectrow_array (
 	"SELECT identity, session_id FROM sessionmanager WHERE session_id=?",
 	undef, $session_id);
 
@@ -39,10 +51,13 @@ while (defined ($_ = <STDIN>)) {
     elsif ($user_id eq "http://tomclegg.myopenid.com/") {
 	$yesno = "yes";
     }
+    elsif ($uri =~ m:^/test.php:) {
+	$yesno = "yes";
+    }
     elsif (!$wikiid) {
 	$yesno = "no";		# change to "yes" when index.php is safe
     }
-    elsif (user_can_see_wiki ($user_id, $wikiid)) {
+    elsif (user_can_see_wiki ($wikifarm_db, $user_id, $wikiid)) {
 	$yesno = "yes";
     }
     print X "wiki $wikiid > session $session_id > user $user_id > uri $uri > $yesno\n" if $debug;
@@ -51,17 +66,19 @@ while (defined ($_ = <STDIN>)) {
 
 exit 0;
 
-sub dbi_connect
+sub db_connect
 {
+    my $db = shift;
     my $file = shift;
-    $main::dbh = DBI->connect("dbi:SQLite:dbname=$file",
-			      "",
-			      "",
-			      { RaiseError => 1 });
+    $$db = DBI->connect("dbi:SQLite:dbname=$file",
+			"",
+			"",
+			{ RaiseError => 1 });
 }
 
 sub user_can_see_wiki
 {
+    my $db = shift;
     my $userid = shift;
     my $wikiid = shift;
     if ($userid eq "http://tomclegg.myopenid.com/" || $wikiid == 42) {
