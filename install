@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+set -x
+
+export INSTALLDIR=${INSTALLDIR:-/home/wikifarm}
+pwd=$(cd $(dirname $0)/. && pwd)
+export SOURCEDIR=${SOURCEDIR:-$pwd}
+export HOSTNAME="`hostname`"
+
+perl -pe 's/{{(.*?)}}/$ENV{$1}/g' < $SOURCEDIR/wikifarm-apache2.conf.in > wikifarm-apache2.conf.tmp
+
+mkdir -p $INSTALLDIR
+install $SOURCEDIR/wikifarm-apache2.conf.tmp /etc/apache2/sites-available/wikifarm
+install $SOURCEDIR/openid-authorize.pl $INSTALLDIR/etc/
+install $SOURCEDIR/update-config.pl $INSTALLDIR/etc/
+install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
+install $SOURCEDIR/index.php $INSTALLDIR/wikis/
+
+$INSTALLDIR/etc/update-config.pl
+php $SOURCEDIR/initialize_wikis_db.php
+
+a2ensite wikifarm
+a2enmod ssl
+a2enmod rewrite

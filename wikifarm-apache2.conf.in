@@ -1,0 +1,24 @@
+RewriteLock /tmp/rewritelock
+
+<VirtualHost *:80>
+  ServerName {{HOSTNAME}}
+  Redirect / https://{{HOSTNAME}}/
+</VirtualHost>
+<VirtualHost *:443>
+  ServerName {{HOSTNAME}}
+  DocumentRoot {{INSTALLDIR}}/wikis
+  SSLEngine on
+  SSLCertificateFile    {{INSTALLDIR}}/ssl/server.crt
+  SSLCertificateKeyFile {{INSTALLDIR}}/ssl/server.key
+  SSLOptions +StdEnvVars
+  BrowserMatch "MSIE [2-6]" \
+	  nokeepalive ssl-unclean-shutdown \
+	  downgrade-1.0 force-response-1.0
+  BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+  php_flag register_globals off
+
+  RewriteEngine On
+  RewriteMap openid_authorize prg:{{INSTALLDIR}}/etc/openid-authorize.pl
+
+  Include {{INSTALLDIR}}/etc/apache2.conf.inc
+</VirtualHost>
