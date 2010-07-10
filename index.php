@@ -6,10 +6,16 @@
 <br>
 <br>
 
+OpenID
+<ul>
+<li>Logged in as <?=$_SERVER["REMOTE_USER"]?></li>
+<li><a href="logout.php">Log out</a>
+</ul>
+
 Links
 <ul>
-<li><a href="smd/Wiki_Tutorial">Wiki Tutorial</a>
-<li><a href="table.php">Excel -> Wiki Table converter</a>
+<li><a href="smd/Wiki_Tutorial">Wiki Tutorial</a></li>
+<li><a href="table.php">Excel -> Wiki Table converter</a></li>
 </ul>
 
 Wikis
