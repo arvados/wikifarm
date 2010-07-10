@@ -57,7 +57,7 @@ while (defined ($_ = <STDIN>)) {
     elsif ($uri =~ m:^/test.php:) {
 	$yesno = "yes";
     }
-    elsif ($why = user_can_see_wiki ($wikifarm_db, $user_id, $wikiid)) {
+    elsif ($why = user_can_see_wiki ($wikifarm_db, $user_id, $wikiid, $uri)) {
 	$yesno = "yes";
     }
     print X "wiki $wikiid > session $session_id > user $user_id > uri $uri > $yesno ($why)\n" if $debug;
@@ -81,6 +81,7 @@ sub user_can_see_wiki
     my $db = shift;
     my $userid = shift;
     my $wikiid = shift;
+    my $uri = shift;
 
     my $ok;
 
@@ -88,6 +89,9 @@ sub user_can_see_wiki
     ($ok) = $db->selectrow_array ("SELECT 1
  FROM wikis WHERE id=? AND userid=?", undef, $wikiid, $userid);
     return "owner" if $ok;
+
+    # /wikiid/private/ is only accessible to owner or admin
+    goto CHECK_ADMIN if $uri =~ m{^/[^/]+/private/};
 
     # maybe this user has permission to access this wiki
     ($ok) = $db->selectrow_array ("SELECT 1
@@ -105,7 +109,8 @@ sub user_can_see_wiki
  WHERE wikis.id = ? AND usergroups.userid = ?",
 	undef, $wikiid, $userid);
     return "group" if $ok;
-    
+
+CHECK_ADMIN:
     # maybe this user belongs to the special ADMIN group
     ($ok) = $db->selectrow_array ("SELECT 1
  FROM usergroups
