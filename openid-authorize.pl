@@ -19,11 +19,17 @@ while (defined ($_ = <STDIN>)) {
     my $in = $_;
     my ($wikifarm_db_file, $auth_openid_db_file, $wikiid, $uri, $cookie) = split (":::", $_, 5);
 
+    if ($uri =~ m:^/[^/]*$: || $uri =~ m:^/\w+/(skins):) {
+	print X "uri $uri > yes\n";
+	print "yes\n";
+	next;
+    }
+
     if (!$openid_db) {
 	print X "connect to $auth_openid_db_file\n" if $debug;
 	db_connect (\$openid_db, $auth_openid_db_file);
-	if ($openid_db) {
-	    print X "not connected yet -- uri $uri\n" if $debug;
+	if (!$openid_db) {
+	    print X "openid db not connected yet -- uri $uri\n" if $debug;
 	    print "no\n";
 	    next;
 	}
@@ -31,8 +37,8 @@ while (defined ($_ = <STDIN>)) {
     if (!$wikifarm_db) {
 	print X "connect to $wikifarm_db_file\n" if $debug;
 	db_connect (\$wikifarm_db, $wikifarm_db_file);
-	if ($wikifarm_db) {
-	    print X "not connected yet -- uri $uri\n" if $debug;
+	if (!$wikifarm_db) {
+	    print X "wikifarm db not connected yet -- uri $uri\n" if $debug;
 	    print "no\n";
 	    next;
 	}
@@ -48,19 +54,13 @@ while (defined ($_ = <STDIN>)) {
 	# allow mod_auth_openid to show a login page
 	$yesno = "yes";
     }
-    elsif ($user_id eq "http://tomclegg.myopenid.com/") {
-	$yesno = "yes";
-    }
     elsif ($uri =~ m:^/test.php:) {
 	$yesno = "yes";
     }
-    elsif (!$wikiid) {
-	$yesno = "no";		# change to "yes" when index.php is safe
-    }
-    elsif (user_can_see_wiki ($wikifarm_db, $user_id, $wikiid)) {
+    elsif ($why = user_can_see_wiki ($wikifarm_db, $user_id, $wikiid)) {
 	$yesno = "yes";
     }
-    print X "wiki $wikiid > session $session_id > user $user_id > uri $uri > $yesno\n" if $debug;
+    print X "wiki $wikiid > session $session_id > user $user_id > uri $uri > $yesno ($why)\n" if $debug;
     print "$yesno\n";
 }
 
@@ -81,9 +81,36 @@ sub user_can_see_wiki
     my $db = shift;
     my $userid = shift;
     my $wikiid = shift;
-    if ($userid eq "http://tomclegg.myopenid.com/" || $wikiid == 42) {
-	return 1;
-    } else {
-	return 0;
-    }
+
+    my $ok;
+
+    # maybe this user owns this wiki
+    ($ok) = $db->selectrow_array ("SELECT 1
+ FROM wikis WHERE id=? AND userid=?", undef, $wikiid, $userid);
+    return "owner" if $ok;
+
+    # maybe this user has permission to access this wiki
+    ($ok) = $db->selectrow_array ("SELECT 1
+ FROM wikis
+ LEFT JOIN wikipermission ON wikipermission.wikiid = wikis.id
+ WHERE wikis.id = ? AND userid_or_groupname = ?",
+	undef, $wikiid, $userid);
+    return "user" if $ok;
+
+    # maybe this user belongs to a group that has access to this wiki
+    ($ok) = $db->selectrow_array ("SELECT 1
+ FROM wikis
+ LEFT JOIN wikipermission ON wikipermission.wikiid = wikis.id
+ LEFT JOIN usergroups ON userid_or_groupname = usergroups.groupname
+ WHERE wikis.id = ? AND usergroups.userid = ?",
+	undef, $wikiid, $userid);
+    return "group" if $ok;
+    
+    # maybe this user belongs to the special ADMIN group
+    ($ok) = $db->selectrow_array ("SELECT 1
+ FROM usergroups
+ WHERE groupname = ? AND usergroups.userid = ?",
+	undef, 'ADMIN', $userid);
+    return "admin" if $ok;
+    return 0;
 }

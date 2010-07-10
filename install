@@ -15,10 +15,14 @@ install $SOURCEDIR/wikifarm-apache2.conf.tmp /etc/apache2/sites-available/wikifa
 install $SOURCEDIR/openid-authorize.pl $INSTALLDIR/etc/
 install $SOURCEDIR/update-config.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
-install $SOURCEDIR/index.php $INSTALLDIR/wikis/
+install $SOURCEDIR/{index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
 
 $INSTALLDIR/etc/update-config.pl
+mkdir -p $INSTALLDIR/db
 php $SOURCEDIR/initialize_wikis_db.php
+chown -R www-data $INSTALLDIR/db
+chmod -R go-rwx $INSTALLDIR/db
+chmod 700 $INSTALLDIR/db
 
 a2ensite wikifarm
 a2enmod ssl

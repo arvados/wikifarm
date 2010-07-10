@@ -9,11 +9,11 @@ open STDIN, "<", "$ENV{INSTALLDIR}/etc/wiki.list" or die "$!";
 open STDOUT, ">", "$ENV{INSTALLDIR}/etc/apache2.conf.$$" or die "$!";
 
 $OPENID_DB_FILE = "/tmp/mod_auth_openid.db";
-$WIKIFARM_DB_FILE = "$ENV{INSTALLDIR}/etc/wikis.db";
+$WIKIFARM_DB_FILE = "$ENV{INSTALLDIR}/db/wikis.db";
 
 print qq{
-RewriteLog /tmp/rewrite.log
-RewriteLogLevel 9
+#RewriteLog /tmp/rewrite.log
+#RewriteLogLevel 9
 
 <Location />
   AuthOpenIDEnabled On
