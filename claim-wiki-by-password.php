@@ -1,9 +1,10 @@
 <?;
 
 if ($_SERVER["REQUEST_METHOD"] == "GET" && array_key_exists ("w", $_GET)) {
-    printf ("<h2>Success</h2><p>Transferred %d wiki%s and %d group membership%s to %s.</p><p>Return to <a href=\"./\">wiki index</a>.</p>",
+    printf ("<h2>Success</h2><p>Transferred %d wiki%s, %d group membership%s, and %d wiki access rule%s to %s.</p><p>Return to <a href=\"./\">wiki index</a>.</p>",
 	    $_GET["w"], $_GET["w"]==1 ? "" : "s",
 	    $_GET["g"], $_GET["g"]==1 ? "" : "s",
+	    $_GET["a"], $_GET["a"]==1 ? "" : "s",
 	    $_SERVER["REMOTE_USER"]);
     exit;
 }
@@ -28,8 +29,13 @@ if (!$userid ||
 else {
     $db->exec ("update wikis set userid='$q_userid' where userid='$q_old_username'");
     $wikis_claimed = $db->changes();
+
     $db->exec ("update usergroups set userid='$q_userid' where userid='$q_old_username'");
     $groups_claimed = $db->changes();
-    header ("Location: claim-wiki-by-password.php?w=$wikis_claimed&g=$groups_claimed");
+
+    $db->exec ("update wikipermission set userid_or_groupname='$q_userid' where userid_or_groupname='$q_old_username'");
+    $access_claimed = $db->changes();
+
+    header ("Location: claim-wiki-by-password.php?w=$wikis_claimed&g=$groups_claimed&a=$access_claimed");
     exit;
 }
