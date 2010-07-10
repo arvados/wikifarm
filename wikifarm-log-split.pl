@@ -2,10 +2,17 @@
 
 use DBI;
 
-my ($log_file_pattern, $wiki_db_file) = @ARGV;
+die "usage: $0 log_file_pattern default_log_file wiki_db_file\n"
+    if @ARGV != 3 || $ARGV[0] !~ /\{\}/;
+
+my ($log_file_pattern, $default_log_file, $wiki_db_file) = @ARGV;
 my $wiki_db;
 my %handle;			# 01 -> <filehandle>
 my $wikiid;			# smd -> 01
+
+open DEFAULT, ">>", $default_log_file;
+select DEFAULT;
+$| = 1;
 
 while(<STDIN>)
 {
@@ -27,19 +34,19 @@ while(<STDIN>)
 	    "SELECT id FROM wikis WHERE wikiname=?", undef, $wikiid);
 	$wikiid{$tag} = $wikiid if $wikiid;
     }
-    if (!exists $handle{$wikiid}) {
+    if (!exists $handle{$wikiid} && $wikiid =~ /^\d+$/) {
 	my $filename = $log_file_pattern;
 	if ($filename =~ s/\{\}/$wikiid/g) {
 	    open $handle{$wikiid}, ">>", $filename;
 	    select $handle{$wikiid};
 	    $| = 1;
-	    print STDERR "$wikiid opened $filename => ".$handle{$wikiid}."\n";
 	}
     }
     if (exists $handle{$wikiid}) {
 	print { $handle{$wikiid} } ($_);
+    } else {
+	print DEFAULT ($_);
     }
-    print STDERR "$wikiid ".$handle{$wikiid}." $_";
 }
 
 __DATA__

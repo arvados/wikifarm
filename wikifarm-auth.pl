@@ -2,7 +2,7 @@
 
 use DBI;
 
-$debug = 1;
+$debug = 0;
 
 $|=1;
 

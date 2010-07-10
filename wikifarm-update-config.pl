@@ -14,7 +14,7 @@ $WIKIFARM_DB_FILE = "$ENV{INSTALLDIR}/db/wikis.db";
 print qq{
 #RewriteLog /tmp/rewrite.log
 #RewriteLogLevel 9
-CustomLog "|$ENV{INSTALLDIR}/etc/wikifarm-log-split.pl $ENV{INSTALLDIR}/wikis/{}/private/access_log.txt $ENV{INSTALLDIR}/db/wikis.db" common
+CustomLog "|$ENV{INSTALLDIR}/etc/wikifarm-log-split.pl $ENV{INSTALLDIR}/wikis/{}/private/access_log.txt /var/log/apache2/wikifarm-other.log $ENV{INSTALLDIR}/db/wikis.db" common
 
 <Location />
   AuthOpenIDEnabled On
