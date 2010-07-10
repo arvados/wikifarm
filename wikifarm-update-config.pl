@@ -29,6 +29,7 @@ print qq{
 </Location>
 
 SetEnv WIKIFARM_DB_FILE $WIKIFARM_DB_FILE
+SetEnv OPENID_DB_FILE $OPENID_DB_FILE
 RewriteEngine On
 };
 
