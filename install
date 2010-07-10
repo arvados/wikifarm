@@ -14,6 +14,7 @@ mkdir -p $INSTALLDIR
 install $SOURCEDIR/wikifarm-apache2.conf.tmp /etc/apache2/sites-available/wikifarm
 install $SOURCEDIR/wikifarm-auth.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-update-config.pl $INSTALLDIR/etc/
+install $SOURCEDIR/wikifarm-log-split.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
 install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
 
