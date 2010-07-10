@@ -17,9 +17,14 @@ print qq{
 
 <Location />
   AuthOpenIDEnabled On
-  AuthOpenIDCookieLifespan 604800
+  AuthOpenIDCookieLifespan 10
   AuthOpenIDCookiePath /
   AuthOpenIDDBLocation $OPENID_DB_FILE
+# AuthOpenIDTrustRoot http://wikifarm-dev.freelogy.org/
+  AuthOpenIDLoginPage /login.php
+</Location>
+<Location /login.php>
+  AuthOpenIDEnabled Off
 </Location>
 
 SetEnv WIKIFARM_DB_FILE $WIKIFARM_DB_FILE
@@ -43,7 +48,7 @@ RewriteRule ^/$wikiname/(.*) /$wikiid/index.php?title=\$1 [E=WIKIID:$wikiid,QSA]
 }
 
 print qq{
-RewriteCond \${openid_authorize:${WIKIFARM_DB_FILE}:::${OPENID_DB_FILE}:::%{ENV:WIKIID}:::%{REQUEST_URI}:::%{HTTP_COOKIE}} !=yes
+RewriteCond \${wikifarm_auth:${WIKIFARM_DB_FILE}:::${OPENID_DB_FILE}:::%{ENV:WIKIID}:::%{REQUEST_URI}:::%{HTTP_COOKIE}} !=yes
 RewriteRule .* . [F]
 
 # Prevent direct access to mediawiki installations

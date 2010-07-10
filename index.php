@@ -17,7 +17,7 @@ Wikis
 <?php
      ;
 $db = new SQLite3 (getenv("WIKIFARM_DB_FILE"));
-$userid = getenv("REMOTE_USER");
+$userid = $_SERVER["REMOTE_USER"];
 
 $q_userid = SQLite3::escapeString ($userid);
 

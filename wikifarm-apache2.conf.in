@@ -18,7 +18,7 @@ RewriteLock /tmp/rewritelock
   php_flag register_globals off
 
   RewriteEngine On
-  RewriteMap openid_authorize prg:{{INSTALLDIR}}/etc/openid-authorize.pl
+  RewriteMap wikifarm_auth prg:{{INSTALLDIR}}/etc/wikifarm-auth.pl
 
   DirectoryIndex index.php index.html
 

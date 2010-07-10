@@ -34,6 +34,7 @@ while (defined ($_ = <STDIN>)) {
 	    next;
 	}
     }
+
     if (!$wikifarm_db) {
 	print X "connect to $wikifarm_db_file\n" if $debug;
 	db_connect (\$wikifarm_db, $wikifarm_db_file);
@@ -43,6 +44,14 @@ while (defined ($_ = <STDIN>)) {
 	    next;
 	}
     }
+
+    # extend session expiry time so it can't expire without N seconds
+    # of inactivity
+    my $now = scalar time;
+    my $minexpire = $now + 10;
+    $openid_db->do (
+	"UPDATE sessionmanager SET expires_on=$minexpire
+	 WHERE session_id=? and expires_on>=$now and expires_on<$minexpire");
 
     my ($session_id) = $in =~ /open_id_session_id=(\w+)/;
     my ($user_id, $session_exists) = $openid_db->selectrow_array (
