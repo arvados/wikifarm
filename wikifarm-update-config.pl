@@ -17,7 +17,8 @@ print qq{
 
 <Location />
   AuthOpenIDEnabled On
-  AuthOpenIDCookieLifespan 10
+  # This sets cookie lifetime = 0 but server session lifetime = 86400
+  AuthOpenIDCookieLifespan 0
   AuthOpenIDCookiePath /
   AuthOpenIDDBLocation $OPENID_DB_FILE
 # AuthOpenIDTrustRoot http://wikifarm-dev.freelogy.org/
