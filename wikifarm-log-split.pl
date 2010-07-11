@@ -44,9 +44,8 @@ while(<STDIN>)
     }
     if (exists $handle{$wikiid}) {
 	print { $handle{$wikiid} } ($_);
-    } else {
-	print DEFAULT ($_);
     }
+    print DEFAULT ($_);
 }
 
 __DATA__
