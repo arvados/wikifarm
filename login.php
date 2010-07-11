@@ -27,14 +27,14 @@ a:hover { text-decoration: underline; }
 </form>
 
 <form style="display:inline" action="/" method="get">
-<b class="marg">Shortcuts:</b>
+<b class="marg">Shortcut:</b>
 <input type="hidden" name="openid_identifier" value="https://www.google.com/accounts/o8/id" />
 <input class="marg" type="submit" value="Google Login" />
 <input type="hidden" name="modauthopenid.referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
 </form>
 
 <form style="display:inline" action="/" method="get">
-<input type="hidden" name="openid_identifier" value="http://www.yahoo.com" />
+<input type="hidden" name="openid_identifier" value="http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds" />
 <input class="marg" type="submit" value="Yahoo Login" />
 <input type="hidden" name="modauthopenid.referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
 </form>
