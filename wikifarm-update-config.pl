@@ -44,9 +44,9 @@ while (<STDIN>)
     }
     print qq{
 RewriteCond %{ENV:WIKIID} !.
-RewriteRule ^/$wikiid/(.*) /$wikiid/\$1 [E=WIKIID:$wikiid]
+RewriteRule ^/$wikiid(/(.*))? /$wikiid/\$2 [E=WIKIID:$wikiid]
 RewriteCond %{ENV:WIKIID} !.
-RewriteRule ^/$wikiname/(.*) /$wikiid/index.php?title=\$1 [E=WIKIID:$wikiid,QSA]
+RewriteRule ^/$wikiname(/(.*))?\$ /$wikiid/index.php?title=\$2 [E=WIKIID:$wikiid,QSA]
 };
 }
 
