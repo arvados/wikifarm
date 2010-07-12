@@ -12,10 +12,11 @@ perl -pe 's/{{(.*?)}}/$ENV{$1}/g' < $SOURCEDIR/wikifarm-apache2.conf.in > wikifa
 
 mkdir -p $INSTALLDIR
 install $SOURCEDIR/awstats.00.conf $INSTALLDIR/etc/
+install $SOURCEDIR/awstats.all.conf $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-apache2.conf.tmp /etc/apache2/sites-available/wikifarm
 install $SOURCEDIR/wikifarm-auth.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-update-config.pl $INSTALLDIR/etc/
-install $SOURCEDIR/wikifarm-update-stats.pl $INSTALLDIR/etc/
+install $SOURCEDIR/wikifarm-update-stats.sh $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-log-split.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
 install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
@@ -31,8 +32,9 @@ chmod -R go-rwx $INSTALLDIR/db
 chmod 700 $INSTALLDIR/db
 
 sudo tee /etc/cron.daily/wikifarm-update-stats <<EOF
-30 4 * * * www-data $INSTALLDIR/etc/wikifarm-update-stats.pl
+30 4 * * * www-data $INSTALLDIR/etc/wikifarm-update-stats.sh
 EOF
+sudo chmod a+x /var/log/apache2
 
 a2ensite wikifarm
 a2enmod ssl
