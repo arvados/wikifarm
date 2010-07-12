@@ -5,7 +5,7 @@ if (!exists $ENV{INSTALLDIR}) {
     $ENV{INSTALLDIR} = "/home/wikifarm";
 }
 
-open STDIN, "<", "$ENV{INSTALLDIR}/etc/wiki.list" or die "$!";
+open STDIN, "sqlite3 $ENV{INSTALLDIR}/db/wikis.db 'select id,wikiname from wikis' |" or die "$!";
 open STDOUT, ">", "$ENV{INSTALLDIR}/etc/apache2.conf.$$" or die "$!";
 
 $OPENID_DB_FILE = "/tmp/mod_auth_openid.db";
@@ -37,11 +37,7 @@ RewriteEngine On
 while (<STDIN>)
 {
     chomp;
-    my ($wikiid, $wikiname, $wikiowner, $wikigroup) = split "\t";
-    if (!defined $wikigroup) {
-	$wikigroup = "labmembers";
-	$wikigroup = "joshilab" if $wikiid == 64 || $wikiid == 65;
-    }
+    my ($wikiid, $wikiname) = split '|';
     print qq{
 RewriteCond %{ENV:WIKIID} !.
 RewriteRule ^/$wikiid(/(.*))? /$wikiid/\$2 [E=WIKIID:$wikiid]
