@@ -8,12 +8,12 @@ pwd=$(cd $(dirname $0)/. && pwd)
 export SOURCEDIR=${SOURCEDIR:-$pwd}
 export HOSTNAME="`hostname`"
 
-perl -pe 's/{{(.*?)}}/$ENV{$1}/g' < $SOURCEDIR/wikifarm-apache2.conf.in > wikifarm-apache2.conf.tmp
+perl -pe 's/{{(.*?)}}/$ENV{$1}/g' < $SOURCEDIR/wikifarm-apache2.conf.in > /tmp/wikifarm-apache2.conf.tmp
 
 mkdir -p $INSTALLDIR
 install $SOURCEDIR/awstats.00.conf $INSTALLDIR/etc/
 install $SOURCEDIR/awstats.all.conf $INSTALLDIR/etc/
-install $SOURCEDIR/wikifarm-apache2.conf.tmp /etc/apache2/sites-available/wikifarm
+install /tmp/wikifarm-apache2.conf.tmp /etc/apache2/sites-available/wikifarm
 install $SOURCEDIR/wikifarm-auth.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-update-config.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-update-stats.sh $INSTALLDIR/etc/
@@ -24,14 +24,15 @@ install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/w
 install /usr/share/doc/awstats/examples/awstats_buildstaticpages.pl $INSTALLDIR/etc/awstats_buildstaticpages.pl
 perl -pi~ -e 's:2>&1:1>&2: if $.==372' $INSTALLDIR/etc/awstats_buildstaticpages.pl
 
-$INSTALLDIR/etc/wikifarm-update-config.pl
 mkdir -p $INSTALLDIR/db
 php $SOURCEDIR/initialize_wikis_db.php
 chown -R www-data $INSTALLDIR/db
 chmod -R go-rwx $INSTALLDIR/db
 chmod 700 $INSTALLDIR/db
 
-sudo tee /etc/cron.daily/wikifarm-update-stats <<EOF
+$INSTALLDIR/etc/wikifarm-update-config.pl
+
+sudo tee /etc/cron.d/wikifarm-update-stats <<EOF
 30 4 * * * www-data $INSTALLDIR/etc/wikifarm-update-stats.sh
 EOF
 sudo chmod a+x /var/log/apache2
