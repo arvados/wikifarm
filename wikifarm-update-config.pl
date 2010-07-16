@@ -37,7 +37,8 @@ RewriteEngine On
 while (<STDIN>)
 {
     chomp;
-    my ($wikiid, $wikiname) = split '|';
+    my ($wikiid, $wikiname) = split /\|/;
+    $wikiid = sprintf "%02d", $wikiid;
     print qq{
 RewriteCond %{ENV:WIKIID} !.
 RewriteRule ^/$wikiid(/(.*))? /$wikiid/\$2 [E=WIKIID:$wikiid]
