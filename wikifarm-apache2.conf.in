@@ -22,7 +22,7 @@ RewriteLock /tmp/rewritelock
 
   <Limit GET HEAD>
     RewriteCond %{HTTP_HOST} !{{HOSTNAME}}
-    RewriteRule (.*) https://{{HOSTNAME}}/$1 [R,L]
+    RewriteRule (.*) https://{{HOSTNAME}}$1 [R,L]
   </Limit>
 
   DirectoryIndex index.php index.html
