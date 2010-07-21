@@ -39,7 +39,7 @@ a:hover { text-decoration: underline; }
 <input type="hidden" name="modauthopenid.referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
 </form>
 
-<p>If you are surprised to see this because your browser has always just asked for username and password here, fear not.  After you log in with your OpenID for the first time, you can claim your lab notebook (and view other lab members&rsquo; lab notebooks) by entering your old username and password.  After that, you&rsquo;ll just need OpenID.</p>
+<p>If you are surprised to see this because your browser has always just asked for username and password here, fear not.  After you log in with your OpenID for the first time, you can claim your lab notebook (if you have one), and get permission to view other lab members&rsquo; lab notebooks, by entering your old username and password.  After doing that once, you&rsquo;ll just need OpenID.</p>
 
 <p>To find out how OpenID works, see <a href="http://openid.net/what/">http://openid.net/what/</a>.  You can sign up for an identity on one of <a href="http://openid.net/get/">these sites</a>.</p>
 

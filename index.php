@@ -56,7 +56,7 @@ while ($row = $result->fetchArray()) {
 
 Claim your old (pre-OpenID) wiki
 <blockquote>
-To claim your wiki, enter the username and password you used to use with browser-based authentication (<i>Authentication required -- a username and password are being requested by https://pub.med.harvard.edu. The site says: "Lab Notebook"</i>)
+To claim your wiki and lab affiliations, enter the username and password you used to use with browser-based authentication (<i>Authentication required -- a username and password are being requested by https://pub.med.harvard.edu. The site says: "Lab Notebook"</i>)
 <blockquote>
 <form action="claim-wiki-by-password.php" method="post">
 Username: <input type=text name=username size=16>
@@ -64,7 +64,7 @@ Username: <input type=text name=username size=16>
 <br /><input type=submit value="Give me my wiki">
 </form>
 </blockquote>
-After you do this, your wiki will belong to the OpenID you are currently logged in as (<?=getenv("REMOTE_USER")?>).
+After you do this, your wiki and group memberships will be attached to the OpenID you are currently logged in as (<?=getenv("REMOTE_USER")?>).
 </blockquote>
 
 
