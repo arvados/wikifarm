@@ -27,9 +27,9 @@ perl -pi~ -e 's:2>&1:1>&2: if $.==372' $INSTALLDIR/etc/awstats_buildstaticpages.
 
 mkdir -p $INSTALLDIR/db
 php $SOURCEDIR/initialize_wikis_db.php
-chown -R www-data $INSTALLDIR/db
-chmod -R go-rwx $INSTALLDIR/db
-chmod 700 $INSTALLDIR/db
+chown -R www-data:adm $INSTALLDIR/db
+chmod -R o-rwx,g+rX $INSTALLDIR/db
+chmod 750 $INSTALLDIR/db
 
 $INSTALLDIR/etc/wikifarm-update-config.pl
 
