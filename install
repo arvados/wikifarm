@@ -17,6 +17,7 @@ install /tmp/wikifarm-apache2.conf.tmp /etc/apache2/sites-available/wikifarm
 install $SOURCEDIR/wikifarm-auth.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-update-config.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-update-stats.sh $INSTALLDIR/etc/
+install $SOURCEDIR/wikifarm-backup.sh $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-log-split.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
 install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
@@ -35,6 +36,9 @@ $INSTALLDIR/etc/wikifarm-update-config.pl
 
 sudo tee /etc/cron.d/wikifarm-update-stats <<EOF
 30 4 * * * www-data $INSTALLDIR/etc/wikifarm-update-stats.sh
+EOF
+sudo tee /etc/cron.d/wikifarm-backup <<EOF
+30 1 * * * www-data $INSTALLDIR/etc/wikifarm-backup.sh
 EOF
 sudo chmod a+x /var/log/apache2
 
