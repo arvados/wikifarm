@@ -30,10 +30,10 @@ else {
     $db->exec ("update wikis set userid='$q_userid' where userid='$q_old_username'");
     $wikis_claimed = $db->changes();
 
-    $db->exec ("update usergroups set userid='$q_userid' where userid='$q_old_username'");
+    $db->exec ("update or ignore usergroups set userid='$q_userid' where userid='$q_old_username'");
     $groups_claimed = $db->changes();
 
-    $db->exec ("update wikipermission set userid_or_groupname='$q_userid' where userid_or_groupname='$q_old_username'");
+    $db->exec ("update or ignore wikipermission set userid_or_groupname='$q_userid' where userid_or_groupname='$q_old_username'");
     $access_claimed = $db->changes();
 
     header ("Location: claim-wiki-by-password.php?w=$wikis_claimed&g=$groups_claimed&a=$access_claimed");
