@@ -25,11 +25,17 @@ if (!$db->exec ('CREATE TABLE usergroups (
  )'))
     die ($db->lastErrorMsg());
 
+if (!$db->exec ('CREATE UNIQUE INDEX ug ON usergroups (userid,groupname)'))
+    die ($db->lastErrorMsg());
+
 if (!$db->exec ('CREATE TABLE wikipermission (
  wikiid varchar(255),
  userid_or_groupname varchar(255),
  readonly integer default 1
  )'))
+    die ($db->lastErrorMsg());
+
+if (!$db->exec ('CREATE UNIQUE INDEX uw ON wikipermission (wikiid,userid_or_groupname)'))
     die ($db->lastErrorMsg());
 
 
@@ -84,7 +90,7 @@ while ($row = fgets ($fh)) {
     foreach (explode (" ", trim($row[1])) as $userid) {
 	if ($userid == "") continue;
 	$userid = SQLite3::escapeString ($userid);
-	$db->exec ("insert into usergroups (userid, groupname) values ('$userid', '$group')");
+	$db->exec ("insert or ignore into usergroups (userid, groupname) values ('$userid', '$group')");
 	print ".";
     }
 }
