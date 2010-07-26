@@ -1,4 +1,12 @@
-<html>
+<?php
+
+if (isset($_GET["modauthopenid_referrer"]))
+{
+   header ("location: ".$_GET["modauthopenid_referrer"]);
+   exit;
+}
+
+?><html>
 <head>
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>

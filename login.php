@@ -23,20 +23,20 @@ a:hover { text-decoration: underline; }
 <form class="marg" action="/" method="get">
 <b>Identity URL:</b> <input type="text" name="openid_identifier" value="" size="30" class="loginbox" />
 <input type="submit" value="Log In" />
-<input type="hidden" name="modauthopenid.referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
+<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
 </form>
 
 <form style="display:inline" action="/" method="get">
 <b class="marg">Shortcut:</b>
 <input type="hidden" name="openid_identifier" value="https://www.google.com/accounts/o8/id" />
 <input class="marg" type="submit" value="Google Login" />
-<input type="hidden" name="modauthopenid.referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
+<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
 </form>
 
 <form style="display:inline" action="/" method="get">
 <input type="hidden" name="openid_identifier" value="http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds" />
 <input class="marg" type="submit" value="Yahoo Login" />
-<input type="hidden" name="modauthopenid.referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
+<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
 </form>
 
 <p>If you are surprised to see this because your browser has always just asked for username and password here, fear not.  After you log in with your OpenID for the first time, you can claim your lab notebook (if you have one), and get permission to view other lab members&rsquo; lab notebooks, by entering your old username and password.  After doing that once, you&rsquo;ll just need OpenID.</p>
