@@ -81,6 +81,7 @@ sub db_connect
 {
     my $db = shift;
     my $file = shift;
+    return undef unless -r $file;
     $$db = DBI->connect("dbi:SQLite:dbname=$file",
 			"",
 			"",
