@@ -1,9 +1,22 @@
 <?php
+     ;
+$db = new SQLite3 (getenv("WIKIFARM_DB_FILE"));
+$userid = $_SERVER["REMOTE_USER"];
+
+$q_userid = SQLite3::escapeString ($userid);
 
 if (isset($_GET["modauthopenid_referrer"]))
 {
-   header ("location: ".$_GET["modauthopenid_referrer"]);
-   exit;
+    $result = $db->query ("SELECT count(*) from usergroups where userid='$q_userid'");
+    $groupsrow = $result->fetchArray();
+    $result = $db->query ("SELECT count(*) from wikipermission where userid_or_groupname='$q_userid'");
+    $wikirow = $result->fetchArray();
+    $result = $db->query ("SELECT count(*) from wikis where userid='$q_userid'");
+    $ownrow = $result->fetchArray();
+    if ($groupsrow[0] + $wikirow[0] + $ownrow[0] > 0) {
+	header ("location: ".$_GET["modauthopenid_referrer"]);
+	exit;
+    }
 }
 
 ?><html>
@@ -29,11 +42,7 @@ Links
 Wikis
 <ol>
 <?php
-     ;
-$db = new SQLite3 (getenv("WIKIFARM_DB_FILE"));
-$userid = $_SERVER["REMOTE_USER"];
-
-$q_userid = SQLite3::escapeString ($userid);
+    ;
 
 $adminmode = 0;
 $q = $db->query ("SELECT 1 FROM usergroups WHERE usergroups.userid = '$q_userid' AND groupname = 'ADMIN'");
