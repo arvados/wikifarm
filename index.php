@@ -35,7 +35,7 @@ OpenID
 
 Links
 <ul>
-<li><a href="smd/Wiki_Tutorial">Wiki Tutorial</a></li>
+<li><a href="docs/Wiki_Tutorial">Wiki Tutorial</a></li>
 <li><a href="table.php">Excel -> Wiki Table converter</a></li>
 </ul>
 
