@@ -14,8 +14,7 @@ if (!$db->exec ('CREATE TABLE wikis (
 if (!$db->exec ('CREATE TABLE users (
  userid varchar(255) primary key,
  cryptpw varchar(128),
- approved integer not null default 0,
- admin integer not null default 0
+ email varchar(255)
  )'))
     die ($db->lastErrorMsg());
 
@@ -36,6 +35,16 @@ if (!$db->exec ('CREATE TABLE wikipermission (
     die ($db->lastErrorMsg());
 
 if (!$db->exec ('CREATE UNIQUE INDEX uw ON wikipermission (wikiid,userid_or_groupname)'))
+    die ($db->lastErrorMsg());
+
+if (!$db->exec ('CREATE TABLE autologin (
+ wikiid integer,
+ userid varchar(255),
+ mwusername varchar(255)
+ )'))
+    die ($db->lastErrorMsg());
+
+if (!$db->exec ('CREATE UNIQUE INDEX wu ON autologin (wikiid,userid,mwusername)'))
     die ($db->lastErrorMsg());
 
 
