@@ -162,19 +162,20 @@ class WikifarmAuthPlugin extends AuthPlugin {
 
 	public function UserLoginComplete ( $user ) {
 		if (!$this->mwusername) {
+			$this->mwusername = $user->getName();
 			$this->db->query ("insert into autologin "
 					  . "(wikiid, userid, mwusername, sysop) values ('"
 					  . getenv("WIKIID") . "', '"
 					  . SQLite3::escapeString ($this->userid) . "', '"
-					  . SQLite3::escapeString ($user->getName()) . "', "
-					  . (array_key_exists ("sysop", $user->getGroups()) ? 1 : 0) . ")");
-			$this->mwusername = $user->getName();
+					  . SQLite3::escapeString ($this->mwusername) . "', '"
+					  . (array_search ("sysop", $user->getGroups()) !== false ? 1 : 0) . "')");
 		}
 		if (!$this->userrow)
 			$this->db->query ("insert into users (userid, email, realname) values ('"
 					  . SQLite3::escapeString ($this->userid) . "', '"
 					  . SQLite3::escapeString ($user->mEmail) . "', '"
 					  . SQLite3::escapeString ($user->mRealName) . "')");
+		$this->updateLastLoginTime();
 		return true;
 	}
 
