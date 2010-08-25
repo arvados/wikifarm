@@ -14,7 +14,8 @@ if (!$db->exec ('CREATE TABLE wikis (
 if (!$db->exec ('CREATE TABLE users (
  userid varchar(255) primary key,
  cryptpw varchar(128),
- email varchar(255)
+ email varchar(255),
+ realname varchar(255)
  )'))
     die ($db->lastErrorMsg());
 
@@ -40,7 +41,8 @@ if (!$db->exec ('CREATE UNIQUE INDEX uw ON wikipermission (wikiid,userid_or_grou
 if (!$db->exec ('CREATE TABLE autologin (
  wikiid integer,
  userid varchar(255),
- mwusername varchar(255)
+ mwusername varchar(255),
+ lastlogintime integer
  )'))
     die ($db->lastErrorMsg());
 
