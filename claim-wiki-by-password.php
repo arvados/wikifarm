@@ -36,6 +36,17 @@ else {
     $db->exec ("update or ignore wikipermission set userid_or_groupname='$q_userid' where userid_or_groupname='$q_old_username'");
     $access_claimed = $db->changes();
 
+    $db->exec ("INSERT OR IGNORE INTO users (userid, realname, email)
+    	      SELECT '$q_userid',
+
+	      CASE WHEN realname IS NULL AND userid NOT LIKE '%@%' THEN userid
+	      ELSE realname END,
+
+	      CASE WHEN email IS NULL AND userid LIKE '%@%' THEN userid
+	      ELSE email END
+
+	      FROM users WHERE userid='$q_old_username'");
+
     header ("Location: claim-wiki-by-password.php?w=$wikis_claimed&g=$groups_claimed&a=$access_claimed");
     exit;
 }
