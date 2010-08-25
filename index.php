@@ -1,29 +1,57 @@
 <?php
-     ;
+
+ini_set('display_errors',1);
+error_reporting(E_ALL);
+
+require_once('WikifarmDriver.php');
+require_once('WikifarmPageMachine.php');
+
 $db = new SQLite3 (getenv("WIKIFARM_DB_FILE"));
 $userid = $_SERVER["REMOTE_USER"];
 
 $q_userid = SQLite3::escapeString ($userid);
+$wf = new WikifarmPageMachine(&$db);
 
-if (isset($_GET["modauthopenid_referrer"]))
-{
-    $result = $db->query ("SELECT count(*) from usergroups where userid='$q_userid'");
-    $groupsrow = $result->fetchArray();
-    $result = $db->query ("SELECT count(*) from wikipermission where userid_or_groupname='$q_userid'");
-    $wikirow = $result->fetchArray();
-    $result = $db->query ("SELECT count(*) from wikis where userid='$q_userid'");
-    $ownrow = $result->fetchArray();
-    if ($groupsrow[0] + $wikirow[0] + $ownrow[0] > 0) {
+if (isset($_GET["modauthopenid_referrer"]) && $wf->isAuthenticated()) {
 	header ("location: ".$_GET["modauthopenid_referrer"]);
 	exit;
-    }
 }
+
+// Would sir enjoy some tab content?
+if (isset($_GET['tab'])) {
+	echo $wf->tabGet($_GET['tab']);
+	exit;
+}
+
+// Which tab to display initially
+$activetab = ($wf->hasWikis() ? "wikis" : "getaccess");
+
+// Get the whole tabbed area
+unset ( $wf->tabNames['tools'] );
+$tabframe = $wf->tabFrame();
+$tabjs = $wf->js_tabNames;
 
 ?><html>
 <head>
+<title>WikiFarm Dashboard</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<script type="text/javascript" src="jquery-1.4.2.min.js" language="JavaScript"></script>
+<script type="text/javascript" src="WikifarmAjax.jq.js" language="JavaScript"></script>
+<script language="JavaScript">
+	initialTab = '<?=$activetab?>';
+	<?=$tabjs?>
+</script>
 </head>
 <body>
+
+[ logo or something ]
+<br>
+<br>
+
+<table width=100%><tr><td><font size=-2> Logged in as <?=$_SERVER["REMOTE_USER"]?></font></td><td align=right><font size=-2><a href="logout.php">Log out</a></font></td></td></table>
+
+<?=$tabframe?>
+
 <br>
 <br>
 

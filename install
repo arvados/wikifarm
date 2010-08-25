@@ -21,6 +21,12 @@ install $SOURCEDIR/wikifarm-backup.sh $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-log-split.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
 install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
+install $SOURCEDIR/WikifarmAjax.jq.js $INSTALLDIR/wikis/
+install $SOURCEDIR/WikifarmDriver.php $INSTALLDIR/wikis/
+install $SOURCEDIR/WikifarmPageMachine.php $INSTALLDIR/wikis/
+install $SOURCEDIR/jquery-1.4.2.min.js $INSTALLDIR/wikis/
+install $SOURCEDIR/style.css $INSTALLDIR/wikis/
+
 install $SOURCEDIR/GeSHiHighlight.php /usr/share/mediawiki-extensions/
 install $SOURCEDIR/WikifarmAuthPlugin.php /usr/share/mediawiki-extensions/
 ln -sfn /usr/share/mediawiki-extensions/WikifarmAuthPlugin.php /etc/mediawiki-extensions/extensions-available/
