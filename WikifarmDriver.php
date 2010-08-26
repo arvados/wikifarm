@@ -104,11 +104,12 @@ class WikifarmDriver {
 		# return $this->query( "SELECT wikiname, realname FROM wikis WHERE userid='$q_openid' ORDER BY lastaccess LIMIT 5");
 		return array("wikiname" => array("recent1","recent2"), "realname" => array('recent array 1', 'recent array 2'));
 	}
-	
-	function isAdmin($openid = null) {
+
+	// returns true if $openid is a wikifarm admin	
+	function isAdmin ($openid = null) {
 		if (!$openid) $openid = $this->openid;
 		$q_openid = SQLite3::escapeString ($openid);
-		return $this->DB->querySingle("SELECT admin FROM users WHERE userid='$q_openid'");
+		return $this->DB->querySingle("SELECT 1 FROM usergroups WHERE usergroups.userid = '$q_openid' AND groupname = 'ADMIN'" );
 	}
 	
 	function setAdmin($onoff, $openid = null) {
@@ -152,9 +153,25 @@ class WikifarmDriver {
 		}
 		return false;		
 	}
-		
-}
 
+	function getAllWikis($openid = null) {
+		if (!$openid) $openid = $this->openid;
+		$q_openid = SQLite3::escapeString ($openid);
+		return $this->query(
+			"SELECT wikis.id as id, wikis.wikiname as wikiname, wikis.realname as realname, min(wikipermission.readonly) as readonly, wikis.userid as userid
+			FROM wikis
+			LEFT JOIN usergroups ON usergroups.userid = '$q_openid'
+			LEFT JOIN wikipermission ON wikipermission.wikiid = wikis.id
+			AND (wikipermission.userid_or_groupname = '$q_openid'
+			OR wikipermission.userid_or_groupname = usergroups.groupname)
+			WHERE wikis.userid = '$q_openid'
+			OR wikipermission.wikiid IS NOT NULL
+			OR usergroups.groupname = 'ADMIN'
+			GROUP BY wikis.id
+			ORDER BY wikis.id" );
+	}
+		
+}  // WikifarmDriver class ends
 
 
 ?>

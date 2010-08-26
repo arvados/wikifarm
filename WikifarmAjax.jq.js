@@ -1,4 +1,3 @@
-var tabNames = [];
 var initialTab = "wikis";
 
 $(document).ready(function() {
@@ -10,6 +9,6 @@ $(document).ready(function() {
 			$('div#content').load("index2.php?tab="+thisAnchor.attr("id"));
 		});
 	});
-	$('#'.initialTab).addClass("active");  // doesn't seem to be working
+	$('a#'.initialTab).addClass("active");  // doesn't seem to be working
 	$('div#content').load("index2.php?tab="+initialTab);
 });

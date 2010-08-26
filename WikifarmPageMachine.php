@@ -7,12 +7,6 @@ class WikifarmPageMachine extends WikifarmDriver {
 
 	function __construct($db = null) {
 		WikifarmDriver::__construct($db);
-		$this->tabNames = array(
-			'wikis'=>'Wikis',
-			'getaccess'=>'Get Access',
-			'giveaccess'=>'Give Access',
-			'createwiki'=>'Create a Wiki',
-			'tools'=>'Tools' );
 	}
 
 	function schema() {		
@@ -35,17 +29,6 @@ class WikifarmPageMachine extends WikifarmDriver {
 		$output .= "</ul>\n";
 		return $output;
 	}
-	
-	function allWikis($openid = null) {
-		if (!$openid) $openid = $this->openid;
-		$wikiArray = $this->getVisibleWikis($openid);
-		$output = "<b>All Wikis</b><br><ul>\n";
-		foreach ($wikiArray as $w) {
-			$output .= '<li><a href="'. $this->wikiURL($w['wikiname']) . '">' . $w['realname'] . "</a> ...</li>\n";
-		}
-		$output .= "</ul>\n";
-		return $output;
-	}
 
 	function wikiURL($wikiid) {
 		return "http://serverlyserver.com/pathy-path-path/";
@@ -55,31 +38,20 @@ class WikifarmPageMachine extends WikifarmDriver {
 
 	function tabGet($tab) {
 		switch ($tab) {
-			case "wikis": return $this->allWikis();
+			case "wikis": return $this->pageAllWikis();
 			case "getaccess": return $this->pageGetAccess();
 			case "giveaccess": return $this->allWikis();
 			case "createwiki": return $this->allWikis();
-			case "tools": return $this->allWikis();
+			case "tools": return $this->pageTools();
+			case "schema": return $this->schema();
 		}
 		return "Invalid content request \"$tab\"";
 	}
 
-	function tabFrame($openid = null) {
-		if (!$openid) $openid = $this->openid;
-		$js = array();		
-		$output = "<div style=\"display: block;padding:10px;background-color:#dae6fa\" id=\"tabdiv\">\n<ul id=\"tabmenu\" >\n";
-		foreach ($this->tabNames as $tab => $friendly) {
-			$output .= "<li><a class=\"\" id=\"$tab\">$friendly</a></li>\n";
-			array_push ($js, "\"$tab\"");
-		}
-		$this->js_tabNames = "tabNames = [" . implode(',', $js) . "];\n";
-		$output .= "</ul>\n<div id=\"content\"></div>\n</div>";
-		return $output;
-	}
 
 	// activating invites based on user/password or an invite code, requesting access or additional access
-	function pageGetAccess($openid = null) {
-		if (!$openid) $openid = $this->openid;
+	function pageGetAccess() {
+		$openid = $this->openid;
 		$requestcount = 0;
 		$username = null;
 		if ($this->isAuthenticated($openid)) {
@@ -92,7 +64,7 @@ class WikifarmPageMachine extends WikifarmDriver {
 			'pending_since' => array( time()-1000, time()-4000, "june 23, 2010", null, null),
 			'is_a_member' => array (false, false, false, false, true) );		
 		
-		$output = <<<EOM
+		$output = <<<BLOCK
 <table width=100%><tr><td>
 Already have an invite code or a pre-OpenID username and password?<br><br>
 <blockquote>
@@ -115,7 +87,7 @@ attached to the OpenID you are currently logged in as ($openid).
 Request access to stuff (approval required, we'll let you know)
 <blockquote>
 <form action="index.php" method="post">
-EOM;
+BLOCK;
 		if ($username) {
 			$output .= "You are signed in as: <b>$username</b><br>";
 		} else {
@@ -138,7 +110,40 @@ EOM;
 		$output .= "</table><input type=submit value=\"Send Request\"></form>\n</blockquote>";
 		return $output;
 	}
-}
+	
+
+	function pageAllWikis($openid = null) {
+		if (!$openid) $openid = $this->openid;
+		$adminmode = $this->isAdmin($openid);
+		$wikiArray = $this->getAllWikis($openid);		
+		$output = "<h2>Wikis</h2>\n<ol>\n";
+		foreach ($wikiArray as $row) {
+			if ($row['realname'] == '') $row['realname'] = $row['wikiname'];
+			$output .= '<li value="'.$row['id'].'"><a href="'.$row['wikiname'].'/">'.$row['realname']."</a>\n";
+			if ($adminmode) $output .= " owned by " . $row['userid'] . "\n";
+		}
+		$output .= "</ul>\n";
+		return $output;
+	}
+
+
+	function pageTools($openid = null) {
+		if (!$openid) $openid = $this->openid;
+		return <<<BLOCK
+<h2>Tools</h2><br>
+<ul>
+<li><a href="table.php">Excel -> Wiki Table converter</a></li>
+</ul>
+BLOCK;
+	}
+
+	
+}  // class ends
+
+
+
+
+// misc functions
 
 function PMRelativeTime($date) {
 	if ($date+0 == 0) $date = strtotime($date);

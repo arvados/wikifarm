@@ -7,6 +7,14 @@ require_once('WikifarmDriver.php');
 require_once('WikifarmPageMachine.php');
 
 $db = new SQLite3 (getenv("WIKIFARM_DB_FILE"));
+/*
+PHP Fatal error:  Uncaught exception 'Exception' with message 'Unable to expand filepath' in /data/home/wikifarm/wikis/index2.php:9
+Stack trace:
+#0 /data/home/wikifarm/wikis/index2.php(9): SQLite3->__construct('')
+#1 {main}
+  thrown in /data/home/wikifarm/wikis/index2.php on line 9
+*/
+
 $userid = $_SERVER["REMOTE_USER"];
 
 $q_userid = SQLite3::escapeString ($userid);
@@ -23,13 +31,19 @@ if (isset($_GET['tab'])) {
 	exit;
 }
 
-// Which tab to display initially
-$activetab = ($wf->hasWikis() ? "wikis" : "getaccess");
+// what tabs should we see?
+$tabTitles = array(
+			'wikis'=>'Wikis',
+			'getaccess'=>'Get Access',
+			'giveaccess'=>'Give Access',
+			'createwiki'=>'Create a Wiki',
+			'tools'=>'Tools',
+			'schema'=>'Schema',
+			'settings'=>'Wikifarm Settings' );
 
-// Get the whole tabbed area
-unset ( $wf->tabNames['tools'] );
-$tabframe = $wf->tabFrame();
-$tabjs = $wf->js_tabNames;
+unset ( $tabTitles['settings'] ); //... etc
+$tabActive = ($wf->hasWikis() ? "wikis" : "getaccess");
+
 
 ?><html>
 <head>
@@ -37,9 +51,8 @@ $tabjs = $wf->js_tabNames;
 <link rel="stylesheet" type="text/css" href="style.css">
 <script type="text/javascript" src="jquery-1.4.2.min.js" language="JavaScript"></script>
 <script type="text/javascript" src="WikifarmAjax.jq.js" language="JavaScript"></script>
-<script language="JavaScript">
-	initialTab = '<?=$activetab?>';
-	<?=$tabjs?>
+<script language="JavaScript"> 
+	initialTab = '<?=$tabActive?>';
 </script>
 </head>
 <body>
@@ -47,25 +60,21 @@ $tabjs = $wf->js_tabNames;
 [ logo or something ]
 <br>
 <br>
+<table width=100%><tr><td>&nbsp;</td><td align=right>Need help? Check out our <a href="docs/Wiki_Tutorial">Wiki Tutorial</a></font>
+<tr><td><font size=-2> Logged in as <?=$_SERVER["REMOTE_USER"]?></font></td><td align=right><font size=-2><a href="logout.php">Log out</a></font></td></td></table>
 
-<table width=100%><tr><td><font size=-2> Logged in as <?=$_SERVER["REMOTE_USER"]?></font></td><td align=right><font size=-2><a href="logout.php">Log out</a></font></td></td></table>
-
-<?=$tabframe?>
+<?php  // Begin tabs and stuff
+	echo "<div style=\"display: block;padding:10px;background-color:#dae6fa\" id=\"tabdiv\">\n<ul id=\"tabmenu\" >\n";
+	foreach ($tabTitles as $tab => $title) {
+		echo "<li><a class=\"\" id=\"$tab\">$title</a></li>\n";
+	}
+	echo "</ul>\n<div id=\"content\"></div>\n</div>";
+?>
 
 <br>
 <br>
 
-OpenID
-<ul>
-<li>Logged in as <?=$_SERVER["REMOTE_USER"]?></li>
-<li><a href="logout.php">Log out</a>
-</ul>
 
-Links
-<ul>
-<li><a href="docs/Wiki_Tutorial">Wiki Tutorial</a></li>
-<li><a href="table.php">Excel -> Wiki Table converter</a></li>
-</ul>
 
 Wikis
 <ol>
