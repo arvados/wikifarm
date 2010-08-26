@@ -22,6 +22,7 @@ install $SOURCEDIR/wikifarm-log-split.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
 install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
 install $SOURCEDIR/GeSHiHighlight.php /usr/share/mediawiki-extensions/
+install $SOURCEDIR/SimpleTable.php /usr/share/mediawiki-extensions/
 
 install /usr/share/doc/awstats/examples/awstats_buildstaticpages.pl $INSTALLDIR/etc/awstats_buildstaticpages.pl
 perl -pi~ -e 's:2>&1:1>&2: if $.==372' $INSTALLDIR/etc/awstats_buildstaticpages.pl
