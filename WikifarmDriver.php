@@ -28,27 +28,31 @@ class WikifarmDriver {
 
 	function query($sql) {
 		$result = $this->DB->query($sql);
-		if (!$result) die ( $this->DB->lastErrorMsg() );
+		if ($result===false) die ( $this->DB->lastErrorMsg() );
 		$this->DBresult = array();
 	  while ( $row = $result->fetchArray(SQLITE3_ASSOC) ) array_push($this->DBresult, $row);
 		return $this->DBresult;
 	}
 	
 	function querySingle($sql) {
-		$result = $this->DB->querySingle($sql);
-		if (!$result) die ( $this->DB->lastErrorMsg() );
-		$this->DBresult = array();
-	  while ( $row = $result->fetchArray(SQLITE3_ASSOC) ) array_push($this->DBresult, $row);
+		$this->DBresult = $this->DB->querySingle($sql);
+		if ($this->DBresult===false) die ( $this->DB->lastErrorMsg() );
 		return $this->DBresult;
 	}
-	
-	
-	function Focus($openid == null) {
+		
+	function Focus ($openid = null) {
 		if (!$openid) $openid = $_SERVER["REMOTE_USER"];
 		$this->openid = $openid;
 		$this->q_openid = SQLite3::escapeString ($openid);
 	}
 	
+# sanity functions
+# NOTE: These are not for sanitizing text input, and do not. They merely verify table data.
+
+	function is_a_group($group) { return ($this->querySingle("SELECT 1 FROM usergroups WHERE groupname = '$group';")) ? true : false; }
+	function is_a_user($openid) { return ($this->querySingle("SELECT 1 FROM users WHERE userid = '$openid';")) ? true : false; }
+	function is_a_wiki($wikiname) { return ($this->querySingle("SELECT 1 FROM wikis WHERE wikiname = '$wikiname';")) ? true : false; }
+		
 # cache functions
 
 	function cacheClear() { $this->_cache = array( 'on' => true ); }
@@ -59,14 +63,15 @@ class WikifarmDriver {
 
 	# returns a list of all wikis visible to $this->openid
 	function getVisibleWikis() {
+		$id = $this->q_openid;
 		$list = $this->query(
-			"SELECT id as wikiid, wikiname, realname FROM wikis WHERE wikis.userid='".$this->q_openid."' " .
-			"UNION SELECT wikis.wikiname as wikiname, wikis.realname as realname FROM wikis, wikipermission WHERE wikis.id=wikipermission.wikiid AND wikipermission.userid_or_groupname='".$this->q_openid."' " .
-			"UNION SELECT wikis.wikiname as wikiname, wikis.realname as realname FROM wikis, wikipermission, usergroups WHERE wikis.id=wikipermission.wikiid AND wikipermission.userid_or_groupname=usergroups.groupname AND usergroups.userid='".$this->q_openid."' "
+			"SELECT id as wikiid, wikiname, realname FROM wikis WHERE wikis.userid='$id' " .
+			"UNION SELECT wikis.wikiname as wikiname, wikis.realname as realname FROM wikis, wikipermission WHERE wikis.id=wikipermission.wikiid AND wikipermission.userid_or_groupname='$id' " .
+			"UNION SELECT wikis.wikiname as wikiname, wikis.realname as realname FROM wikis, wikipermission, usergroups WHERE wikis.id=wikipermission.wikiid AND wikipermission.userid_or_groupname=usergroups.groupname AND usergroups.userid='$id' "
 		);
 		foreach ($list as &$row) {
 		  if ($row["wikiid"] == 42)
-		    $row["autologin"] = array ("TomClegg", "WikiSysop");
+		    $row["autologin"] = array ("TomClegg", "WikiSysop");		    
 		}
 		return $list;
 	}
@@ -87,27 +92,28 @@ class WikifarmDriver {
 			ORDER BY wikis.id" );
 	}
 
+	# returns true if the focus user owns any wikis
 	function hasWikis() {
 		$id = $this->q_openid;
-		return $this->DB->querySingle(
+		return $this->querySingle(
 			"SELECT 1 FROM wikis WHERE wikis.userid='$id' " .
 			"UNION SELECT 1 FROM wikipermission WHERE userid_or_groupname='$id'; "
 		) ? true : false;
 	}
 
-	# returns wikis owned by $this->openid
+	# returns wikis owned by the focus user
 	function getMyWikis() {
 		$id = $this->q_openid;
 		return $this->query( "SELECT wikiname, realname FROM wikis WHERE wikis.userid='$id' " );
 	}
-
-	# TODO - invent this table
+	
+	# returns a list of wikis selected by the focus user as favorites  TODO - invent this table
 	function getFavoriteWikis() {
 		$id = $this->q_openid;
 		return $this->query( "SELECT wikiname FROM favouritewikis WHERE userid='$id' AND favorite=1");
 	}
 
-	function setFavoriteWiki($wikiname, $onoff) {
+	function setFavoriteWiki($wikiname, $onoff = 1) {
 		$id = $this->q_openid;
 		$q_wikiname = SQLite3::escapeString ($wikiname);
 		if ($onoff)	{
@@ -125,7 +131,7 @@ class WikifarmDriver {
 	// returns true if $this->openid is a wikifarm admin	
 	function isAdmin () {
 		$id = $this->q_openid;
-		return $this->DB->querySingle("SELECT 1 FROM usergroups WHERE usergroups.userid = '$id' AND groupname = 'ADMIN'" );
+		return $this->querySingle("SELECT 1 FROM usergroups WHERE usergroups.userid = '$id' AND groupname = 'ADMIN'" );
 	}
 	
 	function setAdmin($onoff) {
@@ -133,45 +139,126 @@ class WikifarmDriver {
 		$onoff = ($onoff?'1':'0');
 		return $this->DB->exec("UPDATE users SET admin=$onoff WHERE userid='$id'");
 	}
-	
-	function getUser($wikiname) {
-		if (!$openid) $openid = $this->openid;
-		$q_openid = SQLite3::escapeString ($openid);
-		$q_wikiname = SQLite3::escapeString ($wikiname);
-/*		return $this->DB=->querySingle(
-			"SELECT 1 FROM wikis WHERE wikis.userid='$q_openid' and wikis.wikiname='$q_wikiname' " .
-			"UNION SELECT 1 FROM wikis, wikipermission WHERE wikis.id=wikipermission.wikiid AND wikipermission.userid_or_groupname='$q_userid' " .
-			"UNION SELECT 1 FROM wikis, wikipermission, usergroups WHERE wikis.id=wikipermission.wikiid AND wikipermission.userid_or_groupname=usergroups.groupname AND usergroups.userid='$q_userid' "
-		);
-*/
-		return true;		//hack - if it's even a needed function
+
+	function getUserGroups() {
+		$id = $this->q_openid;
+		return $this->query( "SELECT groupname FROM usergroups WHERE userid='$id'; "	);		
 	}
 
+	function getRequestedGroups() {
+		$id = $this->q_openid;
+		//return $this->query( "SELECT groupname FROM usergroups WHERE usergroups.userid='$id'; "	);		
+		return array('grp1'=>"Group One",'grp2'=>"Group Two",'grp3'=>"Group Three",'grp4'=>"Group Four");		
+	}
+		
+	function getAllGroups() {
+		return $this->query('SELECT groupname FROM usergroups GROUP BY groupname;');
+	}
+	
 
-	/*	user has a valid, verified name and email and is a member of the user's group
-			isAuthenticated should be our go-to method of testing an OpenID before providing content
+	/*	user has a valid, verified name and email and is a member of the user's group			
+			it should be our go-to method of testing an OpenID before providing content
 			or asking for additional identificaton. */
 	function isActivated($openid = null) {
-		if (!$openid) $openid = $this->openid;
-		$q_openid = SQLite3::escapeString ($openid);
-		// $auth = $this->DB->querySingle( "SELECT 1 FROM usergroups WHERE groupname='users' AND userid='$q_openid';" );
-		// return $auth ? true : false;
-		return false;  //hack
+		$id = $this->q_openid;
+		return $this->querySingle( "SELECT 1 FROM usergroups WHERE groupname='users' AND userid='$id';" );
+//		return 1;  //hack
 	}
 	
 	function setActivated() {
 		
-	
-	function getUser($field, $openid = null) {
-		return "Bob Bobertson"; //hack
-		if (!$openid) $openid = $this->openid;
-		$q_openid = SQLite3::escapeString ($openid);
-		//TODO is this sane enough, or should i just use a switch statement? - case "wikinick": $field = "wikinick"...
-		if (preg_match('/(wikinick|realname|email)/i', $field, $match)) {
-			return $this->DB->querySingle("SELECT " . $match[1] . " FROM users WHERE userid='$q_openid';" );
-		}
-		return false;		
+		//TODO
 	}
+
+	function getUserRealname() {
+		return "Bob Bobertson"; //hack
+		$id = $this->q_openid;
+		return $this->querySingle("SELECT realname FROM users WHERE userid='$id';" );
+	}
+	
+	function setUserRealname($name) {
+		$name = SQLite3::escapeString ($name); //TODO verifiy this is filtered enough
+		$id = $this->q_openid;
+		return $this->DB->exec("UPDATE users SET realname='$name' WHERE userid='$id';" );
+	}		
+
+	function getUserEmail() {
+		return "bob@bobbobertson.com"; //hack
+		$id = $this->q_openid;
+		return $this->querySingle("SELECT email FROM users WHERE userid='$id';" );
+	}
+
+	function getUserByEmail($email) {		
+		$email = SQLite3::escapeString (filter_var($email, FILTER_VALIDATE_EMAIL));
+		return $this->querySingle("SELECT userid FROM users WHERE email='$email';" );
+	}
+	
+	function getMWUsername() {
+		//TODO
+		return "Bob";
+	}
+		
+	function setMWUsername($nickname) {
+		//TODO
+		return true;
+	}
+	
+	function requestGroup($groups) {
+		if (!is_array($groups)) $groups = array($groups);
+		foreach ($groups as $group) {
+			$group = SQLite3::escapeString($group);
+			if ($this->is_a_group($group)) {  //group is legit
+				// TODO
+			}
+		}
+	}
+
+# Admin Stuff
+	
+	function getAllRequests() {
+		//TODO
+		
+		return array ("requestid" => 123, "userid" => 'erere', "groupname" => "users");
+	}
+	
+	function approveRequestId($requestid) {
+		//TODO
+	}
+	
+	function rejectRequestId($requestid) {
+		//TODO
+	}
+	
+# Invite Codes	
+
+	function claimInvite($code) {
+		$q_openid = $this->q_openid;
+		//TODO
+		
+		
+	}
+	
+	function claimInviteByPassword($username, $password) {
+	
+		//TODO
+	}
+	
+	function createInvite($group, $wiki, $email) {
+		//TODO: figure out what this should do
+		return "a secret code!";
+	}
+	
+	function inviteUser($wikiid,$invitee_email,$mwusername=false) {
+		$existingUser = $this->getUserByEmail($email);
+		if ($existingUser) {
+			//TODO
+			
+		} else {
+		
+		}
+	}
+
+
 
 	
 }  // WikifarmDriver class ends

@@ -19,9 +19,8 @@ class WikifarmPageMachine extends WikifarmDriver {
 		return $output;
 	}
 
-	function myWikis($openid = null) {
-		if (!$openid) $openid = $this->openid;
-		$myWikiArray = $this->getMyWikis($openid);
+	function myWikis() {		
+		$myWikiArray = $this->getMyWikis();
 		$output = "<b>My Wikis</b><br><ul>\n";
 		foreach ($wikiArray as $w) {
 			$output .= '<li><a href="'. $this->wikiURL($w['wikiname']) . '">' . $w['realname'] . "</a> ...</li>\n";
@@ -40,8 +39,8 @@ class WikifarmPageMachine extends WikifarmDriver {
 		switch ($tab) {
 			case "wikis": return $this->pageAllWikis();
 			case "getaccess": return $this->pageGetAccess();
-			case "giveaccess": return $this->allWikis();
-			case "createwiki": return $this->allWikis();
+			case "giveaccess": return $this->pageGiveAccess();
+			case "createwiki": return $this->pageCreateWiki();
 			case "tools": return $this->pageTools();
 			case "schema": return $this->schema();
 		}
@@ -54,11 +53,10 @@ class WikifarmPageMachine extends WikifarmDriver {
 		$openid = $this->openid;
 		$requestcount = 0;
 		$username = null;
-		if ($this->isAuthenticated($openid)) {
-			$username = $this->getUser('realname', $openid);
-			$wikinick = $this->getUser('wikinick', $openid);
+		if ($this->isActivated()) {
+			$username = $this->getUserRealname();
+			$wikinick = $this->getMWUsername();
 		}
-		// $grouplist = $this->query("SELECT ..."); TODO
 		//hack
 		$grouplist = array( 'group' => array('group1','group2','group3','group4','group5'),
 			'pending_since' => array( time()-1000, time()-4000, "june 23, 2010", null, null),
@@ -112,10 +110,9 @@ BLOCK;
 	}
 	
 
-	function pageAllWikis($openid = null) {
-		if (!$openid) $openid = $this->openid;
-		$adminmode = $this->isAdmin($openid);
-		$wikiArray = $this->getAllWikis($openid);		
+	function pageAllWikis() {
+		$adminmode = $this->isAdmin();
+		$wikiArray = $this->getAllWikis();		
 		$output = "<h2>Wikis</h2>\n<ol>\n";
 		foreach ($wikiArray as $row) {
 			if ($row['realname'] == '') $row['realname'] = $row['wikiname'];
@@ -127,8 +124,7 @@ BLOCK;
 	}
 
 
-	function pageTools($openid = null) {
-		if (!$openid) $openid = $this->openid;
+	function pageTools() {
 		return <<<BLOCK
 <h2>Tools</h2><br>
 <ul>
@@ -137,6 +133,15 @@ BLOCK;
 BLOCK;
 	}
 
+	function pageGiveAccess() {
+		return "to do";
+		
+	}
+	
+	function pageCreateWiki() {
+		return "to do";
+		
+	}
 	
 }  // class ends
 

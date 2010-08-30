@@ -7,7 +7,7 @@ $(document).ready(function() {
 		$(this).click(function() {
 			$("#tabmenu li").each(function() { $(this).find('a').removeClass("active"); });
 			thisAnchor.addClass("active");
-			$('div#content').load("index2.php?tab="+thisAnchor.attr("id"));
+			$('div#content').load("index.php?tab="+thisAnchor.attr("id"));
 		});
 	});
 	$('a#'.initialTab).addClass("active");  // doesn't seem to be working
