@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use DBI;
+use Time::HiRes qw(gettimeofday tv_interval);
 
 $debug = 0;
 
@@ -17,9 +18,12 @@ if ($debug) {
 while (defined ($_ = <STDIN>)) {
     chomp;
     my $in = $_;
+    my $t0 = [gettimeofday];
     my ($wikifarm_db_file, $auth_openid_db_file, $wikiid, $uri, $cookie) = split (":::", $_, 5);
 
-    if ($uri =~ m:^/[^/]*$: || $uri =~ m:^/\w+/(skins):) {
+    if ($uri =~ m:^/[^/]*$: ||
+	$uri =~ m:^/\w+/(skins): ||
+	$uri =~ m:^/(css|js|images)/:) {
 	print X "uri $uri > yes\n";
 	print "yes\n";
 	next;
@@ -71,7 +75,7 @@ while (defined ($_ = <STDIN>)) {
     elsif ($why = user_can_see_wiki ($wikifarm_db, $user_id, $wikiid, $uri)) {
 	$yesno = "yes";
     }
-    print X "wiki $wikiid > session $session_id > user $user_id > uri $uri > $yesno ($why)\n" if $debug;
+    printf X ("%.3f s %s", tv_interval ($t0), "wiki $wikiid > session $session_id > user $user_id > uri $uri > $yesno ($why)\n") if $debug;
     print "$yesno\n";
 }
 
