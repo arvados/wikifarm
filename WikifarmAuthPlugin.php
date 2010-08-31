@@ -201,10 +201,12 @@ class WikifarmAuthPlugin extends AuthPlugin {
 	}
 }
 
-session_start();
-$wgAuth = new WikifarmAuthPlugin();
-$wgHooks['UserLoadFromSession'][] = array ($wgAuth, 'autoAuthenticate');
-$wgHooks['UserLoginComplete'][] = array ($wgAuth, 'UserLoginComplete');
-$wgHooks['UserGetRights'][] = array ($wgAuth, 'UserGetRights');
-global $wgDisableCookieCheck;
-$wgDisableCookieCheck = true;
+if (getenv("WIKIID") && getenv("REMOTE_USER") != "") {
+	session_start();
+	$wgAuth = new WikifarmAuthPlugin();
+	$wgHooks['UserLoadFromSession'][] = array ($wgAuth, 'autoAuthenticate');
+	$wgHooks['UserLoginComplete'][] = array ($wgAuth, 'UserLoginComplete');
+	$wgHooks['UserGetRights'][] = array ($wgAuth, 'UserGetRights');
+	global $wgDisableCookieCheck;
+	$wgDisableCookieCheck = true;
+}
