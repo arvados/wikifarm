@@ -23,11 +23,14 @@ install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
 install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmDriver.php $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmPageMachine.php $INSTALLDIR/wikis/
+
+mkdir -p $INSTALLDIR/wikis/js
 install $SOURCEDIR/js/jquery-1.4.2.min.js $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/jquery-ui-1.8.4.custom.min.js $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/wikifarm-ui.js $INSTALLDIR/wikis/js/
 
-install $SOURCEDIR/css/* $INSTALLDIR/wikis/css/*
+mkdir -p $INSTALLDIR/wikis/css
+cp -r $SOURCEDIR/css/* $INSTALLDIR/wikis/css/
 install $SOURCEDIR/style.css $INSTALLDIR/wikis/
 
 install $SOURCEDIR/GeSHiHighlight.php /usr/share/mediawiki-extensions/
