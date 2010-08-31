@@ -48,11 +48,10 @@ $tabActive = ($wf->hasWikis() ? "wikis" : "getaccess");
 <head>
 <title>WikiFarm Dashboard</title>
 <link rel="stylesheet" type="text/css" href="style.css">
-<? /* <link type="text/css" href="css/themename/jquery-ui-1.8.custom.css" rel="Stylesheet" />	
- TODO: permission problems with the css/ and js/ folders.  can i get an exception from the auth rules? */ ?>
-<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
-<script type="text/javascript" src="jquery-ui-1.8.custom.min.js"></script>
-<script type="text/javascript" src="wikifarm-ui.js" language="JavaScript"></script>
+<link type="text/css" href="/css/smoothness/jquery-ui-1.8.4.custom.css" rel="Stylesheet" />
+<script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui-1.8.4.custom.min.js"></script>
+<script type="text/javascript" src="/js/wikifarm-ui.js" language="JavaScript"></script>
 <script language="JavaScript"> 
 	initialTab = '<?=$tabActive?>';
 </script>
