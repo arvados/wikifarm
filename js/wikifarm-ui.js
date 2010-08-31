@@ -15,5 +15,3 @@ $(document).ready(function() {
 });
 
 /* jQuery ui */
-
-
