@@ -7,9 +7,9 @@ $(document).ready(function() {
 		$(this).click(function() {
 			$("#tabmenu li").each(function() { $(this).find('a').removeClass("active"); });
 			thisAnchor.addClass("active");
-			$('div#content').load("index2.php?tab="+thisAnchor.attr("id"));
+			$('div#content').load("./?tab="+thisAnchor.attr("id"));
 		});
 	});
 	$('#'.initialTab).addClass("active");  // doesn't seem to be working
-	$('div#content').load("index2.php?tab="+initialTab);
+	$('div#content').load("./?tab="+initialTab);
 });
