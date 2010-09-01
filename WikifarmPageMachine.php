@@ -114,32 +114,7 @@ BLOCK;
 
 	function page_wikis() {
 		$adminmode = $this->isAdmin();
-		$wikiArray = array(
-			'bobwiki' => array (
-				'realname' => 'El Bobbo\'s Magic Wiki',
-				'wikiid' => 900,
-				'mwusernames' => array ('BBoberson', 'ElBobbo'),
-				'owner' => 1,
-				'readonly' => 1,
-				'groups' => array('users','churchlab')
-				),
-			'anotherwiki' => array (
-				'realname' => 'Another Wiki',
-				'wikiid' => 901,
-				'mwusernames' => array('BBoberson'),
-				'owner' => 0,
-				'readonly' => 1,
-				'groups' => array('users')
-				),
-			'strangewiki' => array (
-				'realname' => 'A Mysterious Wiki',
-				'wikiid' => 902,
-				'mwusernames' => array(),
-				'owner' => 0,
-				'readonly' => 1,
-				'groups' => array('churchlab')
-				)
-			);
+		$wikiArray = $this->getAllWikis();
 $output = "<script language=\"JavaScript\">
 			$(function() {
 				$('#wikiaccordion').accordion({ header: 'h3' });
@@ -147,11 +122,11 @@ $output = "<script language=\"JavaScript\">
 </script>";
 
 		$output .= "<h2>Wikis</h2>\n<div id=\"wikiaccordion\">\n";
-		foreach ($wikiArray as $wikiname => $row) {			
-			if ($row['realname'] == '') $row['realname'] = $row['wikiname'];			
+		foreach ($wikiArray as $row) {
+			$wikiname = $row['wikiname'];
+			if ($row['realname'] == '') $row['realname'] = $row['wikiname'];
 			$output .= "\t<h3><a href='#'>#" . $row['wikiid'] .' - '. $row['realname'] ."</a></h3>\n".
 				"\t<div>\n\t\t<table><tr><td width=60>".$row['wikiid']."</td><td width=100>$wikiname</td></tr></table>";
-			 if ($adminmode) $output .= " owned by " . $row['userid'] . "\n";
 			$output .= "\n\t</div>";
 		}
 		$output .= "</div>\n";

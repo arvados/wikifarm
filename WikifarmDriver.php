@@ -117,15 +117,21 @@ class WikifarmDriver {
 			WHERE userid='".$this->q_openid."' AND userid_or_groupname IS NOT NULL
 			GROUP BY wikiid");
 		foreach ($x as &$row)
-		    $readable[$row["wikiid"]] = true;
+			$readable[$row["wikiid"]] = true;
+
+		$wikigroup = array();
+		$x = $this->query ("SELECT * FROM wikipermission LEFT JOIN usergroups ON groupname=userid_or_groupname WHERE groupname IS NOT NULL GROUP BY wikiid, groupname");
+		foreach ($x as &$row)
+			$wikigroup[$row["wikiid"]][] = $row["groupname"];
 
 		$this->_preloadMyRequests();
 		$autologin = array();
 		$x = $this->query ("SELECT * FROM autologin WHERE userid='".$this->q_openid."'");
 		foreach ($x as &$row)
-		    $autologin[$row["wikiid"]][] = $row["mwusername"];
+			$autologin[$row["wikiid"]][] = $row["mwusername"];
 
 		foreach ($wikis as &$row) {
+		    $row["wikiid"] = $row["id"];
 		    if (array_key_exists ($row["id"], $readable)) {
 			$row["readable"] = true;
 			$row["requested_readable"] = false;
@@ -143,6 +149,11 @@ class WikifarmDriver {
 			$row["requested_autologin"] = $this->_cache["requested_autologin"][$row["id"]];
 		    else
 			$row["requested_autologin"] = false;
+
+		    if (array_key_exists ($row["id"], $wikigroup))
+			    $row["groups"] = $wikigroup[$row["id"]];
+		    else
+			    $row["groups"] = array();
 		}
 
 		$this->_cache["allwikis"] = $wikis;
