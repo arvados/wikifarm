@@ -24,6 +24,7 @@ if (isset($_GET['tab'])) {
 
 // what tabs should we see?
 $tabTitles = array(
+			'requests'=>'Requests',
 			'wikis'=>'Wikis',
 			'groups'=>'Groups',
 			'myaccount'=>'My Account',
@@ -46,6 +47,8 @@ else {
 		$tabTitles = array ($tabActive => $tabTitles[$tabActive]);
 	}
 }
+if (0 == count($wf->getAllRequests()))
+	unset ($tabTitles['requests']);
 
 
 ?><html>
