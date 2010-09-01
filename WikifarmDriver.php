@@ -16,6 +16,7 @@ class WikifarmDriver {
 		} elseif (is_file($db)) {
 			$this->DB = new SQLite3($db);
 		}
+		if (!$this->DB) die("Fatal: The wikifarm database was unavailable.\n\n");
 		$this->Focus();  // $_SERVER["REMOTE_USER"] by default, the user in focus is the currently signed-in one.
 		$this->cacheClear();
 	}

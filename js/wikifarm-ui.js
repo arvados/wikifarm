@@ -1,4 +1,5 @@
 /* original tab code */
+
 var initialTab = "wikis";
 
 $(document).ready(function() {
@@ -10,8 +11,13 @@ $(document).ready(function() {
 			$('div#content').load("index.php?tab="+thisAnchor.attr("id"));
 		});
 	});
-	$('a#'.initialTab).addClass("active");  // doesn't seem to be working
+	// $('a#'.initialTab).addClass("active");  // doesn't seem to be working
 	$('div#content').load("index.php?tab="+initialTab);
 });
 
 /* jQuery ui */
+/*
+$(function() {
+	$("#accordion").accordion({ header: "h3" });
+});
+*/
