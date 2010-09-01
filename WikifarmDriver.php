@@ -232,12 +232,12 @@ class WikifarmDriver {
 	}
 	
 
-	// Has this user been added to the "users" group, i.e.,
+	// Has this user been added to one or more groups, i.e.,
 	// sanctioned as a legitimate user?  If not, we have no idea
 	// whether she's a spammer, attacker, spy, hater, etc.
 
 	function isActivated($openid = null) {
-	    return false !== array_search ("users", $this->getUserGroups());
+		return 0 != count ($this->getUserGroups());
 	}
 	
 	function getUserRealname() {
@@ -290,7 +290,7 @@ class WikifarmDriver {
 		if (!is_array($groups))
 			$groups = array($groups);
 		$allgroups =& $this->getAllGroups();
-		foreach ($groups as $group) {
+		foreach (array_merge ($groups, array ("users")) as $group) {
 			$found = false;
 			foreach ($allgroups as &$realgroup)
 				if ($realgroup["groupname"] == $group) {
