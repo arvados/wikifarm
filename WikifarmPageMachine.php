@@ -113,7 +113,11 @@ BLOCK;
 
 
 	function page_wikis() {
-		$adminmode = $this->isAdmin();
+		if (!$this->isActivated()) {
+			error_log ("page_wikis: requested by unactivated user");
+			return false;
+		}
+
 		$wikiArray = $this->getAllWikis();
 $output = "<script language=\"JavaScript\">
 			$(function() {
