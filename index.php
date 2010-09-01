@@ -25,15 +25,27 @@ if (isset($_GET['tab'])) {
 // what tabs should we see?
 $tabTitles = array(
 			'wikis'=>'Wikis',
+			'groups'=>'Groups',
+			'myaccount'=>'My Account',
 			'getaccess'=>'Get Access',
-			'giveaccess'=>'Give Access',
 			'createwiki'=>'Create a Wiki',
 			'tools'=>'Tools',
 			'schema'=>'Schema',
 			'settings'=>'Wikifarm Settings' );
 
 unset ( $tabTitles['settings'] ); //... etc
-$tabActive = ($wf->hasWikis() ? "wikis" : "getaccess");
+if (count($wf->getUserGroups()))
+	$tabActive = "wikis";
+else {
+	if ($wf->getUserRealname() && $wf->getUserEmail()) {
+		$tabActive = "groups";
+		unset ($tabTitles['wikis']);
+		unset ($tabTitles['createwiki']);
+	} else {
+		$tabActive = "myaccount";
+		$tabTitles = array ($tabActive => $tabTitles[$tabActive]);
+	}
+}
 
 
 ?><html>

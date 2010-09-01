@@ -9,7 +9,7 @@ class WikifarmPageMachine extends WikifarmDriver {
 		WikifarmDriver::__construct($db);
 	}
 
-	function schema() {		
+	function page_schema() {
 		$output = "<b>current sqlite schema: </b><br><pre>";
 		$result = $this->query( "SELECT sql FROM sqlite_master" );
 		foreach ($result as $row) { 
@@ -33,23 +33,17 @@ class WikifarmPageMachine extends WikifarmDriver {
 		return "http://serverlyserver.com/pathy-path-path/";
 	}
 
-# all about the tabs	
+	// all about the tabs	
 
 	function tabGet($tab) {
-		switch ($tab) {
-			case "wikis": return $this->pageAllWikis();
-			case "getaccess": return $this->pageGetAccess();
-			case "giveaccess": return $this->pageGiveAccess();
-			case "createwiki": return $this->pageCreateWiki();
-			case "tools": return $this->pageTools();
-			case "schema": return $this->schema();
-		}
-		return "Invalid content request \"$tab\"";
+		if (!method_exists ($this, "page_$tab"))
+			return "Invalid request";
+		return call_user_func (array ($this, "page_$tab"));
 	}
 
 
 	// activating invites based on user/password or an invite code, requesting access or additional access
-	function pageGetAccess() {
+	function page_getaccess() {
 		$openid = $this->openid;
 		$requestcount = 0;
 		$username = null;
@@ -82,7 +76,7 @@ attached to the OpenID you are currently logged in as ($openid).
 
 </td><td class=vertbreak>|</td><td>
 
-Request access to stuff (approval required, we'll let you know)
+Request access to stuff (approval required, we will let you know)
 <blockquote>
 <form action="index.php" method="post">
 BLOCK;
@@ -108,9 +102,17 @@ BLOCK;
 		$output .= "</table><input type=submit value=\"Send Request\"></form>\n</blockquote>";
 		return $output;
 	}
-	
 
-	function pageAllWikis() {
+	function page_myaccount() {
+		return $this->uglydumpling (array ("userid" => $this->openid,
+						   "email" => $this->getUserEmail(),
+						   "realname" => $this->getUserRealname(),
+						   "mwusername" => $this->getMWUsername(),
+						   "prefs" => $this->getUserPrefs()));
+	}
+
+
+	function page_wikis() {
 		$adminmode = $this->isAdmin();
 		$wikiArray = array(
 			'bobwiki' => array (
@@ -153,10 +155,17 @@ $output = "<script language=\"JavaScript\">
 			$output .= "\n\t</div>";
 		}
 		$output .= "</div>\n";
+		$output .= $this->uglydumpling ($this->getAllWikis());
 		return $output;
 	}
-	
-	function pageTools() {
+
+
+	function page_groups() {
+		return $this->uglydumpling ($this->getAllGroups());
+	}
+
+
+	function page_tools() {
 		return <<<BLOCK
 <h2>Tools</h2><br>
 <ul>
@@ -165,14 +174,17 @@ $output = "<script language=\"JavaScript\">
 BLOCK;
 	}
 
-	function pageGiveAccess() {
+	function page_requests() {
+		return $this->uglydumpling ($this->getAllRequests());
+	}
+	
+	function page_createwiki() {
 		return "to do";
 		
 	}
-	
-	function pageCreateWiki() {
-		return "to do";
-		
+
+	function uglydumpling ($x) {
+		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
 	
 }  // class ends

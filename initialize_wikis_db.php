@@ -2,6 +2,22 @@
      ;
 $home = getenv("INSTALLDIR");
 $db = new SQLite3 ("$home/db/wikis.db");
+
+if (!$db->exec ('CREATE TABLE request (
+ requestid integer primary key autoincrement,
+ userid varchar(255),
+ wikiid integer,
+ mwusername varchar(255),
+ groupname varchar(255)
+ )'))
+    die ($db->lastErrorMsg());
+if (!$db->exec ('CREATE INDEX ru ON request (userid)'))
+    die ($db->lastErrorMsg());
+if (!$db->exec ('CREATE INDEX rw ON request (wikiid)'))
+    die ($db->lastErrorMsg());
+if (!$db->exec ('CREATE UNIQUE INDEX runique ON request (userid,wikiid,groupname)'))
+    die ($db->lastErrorMsg());
+
 if (!$db->exec ('CREATE TABLE wikis (
  id integer primary key autoincrement,
  wikiname varchar(32),
@@ -50,7 +66,6 @@ if (!$db->exec ('CREATE TABLE autologin (
 
 if (!$db->exec ('CREATE UNIQUE INDEX wu ON autologin (wikiid,userid,mwusername)'))
     die ($db->lastErrorMsg());
-
 
 print "Importing wiki.list...";
 $fh = fopen ("$home/etc/wiki.list", "r");
