@@ -27,7 +27,6 @@ install $SOURCEDIR/WikifarmPageMachine.php $INSTALLDIR/wikis/
 mkdir -p $INSTALLDIR/wikis/js
 install $SOURCEDIR/js/jquery-1.4.2.min.js $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/jquery-ui-1.8.4.custom.min.js $INSTALLDIR/wikis/js/
-install $SOURCEDIR/js/wikifarm-ui.js $INSTALLDIR/wikis/js/
 
 mkdir -p $INSTALLDIR/wikis/css
 cp -r $SOURCEDIR/css/* $INSTALLDIR/wikis/css/
