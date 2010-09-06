@@ -51,6 +51,7 @@ class WikifarmDriver {
 	
 	// sanity functions
 	// NOTE: These are not for sanitizing text input, and do not. They merely verify table data.
+	// Never mind, it appears now as though they do
 
 	function is_a_group($group) {
 		return ($this->querySingle("SELECT 1 FROM usergroups WHERE groupname = '".SQLite3::escapeString($group)."'")) ? true : false;
@@ -171,8 +172,51 @@ class WikifarmDriver {
 
 	# returns wikis owned by the focus user
 	function getMyWikis() {
-		$id = $this->q_openid;
-		return $this->query( "SELECT wikiname, realname FROM wikis WHERE wikis.userid='$id' " );
+		if (array_key_exists ("mywikis", $this->_cache))
+			return $this->_cache["mywikis"];
+
+		$wikis =& $this->query(
+			"SELECT wikis.id as id,
+			wikis.wikiname as wikiname,
+			wikis.realname as realname,
+			wikis.userid as userid
+			FROM wikis 
+			WHERE wikis.userid ='".$this->q_openid."'
+			ORDER BY wikis.id" );
+
+		$wikigroup = array();
+		$x = $this->query ("SELECT * FROM wikipermission LEFT JOIN usergroups ON groupname=userid_or_groupname WHERE groupname IS NOT NULL GROUP BY wikiid, groupname");
+		foreach ($x as &$row)
+			$wikigroup[$row["wikiid"]][] = $row["groupname"];
+
+		$this->_preloadMyRequests();
+		$autologin = array();
+		$x = $this->query ("SELECT * FROM autologin WHERE userid='".$this->q_openid."'");
+		foreach ($x as &$row)
+			$autologin[$row["wikiid"]][] = $row["mwusername"];
+
+		foreach ($wikis as &$row) {
+		    $row["wikiid"] = $row["id"];
+				$row["readable"] = true;
+				$row["requested_readable"] = false;
+
+		    if (array_key_exists ($row["id"], $autologin))
+			$row["autologin"] = $autologin[$row["id"]];
+		    else
+			$row["autologin"] = false;
+		    if (array_key_exists ($row["id"], $this->_cache["requested_autologin"]))
+			$row["requested_autologin"] = $this->_cache["requested_autologin"][$row["id"]];
+		    else
+			$row["requested_autologin"] = false;
+
+		    if (array_key_exists ($row["id"], $wikigroup))
+			    $row["groups"] = $wikigroup[$row["id"]];
+		    else
+			    $row["groups"] = array();
+		}
+
+		$this->_cache["allwikis"] = $wikis;
+		return $wikis;
 	}
 	
 	# returns a list of wikis selected by the focus user as favorites  TODO - invent this table
@@ -312,18 +356,20 @@ class WikifarmDriver {
 		}
 	}
 
-	// Responding to requests
-	
+	// Responding to requests	
 	function getAllRequests() {
-		$reqs = $this->query ("select * from request where wikiid in (select id from wikis where userid='".$this->q_openid."')");
-		if (!$this->isAdmin())
-			return $reqs;
-
-		$group_reqs = $this->query ("select * from request where wikiid is null");
-		return array_merge ($group_reqs, $reqs);
+		if (!array_key_exists ("getAllRequests", $this->_cache)) {
+			$reqs = $this->query ("select * from request where wikiid in (select id from wikis where userid='".$this->q_openid."')");
+			if (!$this->isAdmin()) {
+				$this->_cache['getAllRequests'] = $reqs;
+			} else {
+				$group_reqs = $this->query ("select * from request where wikiid is null");
+				$this->_cache['getAllRequests'] = array_merge ($group_reqs, $reqs);
+			}
+		}
+		return $this->_cache['getAllRequests'];
 	}
-
-
+	
 	// Am I allowed to approve or deny this request?  If not
 	// allowed, return false.  If allowed, return assoc array with
 	// the request details

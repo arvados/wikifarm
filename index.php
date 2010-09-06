@@ -6,9 +6,6 @@ error_reporting(E_ALL);
 require_once('WikifarmDriver.php');
 require_once('WikifarmPageMachine.php');
 
-// $userid = $_SERVER["REMOTE_USER"];
-// $q_userid = SQLite3::escapeString ($userid);
-
 $wf = new WikifarmPageMachine();
 
 if (isset($_GET["modauthopenid_referrer"]) && $wf->isActivated()) {   //TODO is "activated" still really what we're testing?
@@ -25,16 +22,28 @@ if (isset($_GET['tab'])) {
 // what tabs should we see?
 $tabTitles = array(
 			'requests'=>'Requests',
-			'wikis'=>'Wikis',
+			'wikis'=>'All Wikis',
+			'mywikis'=>'My Wikis',
 			'groups'=>'Groups',
 			'myaccount'=>'My Account',
 			'getaccess'=>'Get Access',
 			'createwiki'=>'Create a Wiki',
 			'tools'=>'Tools',
-			'schema'=>'Schema',
+			'debug'=>'Debug',
 			'settings'=>'Wikifarm Settings' );
 
-unset ( $tabTitles['settings'] ); //... etc
+if (!$wf->isAdmin()) {
+	unset ( $tabTitles['settings'] );
+	// unset ( $tabTitles['wikis'] );
+	if (!$wf->isActivated()) {
+		unset ( $tabTitles['mywikis'] );
+		
+	}
+}
+		
+	
+
+
 if (count($wf->getUserGroups()))
 	$tabActive = "wikis";
 else {
@@ -59,12 +68,13 @@ if (0 == count($wf->getAllRequests()))
 <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.4.custom.min.js"></script>
 <? /* <script type="text/javascript" src="js/wikifarm-ui.js" language="JavaScript"></script> */ ?>
+<style type="text/css">
+		.button { padding: .5em 1em; text-decoration: none; }
+</style>
 <script language="JavaScript">
-
 	$(function() {
 		$("#tabs").tabs();
 	});
-
 </script>
 </head>
 <body>
@@ -73,18 +83,9 @@ if (0 == count($wf->getAllRequests()))
 <br>
 <br>
 <table width=100%><tr><td>&nbsp;</td><td align=right>Need help? Check out our <a href="docs/Wiki_Tutorial">Wiki Tutorial</a></td>
-<tr><td><font size=-2> Logged in as <?=$_SERVER["REMOTE_USER"]?></font></td><td align=right><font size=-2><a href="logout.php">Log out</a></font></td></table>
+<tr><td><font size=-2> Logged in as <?=$_SERVER["REMOTE_USER"]?></font></td><td align=right><font size=-2><a href="logout.php" class="button ui-state-default ui-corner-all">Log out</a></font></td></table>
 
 <?php  // Begin tabs and stuff
-/*
-	echo "<div style=\"display: block;padding:10px;background-color:#dae6fa\" id=\"tabdiv\">\n<ul id=\"tabmenu\" >\n";
-	foreach ($tabTitles as $tab => $title) {
-		echo "<li><a class=\"\" id=\"$tab\">$title</a></li>\n";
-	}
-	echo "</ul>\n<div id=\"content\"></div>\n</div>";
-*/
-
-// jq ui instead:
 
 	echo "<div id=\"tabs\">\n\t<ul>";
 	foreach ($tabTitles as $tab => $title) {
@@ -92,10 +93,7 @@ if (0 == count($wf->getAllRequests()))
 	}
 	echo "\n\t</ul>\n</div>";
 
-
-// echo $wf->pageAllWikis();
 ?>
-
 
 
 <br>

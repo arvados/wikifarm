@@ -9,7 +9,7 @@ class WikifarmPageMachine extends WikifarmDriver {
 		WikifarmDriver::__construct($db);
 	}
 
-	function page_schema() {
+	function page_debug() {
 		$output = "<b>current sqlite schema: </b><br><pre>";
 		$result = $this->query( "SELECT sql FROM sqlite_master" );
 		foreach ($result as $row) { 
@@ -19,28 +19,13 @@ class WikifarmPageMachine extends WikifarmDriver {
 		return $output;
 	}
 
-	function myWikis() {		
-		$myWikiArray = $this->getMyWikis();
-		$output = "<b>My Wikis</b><br><ul>\n";
-		foreach ($wikiArray as $w) {
-			$output .= '<li><a href="'. $this->wikiURL($w['wikiname']) . '">' . $w['realname'] . "</a> ...</li>\n";
-		}
-		$output .= "</ul>\n";
-		return $output;
-	}
-
-	function wikiURL($wikiid) {
-		return "http://serverlyserver.com/pathy-path-path/";
-	}
-
 	// all about the tabs	
 
 	function tabGet($tab) {
 		if (!method_exists ($this, "page_$tab"))
-			return "Invalid request";
+			return "__FUNCTION__: Invalid page request";
 		return call_user_func (array ($this, "page_$tab"));
 	}
-
 
 	// activating invites based on user/password or an invite code, requesting access or additional access
 	function page_getaccess() {
@@ -113,34 +98,78 @@ BLOCK;
 
 
 	function page_wikis() {
-		if (!$this->isActivated()) {
+		if (!$this->isActivated()) {			
 			error_log ("page_wikis: requested by unactivated user");
-			return false;
+			return page_wikis_unactivated();
 		}
-
 		$wikiArray = $this->getAllWikis();
-$output = "<script language=\"JavaScript\">
-			$(function() {
-				$('#wikiaccordion').accordion({ header: 'h3' });
-			});
-</script>";
+		$output = "<script type=\"text/javascript\">\n\t$(function() {\n".
+				// "\t$(function() {\n\t\t$(\"#$element\").selectable();\n\t});\n" .
+				// "\t$(function() {\n\t\t$('#$element').accordion({ header: 'h3' });\n\t});\n" .			
+				"\t\t$(\"a\", \"#controls\").button();\n".
+				
+			"\t});\n</script>\n<style type=\"text/css\">\n" .
+				// "#$element { width: 80%; }\n".
+				"#allwikis td.wikiid { width: 25px; text-align: right; padding-right: 10px; }\n".
 
-		$output .= "<h2>Wikis</h2>\n<div id=\"wikiaccordion\">\n";
+			"</style>\n";		
+		$output .= "<h2>All Wikis</h2>\n<table id=\"allwikis\" class=\"ui-widget\" >\n".
+			"<tr class=\"ui-widget-header\"><td class=\"wikiid ui-corner-tl\">#</td><td>Wiki</td><td class=\"controls ui-corner-tr\">Your Username</td></tr>\n";
+		
 		foreach ($wikiArray as $row) {
-			$wikiname = $row['wikiname'];
-			if ($row['realname'] == '') $row['realname'] = $row['wikiname'];
-			$output .= "\t<h3><a href='#'>#" . $row['wikiid'] .' - '. $row['realname'] ."</a></h3>\n".
-				"\t<div>\n\t\t<table><tr><td width=60>".$row['wikiid']."</td><td width=100>$wikiname</td></tr></table>";
-			$output .= "\n\t</div>";
+			extract ($row);
+			if ($realname == '') $realname = $wikiname;	
+			$output .= "\t<tr class=\"ui-widget-content\">".
+				"<td class=\"wikiid\">$wikiid</td>".
+				"<td>".($readable ? "<a href=\"/$wikiid/\">$realname</a>" : $realname)."</td>".
+				"<td class=\"controls\"><a href=\"#\">Request Access</a></td>".
+				"</tr>\n";
 		}
-		$output .= "</div>\n";
+		$output .= "</table>\n";		
 		$output .= $this->uglydumpling ($this->getAllWikis());
 		return $output;
 	}
 
+	function page_mywikis() {
+		if (!$this->isActivated()) {
+			error_log ("__FUNCTION__: requested by unactivated user");
+			return false;
+		}
+		$wikiArray = $this->getMyWikis();
+		$element = "mywikistabs";
+		$output = "<script language=\"JavaScript\">\n\t$(function() {\n\t\t$(\"#$element\").tabs();\n\t});\n</script>" .
+			"\n\t" .
+//TODO
+			"<h2>My Wikis</h2>\n" .
+			"<div id=\"$element\">\n\t<ul>\n";
+		$content = "";
+		foreach ($wikiArray as $row) {
+			extract ($row);
+			$visible_to = implode(", ", $groups);
+			$output .= "\t\t<li><a href=\"#tab_$wikiname\">#$wikiid: $realname</a></li>\n";
+			$content .= "
+	<div id=\"tab_$wikiname\">
+		<p>Wiki #$wikiid: $realname ($wikiname)<br>
+		Login now as: ... <br>
+		This wiki is visible to these groups: $visible_to<br>
+		to do...</p>
+	</div>";
+		}
+		$output .= "\t\t<li><a href=\"#newwikitab\"><span class=\"ui-icon ui-icon-arrowreturnthick-1-s\" style=\"float: left; margin-right: .3em;\"></span>Create a New Wiki</a></li>\n\t</ul>$content\n" .
+			"\t<div id=\"newwikitab\">\n\t\t<p> create wiki stuff... </p>\n\t</div>\n</div>\n";		
+		$output .= $this->uglydumpling ($this->getMyWikis());
+		return $output;
+	}
+	
+	// some default landing page
+	function page_wikis_unactivated() {
+		return "page_wikis_unactivated - [join group links]";
+	}
 
 	function page_groups() {
-		return $this->uglydumpling ($this->getAllGroups());
+		$output = "<h3>Groups</h3>";
+	
+		return ($output . $this->uglydumpling ($this->getAllGroups()) );
 	}
 
 
@@ -154,7 +183,21 @@ BLOCK;
 	}
 
 	function page_requests() {
-		return $this->uglydumpling ($this->getAllRequests());
+		$requests = $this->getAllRequests();
+		$num = count($requests);
+		$output = "<h2>Requests</h2>What's this page do?";
+		if ($num > 0) $output .= $this->textHighlight("You have <strong>$num</strong> pending request". ($num == 1 ? "." : "s.") );
+		$output .= "<table class=\"ui-state-default ui-corner-all\" style=\"padding: 0 .7em;\">\n";
+		foreach ($requests as $req) {
+			extract ($req);
+			$output .= "\t<tr><td><span class=\"ui-icon ui-icon-flag\" style=\"float: left; margin-right: .3em;\"></span>" . 
+				(!$this->isAdmin() ? "<td>#$requestid</td>" : "") .
+				"<td>wiki: $wikiid, mwusername: $mwusername, groupname: $groupname </td>
+				</tr>\n";
+		}
+		$output .= "</table>\n";
+		
+		return $output . $this->uglydumpling ($this->getAllRequests());
 	}
 	
 	function page_createwiki() {
@@ -165,6 +208,26 @@ BLOCK;
 	function uglydumpling ($x) {
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
+	
+	// $obj->textHighlight("<strong>Hey!</strong> Sample ui-state-highlight style.");
+	function textHighlight($text) {
+		return "<div class=\"ui-widget\">
+			<div class=\"ui-state-highlight ui-corner-all\" style=\"margin-top: 20px; padding: 0 .7em;\"> 
+				<p><span class=\"ui-icon ui-icon-info\" style=\"float: left; margin-right: .3em;\"></span>
+				$text</p>
+			</div>";
+	}
+	// $obj->textError("<strong>Alert:</strong> Sample ui-state-error style.");
+	function textError($text) {
+		return "<div class=\"ui-widget\">
+			<div class=\"ui-state-error ui-corner-all\" style=\"padding: 0 .7em;\"> 
+				<p><span class=\"ui-icon ui-icon-alert\" style=\"float: left; margin-right: .3em;\"></span> 
+				$text</p>
+			</div>
+		</div>";
+	}
+
+
 	
 }  // class ends
 
