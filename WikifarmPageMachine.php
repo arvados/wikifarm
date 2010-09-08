@@ -103,27 +103,41 @@ BLOCK;
 			return page_wikis_unactivated();
 		}
 		$wikiArray = $this->getAllWikis();
-		$output = "<script type=\"text/javascript\">\n\t$(function() {\n".
-				// "\t$(function() {\n\t\t$(\"#$element\").selectable();\n\t});\n" .
+		$output = "<script type='text/javascript'>\n\t$(function() {\n".
 				// "\t$(function() {\n\t\t$('#$element').accordion({ header: 'h3' });\n\t});\n" .			
-				"\t\t$(\"a\", \"#controls\").button();\n".
-				
-			"\t});\n</script>\n<style type=\"text/css\">\n" .
-				// "#$element { width: 80%; }\n".
-				"#allwikis td.wikiid { width: 25px; text-align: right; padding-right: 10px; }\n".
+				"\t\t$('.controls a').button();\n".
+				"\t\t$('.ui-hoverable').hover( function(){ $(this).addClass('ui-state-hover'); }, function(){ $(this).removeClass('ui-state-hover'); });".
 
+			"\t});\n</script>\n<style type=\"text/css\">\n" .
+				"#allwikis td.wikiid { width: 25px; text-align: right; padding-right: 10px; }\n".
 			"</style>\n";		
-		$output .= "<h2>All Wikis</h2>\n<table id=\"allwikis\" class=\"ui-widget\" >\n".
-			"<tr class=\"ui-widget-header\"><td class=\"wikiid ui-corner-tl\">#</td><td>Wiki</td><td class=\"controls ui-corner-tr\">Your Username</td></tr>\n";
+		$output .= "<h2>All Wikis</h2>\n<table id='allwikis' class='ui-widget' >\n".
+			"<tr class='ui-widget-header'><td class='wikiid ui-corner-tl'>#</td><td>Wiki</td><td class=\"controls ui-corner-tr\">Your Username</td></tr>\n";
 		
 		foreach ($wikiArray as $row) {
 			extract ($row);
+			$logins = array ("BBoberson", "Bobmeister B", "B-Bo"); //hack
 			if ($realname == '') $realname = $wikiname;	
 			$output .= "\t<tr class=\"ui-widget-content\">".
 				"<td class=\"wikiid\">$wikiid</td>".
 				"<td>".($readable ? "<a href=\"/$wikiid/\">$realname</a>" : $realname)."</td>".
-				"<td class=\"controls\"><a href=\"#\">Request Access</a></td>".
-				"</tr>\n";
+				"<td class=\"controls\">";
+			if ($logins[0]) {
+				$output .= "<form><select id=\"loginselect$wikiid\">";				
+				foreach ($logins as $alogin) {
+					$output .= "<option>$alogin</option>";
+				}
+				$output .= "<option>Anonymous</option>" .
+					"</select></form>";
+			} elseif ($readable) {
+				$output .= "<a href=\"/$wikiid/\">Manual Sign-in</a>\n";
+			} elseif ($requested_readable) {
+				$output .= "<a href='#' onClick=\"$('#tabs').tabs('select','getaccess');\">Check Request Status</a>\n";
+			} else { 
+				$output .= "<a href=\"#\">Request Access</a>";
+			}
+			$output .= "</td></tr>\n";
+				
 		}
 		$output .= "</table>\n";		
 		$output .= $this->uglydumpling ($this->getAllWikis());
