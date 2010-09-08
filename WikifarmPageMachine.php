@@ -150,6 +150,12 @@ $output = "<script language=\"JavaScript\">
 <ul>
 <li><a href="table.php">Excel -> Wiki Table converter</a></li>
 </ul>
+<FORM id="fooform"><INPUT type="text" name="sample_id" value="sample" /></FORM>
+<P>test_success: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_success">Test success</button></P>
+<P>test_failure: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_failure">Test failure</button></P>
+<P>test_alert: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert">Test alert</button></P>
+<P>test_alert_redirect: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert_redirect">Test alert-and-redirect</button></P>
+<P id="foomessage"></P>
 BLOCK;
 	}
 
@@ -165,7 +171,35 @@ BLOCK;
 	function uglydumpling ($x) {
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
-	
+
+	// AJAX handlers
+
+	function dispatch_ajax ($post) {
+		if (!method_exists ($this, "ajax_" . $post["ga_action"]))
+			return array ("success" => false,
+				      "alert" => "Invalid request (action=".$post["ga_action"].")");
+		return call_user_func (array ($this, "ajax_" . $post["ga_action"]), $post);
+	}
+
+	function ajax_test_success ($post) {
+		return array ("success" => true,
+			      "message" => "Great success, \"$post[sample_id]\"!");
+	}
+	function ajax_test_failure ($post) {
+		return array ("success" => false,
+			      "message" => "That totally failed, \"$post[sample_id]\".");
+	}
+	function ajax_test_alert ($post) {
+		return array ("success" => true,
+			      "alert" => "I would like to alert you.",
+			      "message" => "I alerted you.");
+	}
+	function ajax_test_alert_redirect ($post) {
+		return array ("success" => true,
+			      "alert" => "I would like to alert you and then redirect.",
+			      "message" => "I alerted you.",
+			      "redirect" => "/?tabActive=schema");
+	}
 }  // class ends
 
 

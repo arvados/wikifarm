@@ -16,6 +16,15 @@ if (isset($_GET["modauthopenid_referrer"]) && $wf->isActivated()) {   //TODO is 
 	exit;
 }
 
+// Perhaps this is an ajax request.
+if (preg_match ('{application/json}', $_SERVER["HTTP_ACCEPT"]) ||
+    array_key_exists ("ga_action", $_POST)) {
+	header ("Content-type: application/json");
+	print json_encode(array_merge(array ("request" => $_POST),
+				      $wf->dispatch_ajax(&$_POST)));
+	exit;
+}
+
 // Would sir enjoy some tab content?
 if (isset($_GET['tab'])) {
 	echo $wf->tabGet($_GET['tab']);
@@ -50,6 +59,10 @@ else {
 if (0 == count($wf->getAllRequests()))
 	unset ($tabTitles['requests']);
 
+if (isset($_GET["tabActive"]) &&
+    isset ($tabTitles[$_GET["tabActive"]]))
+	$tabActive = $_GET["tabActive"];
+
 
 ?><html>
 <head>
@@ -58,7 +71,7 @@ if (0 == count($wf->getAllRequests()))
 <link type="text/css" href="css/smoothness/jquery-ui-1.8.4.custom.css" rel="Stylesheet" />
 <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.4.custom.min.js"></script>
-<? /* <script type="text/javascript" src="js/wikifarm-ui.js" language="JavaScript"></script> */ ?>
+<script type="text/javascript" src="js/wikifarm-ui.js" language="JavaScript"></script>
 <script language="JavaScript">
 
 	$(function() {
