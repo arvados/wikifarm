@@ -35,7 +35,7 @@ BLOCK;
 
 	function tabGet($tab) {
 		if (!method_exists ($this, "page_$tab"))
-			return "__FUNCTION__: Invalid page request";
+			return __FUNCTION__.": Invalid page request: \"$tab\"";
 		return call_user_func (array ($this, "page_$tab"));
 	}
 
@@ -189,7 +189,8 @@ BLOCK;
 create wiki stuff...
 </form>
 </div>
-</div>\n";
+</div>
+BLOCK;
 		$output .= $this->uglydumpling ($this->getMyWikis());
 		return $output;
 	}
