@@ -72,6 +72,13 @@ if (isset($_GET["tabActive"]) &&
     isset ($tabTitles[$_GET["tabActive"]]))
 	$tabActive = $_GET["tabActive"];
 
+$tabActiveId = 0;
+if (isset ($_GET["tabActive"]))
+    foreach ($tabTitles as $tab => $title)
+	if ($_GET["tabActive"] == $tab)
+	    break;
+	else
+	    ++$tabActiveId;
 
 ?><html>
 <head>
@@ -83,7 +90,7 @@ if (isset($_GET["tabActive"]) &&
 <script type="text/javascript" src="js/wikifarm-ui.js" language="JavaScript"></script>
 <script language="JavaScript">
 	$(function() {
-		$("#tabs").tabs();
+		$("#tabs").tabs({selected: <?=$tabActiveId?>});
 	});
 </script>
 </head>
@@ -99,7 +106,7 @@ if (isset($_GET["tabActive"]) &&
 
 	echo "<div id=\"tabs\">\n\t<ul>";
 	foreach ($tabTitles as $tab => $title) {
-		echo "\n\t\t<li><a href=\"?tab=$tab\">$title</a></li>";
+		echo "\n\t\t<li><a href=\"?tab=$tab\" title=\"$title\">$title</a></li>";
 	}
 	echo "\n\t</ul>\n</div>";
 
