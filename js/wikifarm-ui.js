@@ -4,8 +4,9 @@ function generic_ajax_success(data, textStatus, req)
 {
     if (data.message && data.request && data.request.ga_message_id) {
 	var msg = $('#'+data.request.ga_message_id);
-	msg.removeClass('ga_success ga_failure');
+	msg.removeClass('ga_success ga_failure ga_warning');
 	msg.addClass(data.success ? 'ga_success' : 'ga_failure');
+	if (data.warning) msg.addClass('ga_warning');
 	msg.html(data.message).show();
     }
     if (data.alert)
