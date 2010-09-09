@@ -1,15 +1,12 @@
 /* original tab code */
 
-var initialTab = "wikis";
-
 function generic_ajax_success(data, textStatus, req)
 {
     if (data.message && data.request && data.request.ga_message_id) {
-	$('#'+data.request.ga_message_id).clearQueue();
-	$('#'+data.request.ga_message_id).show();
-	$('#'+data.request.ga_message_id).html(data.message);
-	$('#'+data.request.ga_message_id).delay(3000);
-	$('#'+data.request.ga_message_id).queue(function(){$(this).hide();});
+	var msg = $('#'+data.request.ga_message_id);
+	msg.removeClass('ga_success ga_failure');
+	msg.addClass(data.success ? 'ga_success' : 'ga_failure');
+	msg.html(data.message).show();
     }
     if (data.alert)
 	alert (data.alert);
@@ -28,6 +25,10 @@ function generic_ajax_submit()
     postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
 		{name: 'ga_button_id', value: $(this).attr('id')},
 		{name: 'ga_action', value: $(this).attr('ga_action')});
+    if ($(this).attr('ga_message_id') &&
+	$('#'+$(this).attr('ga_message_id'))) {
+	$('#'+$(this).attr('ga_message_id')).hide();
+    }
     $.ajax({
 	    url: '/',
 	    type: 'POST',
