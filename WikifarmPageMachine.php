@@ -181,8 +181,15 @@ BLOCK;
 		to do...</p>
 	</div>";
 		}
-		$output .= "\t\t<li><a href=\"#newwikitab\"><span class=\"ui-icon ui-icon-arrowreturnthick-1-s\" style=\"float: left; margin-right: .3em;\"></span>Create a New Wiki</a></li>\n\t</ul>$content\n" .
-			"\t<div id=\"newwikitab\">\n\t\t<p> create wiki stuff... </p>\n\t</div>\n</div>\n";		
+		$output .= <<<BLOCK
+<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a New Wiki</a></li>
+</ul>$content
+<div id="newwikitab">
+<form id="createwiki">
+create wiki stuff...
+</form>
+</div>
+</div>\n";
 		$output .= $this->uglydumpling ($this->getMyWikis());
 		return $output;
 	}
@@ -226,11 +233,6 @@ BLOCK;
 		return $output . $this->uglydumpling ($this->getAllRequests());
 	}
 	
-	function page_createwiki() {
-		return "to do";
-		
-	}
-
 	function uglydumpling ($x) {
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}

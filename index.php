@@ -36,7 +36,6 @@ $tabTitles = array(
 			'groups'=>'Groups',
 			'myaccount'=>'My Account',
 			'getaccess'=>'Get Access',
-			'createwiki'=>'Create a Wiki',
 			'tools'=>'Tools',
 			'debug'=>'Debug',
 			'settings'=>'Wikifarm Settings' );
@@ -59,7 +58,6 @@ else {
 	if ($wf->getUserRealname() && $wf->getUserEmail()) {
 		$tabActive = "groups";
 		unset ($tabTitles['wikis']);
-		unset ($tabTitles['createwiki']);
 	} else {
 		$tabActive = "myaccount";
 		$tabTitles = array ($tabActive => $tabTitles[$tabActive]);
