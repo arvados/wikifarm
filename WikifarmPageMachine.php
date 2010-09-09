@@ -254,6 +254,47 @@ BLOCK;
 			</div>
 		</div>";
 	}
+	// Request access to a wiki, best served in a popup.
+	function textRequestAccess() {
+$output = <<<EOT
+<script type="text/javascript">
+	$(function() {
+		$('.getaccessdialog').dialog({
+			autoOpen: false,
+			width: 600,
+			buttons: {
+				"Send Request": function() { 
+					$(this).dialog("close"); 
+				}, 
+				"Cancel": function() { 
+					$(this).dialog("close"); 
+				}
+			}
+		});
+		$('#dialog_link').click(function(){
+			$('#reqwikiname').html('<strong>'+this.wikiname+'</strong>');
+			$('#dialog').dialog('open');
+			return false;
+		});
+	});
+</script>
+
+<p><a href="#" class="getaccessdialog"><span class="ui-icon ui-icon-flag"></span>Request Access</a></p>
+
+<div id="getaccessdialog" title="Request Access To A Wiki">
+	<form><table><tr><td align=right>Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
+	<tr><td>Write access wanted? <checkbox name="writeaccess" checked><br>
+	Username you want: <input type="text" name="reqmwusername"><br>
+	
+	
+</div>
+
+
+EOT;
+
+	
+	
+	}
 
 	// AJAX handlers
 
