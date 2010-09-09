@@ -18,6 +18,7 @@ class WikifarmPageMachine extends WikifarmDriver {
 <P>test_failure: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_failure">Test failure</button></P>
 <P>test_alert: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert">Test alert</button></P>
 <P>test_alert_redirect: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert_redirect">Test alert-and-redirect</button></P>
+<P>test_activated: <button class="generic_ajax" ga_message_id="foomessage" ga_action="test_activated">Make sure my account is activated</button></P>
 <P id="foomessage"></P>
 <h3>current sqlite schema</h3>
 <pre>
@@ -279,6 +280,15 @@ BLOCK;
 			      "alert" => "I would like to alert you and then redirect.",
 			      "message" => "I alerted you.",
 			      "redirect" => "/?tabActive=wikis");
+	}
+	function ajax_test_activated ($post) {
+		if ($this->isActivated()) {
+			return array ("success" => true,
+				      "message" => "Yeah, your account is activated.");
+		} else {
+			return array ("success" => false,
+				      "message" => "Sorry, your account is not yet activated.");
+		}
 	}
 
 }  // class ends
