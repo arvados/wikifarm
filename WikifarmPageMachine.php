@@ -10,7 +10,18 @@ class WikifarmPageMachine extends WikifarmDriver {
 	}
 
 	function page_debug() {
-		$output = "<b>current sqlite schema: </b><br><pre>";
+		$output = "";
+		$output .= <<<BLOCK
+<h3>ajax tests</h3>
+<FORM id="fooform"><INPUT type="text" name="sample_id" value="sample" /></FORM>
+<P>test_success: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_success">Test success</button></P>
+<P>test_failure: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_failure">Test failure</button></P>
+<P>test_alert: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert">Test alert</button></P>
+<P>test_alert_redirect: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert_redirect">Test alert-and-redirect</button></P>
+<P id="foomessage"></P>
+<h3>current sqlite schema</h3>
+<pre>
+BLOCK;
 		$result = $this->query( "SELECT sql FROM sqlite_master" );
 		foreach ($result as $row) { 
 			$output .= htmlspecialchars($row['sql']) . "\n\n";
@@ -193,12 +204,6 @@ BLOCK;
 <ul>
 <li><a href="table.php">Excel -> Wiki Table converter</a></li>
 </ul>
-<FORM id="fooform"><INPUT type="text" name="sample_id" value="sample" /></FORM>
-<P>test_success: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_success">Test success</button></P>
-<P>test_failure: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_failure">Test failure</button></P>
-<P>test_alert: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert">Test alert</button></P>
-<P>test_alert_redirect: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert_redirect">Test alert-and-redirect</button></P>
-<P id="foomessage"></P>
 BLOCK;
 	}
 
@@ -273,7 +278,7 @@ BLOCK;
 		return array ("success" => true,
 			      "alert" => "I would like to alert you and then redirect.",
 			      "message" => "I alerted you.",
-			      "redirect" => "/?tabActive=debug");
+			      "redirect" => "/?tabActive=wikis");
 	}
 
 }  // class ends
