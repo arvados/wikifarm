@@ -273,7 +273,7 @@ BLOCK;
 		return array ("success" => true,
 			      "alert" => "I would like to alert you and then redirect.",
 			      "message" => "I alerted you.",
-			      "redirect" => "/?tabActive=schema");
+			      "redirect" => "/?tabActive=debug");
 	}
 
 }  // class ends
