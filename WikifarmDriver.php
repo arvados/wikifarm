@@ -109,8 +109,12 @@ class WikifarmDriver {
 			"SELECT wikis.id as id,
 			wikis.wikiname as wikiname,
 			wikis.realname as realname,
-			wikis.userid as userid
-			FROM wikis ORDER BY wikis.id" );
+			wikis.userid as userid,
+			wikis.userid as owner_userid,
+			users.realname as owner_realname
+			FROM wikis 
+			LEFT JOIN users ON users.userid = wikis.userid
+			ORDER BY wikis.id" );
 
 		$readable = array();
 		$x = $this->query ("SELECT * FROM usergroups
@@ -172,50 +176,10 @@ class WikifarmDriver {
 
 	# returns wikis owned by the focus user
 	function getMyWikis() {
-		if (array_key_exists ("mywikis", $this->_cache))
-			return $this->_cache["mywikis"];
-
-		$wikis =& $this->query(
-			"SELECT wikis.id as id,
-			wikis.wikiname as wikiname,
-			wikis.realname as realname,
-			wikis.userid as userid
-			FROM wikis 
-			WHERE wikis.userid ='".$this->q_openid."'
-			ORDER BY wikis.id" );
-
-		$wikigroup = array();
-		$x = $this->query ("SELECT * FROM wikipermission LEFT JOIN usergroups ON groupname=userid_or_groupname WHERE groupname IS NOT NULL GROUP BY wikiid, groupname");
-		foreach ($x as &$row)
-			$wikigroup[$row["wikiid"]][] = $row["groupname"];
-
-		$this->_preloadMyRequests();
-		$autologin = array();
-		$x = $this->query ("SELECT * FROM autologin WHERE userid='".$this->q_openid."'");
-		foreach ($x as &$row)
-			$autologin[$row["wikiid"]][] = $row["mwusername"];
-
-		foreach ($wikis as &$row) {
-		    $row["wikiid"] = $row["id"];
-				$row["readable"] = true;
-				$row["requested_readable"] = false;
-
-		    if (array_key_exists ($row["id"], $autologin))
-			$row["autologin"] = $autologin[$row["id"]];
-		    else
-			$row["autologin"] = false;
-		    if (array_key_exists ($row["id"], $this->_cache["requested_autologin"]))
-			$row["requested_autologin"] = $this->_cache["requested_autologin"][$row["id"]];
-		    else
-			$row["requested_autologin"] = false;
-
-		    if (array_key_exists ($row["id"], $wikigroup))
-			    $row["groups"] = $wikigroup[$row["id"]];
-		    else
-			    $row["groups"] = array();
-		}
-
-		$this->_cache["allwikis"] = $wikis;
+		$wikis = array();
+		foreach ($this->getAllWikis() as $w)
+			if ($w["owner_userid"] == $this->openid)
+				$wikis[] = $w;
 		return $wikis;
 	}
 	
