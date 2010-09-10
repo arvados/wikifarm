@@ -1,7 +1,8 @@
 /* original tab code */
 
-function generic_ajax_success(data, textStatus, req)
+function generic_ajax_success(data, textStatus, req, button)
 {
+    button.disabled = false;
     if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
 	$('#'+data.request.ga_loader_id).hide();
     if (data.message && data.request && data.request.ga_message_id) {
@@ -17,8 +18,10 @@ function generic_ajax_success(data, textStatus, req)
 	window.location.replace (data.redirect);
 }
 
-function generic_ajax_error(req, textStatus, errorThrown, loader_id)
+function generic_ajax_error(req, textStatus, errorThrown, button)
 {
+    button.disabled = false;
+    var loader_id = $(button).attr('ga_loader_id');
     if (loader_id && $('#'+loader_id))
 	$('#'+loader_id).hide();
     alert (textStatus);
@@ -41,13 +44,15 @@ function generic_ajax_submit()
 	    $('#'+$(this).attr('ga_loader_id'))) {
 	    $('#'+$(this).attr('ga_loader_id')).html('<img src="/js/ajax-loader.gif" width="16" height="16" border="0" />').show();
 	}
+	var button = this;
+	button.disabled = true;
 	$.ajax({
 		url: '/',
 		    type: 'POST',
 		    dataType: 'json',
 		    data: postme,
-		    success: generic_ajax_success,
-		    error: function(r,t,e) { return generic_ajax_error(r,t,e,ga_loader_id); },
+		    success: function(d,t,r) { return generic_ajax_success(d,t,r,button); },
+		    error: function(r,t,e) { return generic_ajax_error(r,t,e,button); },
 		    cache: false,
 		    beforeSend: function(xhr) {
 		    xhr.setRequestHeader('Accept','application/json');
