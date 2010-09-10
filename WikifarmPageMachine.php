@@ -35,7 +35,7 @@ BLOCK;
 
 	function tabGet($tab) {
 		if (!method_exists ($this, "page_$tab"))
-			return __FUNCTION__.": Invalid page request: \"$tab\"";
+			return __METHOD__.": Invalid page request: \"$tab\"";
 		return call_user_func (array ($this, "page_$tab"));
 	}
 
@@ -115,50 +115,73 @@ BLOCK;
 			return page_wikis_unactivated();
 		}
 		$wikiArray = $this->getAllWikis();
+/* --- Javascript and CSS --- */		
 		$output = "<script type='text/javascript'>\n\t$(function() {\n".
-				// "\t$(function() {\n\t\t$('#$element').accordion({ header: 'h3' });\n\t});\n" .			
 				"\t\t$('.controls a').button();\n".
-				"\t\t$('.ui-hoverable').hover( function(){ $(this).addClass('ui-state-hover'); }, function(){ $(this).removeClass('ui-state-hover'); });".
-
+				"\t\t$('#viewallradio').buttonset();\n".
+				"\t\t$('#viewallradio input').change( function(){ if ($('#viewallyes').attr('checked')) { $('.nonreadable').show(); } else { $('.nonreadable').hide(); } });\n" .
+				"\t\t$('.requestedbutton').click(function(){ $('#tabs').tabs('select', 0); });\n".
+//				"\t\t$('.signinbutton').click(function(){ window.location='$(this).attr('wikiid'); });\n".
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
+				"#allwikis td { padding-right: 10px; }\n".
 				"#allwikis td.wikiid { width: 25px; text-align: right; padding-right: 10px; }\n".
-			"</style>\n";		
-		$output .= "<h2>All Wikis</h2>\n<table id='allwikis' class='ui-widget' >\n".
-			"<tr class='ui-widget-header'><td class='wikiid ui-corner-tl'>#</td><td>Wiki</td><td class=\"controls ui-corner-tr\">Your Username</td></tr>\n";
-		
+				"#allwikis td.controls { padding-right: 0px; }\n".
+				".controls a { padding: 0px; margin: 0px; }".
+			"</style>\n";	
+/* --- Page Heading --- */		
+		$output .= "<h2>All Wikis</h2>\n".			
+			//"<form>\n".
+			"<div align=right id='viewallradio'>\n".
+				"\t<input type='radio' id='viewallyes' name='viewallradio' checked='checked' /><label for='viewallyes'>View All</label>\n".
+				"\t<input type='radio' id='viewreadable' name='viewallradio' /><label for='viewreadable'>View Readable</label>\n".
+			"</div>\n".
+			"<table id='allwikis' class='ui-widget' >\n<tr class='ui-widget-header'>" .
+				"<td class='wikiid ui-corner-tl'>#</td>".
+				"<td>Wiki</td>".
+				"<td>Owner</td>".
+				"<td>Group(s)</td>".
+				"<td class=\"ui-corner-tr\">Actions</td>".
+			"</tr>\n";
+/* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
 			extract ($row);
-			$logins = array ("BBoberson", "Bobmeister B", "B-Bo"); //hack
-			if ($realname == '') $realname = $wikiname;	
-			$output .= "\t<tr class=\"ui-widget-content\">".
+			if ($id==1) { //hack
+				$readable = 0;
+				$requested_readable = 1;
+			}
+			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
+			$output .= "\t<tr class=\"ui-widget-content" . (!$readable ? " nonreadable" : "") . "\">".
 				"<td class=\"wikiid\">$wikiid</td>".
 				"<td>".($readable ? "<a href=\"/$wikiid/\">$realname</a>" : $realname)."</td>".
+				"<td>$owner_realname</td>".
+				"<td>&nbsp;".(implode(", ", $groups))."</td>".
 				"<td class=\"controls\">";
-			if ($logins[0]) {
-				$output .= "<form><select id=\"loginselect$wikiid\">";				
-				foreach ($logins as $alogin) {
+			if ($autologin[0]) {				
+				$output .= "<select id=\"loginselect$wikiid\">";				
+				foreach ($autologin as $alogin) {
 					$output .= "<option>$alogin</option>";
 				}
-				$output .= "<option>Anonymous</option>" .
-					"</select></form>";
+				$output .= "<option>Manual sign-in</option>" .
+					"</select>";
+				if (!$readable) $output .= "<input type=button class='requestbutton' value='Request Write Access'>";
 			} elseif ($readable) {
-				$output .= "<a href=\"/$wikiid/\">Manual Sign-in</a>\n";
+				$output .= "<input type=button name=\"goto$wikiid\" value=\"Manual sign-in\">\n";
 			} elseif ($requested_readable) {
-				$output .= "<a href='#' onClick=\"$('#tabs').tabs('select','getaccess');\">Check Request Status</a>\n";
+				$output .= "<input type=button class='requestedbutton' value='Check Request Status'>\n";
 			} else { 
-				$output .= "<a href=\"#\">Request Access</a>";
+				$output .= "<input type=button class='requestbutton' value='Request Access'>";
 			}
 			$output .= "</td></tr>\n";
 				
 		}
-		$output .= "</table>\n";		
+		$output .= "</table>\n";
 		$output .= $this->uglydumpling ($this->getAllWikis());
 		return $output;
 	}
 
 	function page_mywikis() {
 		if (!$this->isActivated()) {
-			error_log ("__FUNCTION__: requested by unactivated user");
+			error_log (__METHOD__.": requested by unactivated user");
 			return false;
 		}
 		$wikiArray = $this->getMyWikis();
