@@ -223,7 +223,7 @@ class WikifarmDriver {
 		$wikiid = sprintf ("%02d", $wikiid);
 		$this->DB->exec ("INSERT INTO autologin (wikiid, userid, mwusername, lastlogintime, sysop) values ('$wikiid', '".$this->q_openid."','".SQLite3::escapeString ($mwusername)."',strftime('%s','now'),1)");
 		foreach ($this->getAllGroups() as $g)
-			if (array_search ($g["groupid"], $groups))
+			if (false !== array_search ($g["groupid"], $groups))
 				$this->DB->exec ("INSERT INTO wikipermission (wikiid, userid_or_groupname) VALUES ('$wikiid', '".SQLite3::escapeString ($g["groupid"])."')");
 
 		if (false === system ("sudo -u ubuntu /home/wikifarm/etc/wikifarm-create-wiki "
