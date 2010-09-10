@@ -15,7 +15,7 @@ function generic_ajax_success(data, textStatus, req, button)
     if (data.alert)
 	alert (data.alert);
     if (data.redirect)
-	window.location.replace (data.redirect);
+	window.location = data.redirect;
 }
 
 function generic_ajax_error(req, textStatus, errorThrown, button)
