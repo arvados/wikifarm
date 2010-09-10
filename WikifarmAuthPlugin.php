@@ -198,6 +198,13 @@ class WikifarmAuthPlugin extends AuthPlugin {
 				 . $this->userid . "' and mwusername='"
 				 . $this->mwusername . "'");
 	}
+
+	function setWikiTitle() {
+		global $wgSitename;
+		$title = $this->db->querySingle ("select realname from wikis where id='".getenv("WIKIID")."'");
+		if ($title)
+			$wgSitename = $title;
+	}
 }
 
 if (getenv("WIKIID") && getenv("REMOTE_USER") != "") {
@@ -206,6 +213,7 @@ if (getenv("WIKIID") && getenv("REMOTE_USER") != "") {
 	$wgHooks['UserLoadFromSession'][] = array ($wgAuth, 'autoAuthenticate');
 	$wgHooks['UserLoginComplete'][] = array ($wgAuth, 'UserLoginComplete');
 	$wgHooks['UserGetRights'][] = array ($wgAuth, 'UserGetRights');
+	$wgAuth->setWikiTitle();
 	global $wgDisableCookieCheck;
 	$wgDisableCookieCheck = true;
 }
