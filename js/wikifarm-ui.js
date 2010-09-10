@@ -2,6 +2,8 @@
 
 function generic_ajax_success(data, textStatus, req)
 {
+    if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
+	$('#'+data.request.ga_loader_id).hide();
     if (data.message && data.request && data.request.ga_message_id) {
 	var msg = $('#'+data.request.ga_message_id);
 	msg.removeClass('ga_success ga_failure ga_warning');
@@ -15,8 +17,10 @@ function generic_ajax_success(data, textStatus, req)
 	window.location.replace (data.redirect);
 }
 
-function generic_ajax_error(req, textStatus, errorThrown)
+function generic_ajax_error(req, textStatus, errorThrown, loader_id)
 {
+    if (loader_id && $('#'+loader_id))
+	$('#'+loader_id).hide();
     alert (textStatus);
 }
 
@@ -24,12 +28,18 @@ function generic_ajax_submit()
 {
     try {
 	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
+	var ga_loader_id = $(this).attr('ga_loader_id');
 	postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
+		    {name: 'ga_loader_id', value: $(this).attr('ga_loader_id')},
 		    {name: 'ga_button_id', value: $(this).attr('id')},
 		    {name: 'ga_action', value: $(this).attr('ga_action')});
 	if ($(this).attr('ga_message_id') &&
 	    $('#'+$(this).attr('ga_message_id'))) {
 	    $('#'+$(this).attr('ga_message_id')).hide();
+	}
+	if ($(this).attr('ga_loader_id') &&
+	    $('#'+$(this).attr('ga_loader_id'))) {
+	    $('#'+$(this).attr('ga_loader_id')).html('<img src="/js/ajax-loader.gif" width="16" height="16" border="0" />').show();
 	}
 	$.ajax({
 		url: '/',
@@ -37,7 +47,7 @@ function generic_ajax_submit()
 		    dataType: 'json',
 		    data: postme,
 		    success: generic_ajax_success,
-		    error: generic_ajax_error,
+		    error: function(r,t,e) { return generic_ajax_error(r,t,e,ga_loader_id); },
 		    cache: false,
 		    beforeSend: function(xhr) {
 		    xhr.setRequestHeader('Accept','application/json');

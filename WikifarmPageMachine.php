@@ -14,12 +14,13 @@ class WikifarmPageMachine extends WikifarmDriver {
 		$output .= <<<BLOCK
 <h3>ajax tests</h3>
 <FORM id="fooform"><INPUT type="text" name="sample_id" value="sample" /></FORM>
-<P>test_success: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_success">Test success</button></P>
-<P>test_failure: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_failure">Test failure</button></P>
-<P>test_alert: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert">Test alert</button></P>
-<P>test_alert_redirect: <button class="generic_ajax" ga_form_id="fooform" ga_message_id="foomessage" ga_action="test_alert_redirect">Test alert-and-redirect</button></P>
-<P>test_activated: <button class="generic_ajax" ga_message_id="foomessage" ga_action="test_activated">Make sure my account is activated</button></P>
-<P id="foomessage"></P>
+<P>test_success: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_success">Test success</button></P>
+<P>test_failure: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_failure">Test failure</button></P>
+<P>test_ajax_error: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_ajax_error">Test ajax error</button></P>
+<P>test_alert: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_alert">Test alert</button></P>
+<P>test_alert_redirect: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_alert_redirect">Test alert-and-redirect</button></P>
+<P>test_activated: <button class="generic_ajax" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_activated">Make sure my account is activated</button></P>
+<P><div style="height:18px"><span id="fooloader" /><span id="foomessage" /></div></P>
 <h3>current sqlite schema</h3>
 <pre>
 BLOCK;
@@ -309,12 +310,18 @@ BLOCK;
 	}
 
 	function ajax_test_success ($post) {
+		if (preg_match ('{^\d+$}', $post["sample_id"]))
+			sleep ($post["sample_id"]);
 		return array ("success" => true,
 			      "message" => "Great success, \"$post[sample_id]\"!");
 	}
 	function ajax_test_failure ($post) {
 		return array ("success" => false,
 			      "message" => "That totally failed, \"$post[sample_id]\".");
+	}
+	function ajax_test_ajax_error ($post) {
+		print "Unparseable.";
+		exit;
 	}
 	function ajax_test_alert ($post) {
 		return array ("success" => true,

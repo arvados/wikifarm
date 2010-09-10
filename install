@@ -26,6 +26,7 @@ install $SOURCEDIR/WikifarmDriver.php $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmPageMachine.php $INSTALLDIR/wikis/
 
 mkdir -p $INSTALLDIR/wikis/js
+install $SOURCEDIR/js/ajax-loader.gif $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/jquery-1.4.2.min.js $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/jquery-ui-1.8.4.custom.min.js $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/wikifarm-ui.js $INSTALLDIR/wikis/js/
