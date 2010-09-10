@@ -223,12 +223,12 @@ BLOCK;
 
 
 <tr><td></td>
-<td><button class="generic_ajax" ga_form_id="createwikiform" ga_message_id="createwiki_message" ga_action="createwiki">Create new wiki</button></td>
+<td><button class="generic_ajax" ga_form_id="createwikiform" ga_loader_id="createwiki_loader" ga_message_id="createwiki_message" ga_action="createwiki">Create new wiki</button></td>
 <td></td>
 </tr>
 
 <tr><td></td>
-<td colspan=2><span id="createwiki_message"></span></td>
+<td colspan=2><div style="height:18px"><span id="createwiki_loader" /><span id="createwiki_message" /></div></td>
 </tr>
 </table>
 </form>
