@@ -181,12 +181,55 @@ BLOCK;
 		to do...</p>
 	</div>";
 		}
+		$groups_options = "";
+		foreach ($this->getAllGroups() as $g) {
+			$groupid = htmlspecialchars($g["groupid"]);
+			if ($groupid == "ADMIN")
+				continue;
+			if ($groupid == "users")
+				$groupname = "Everyone";
+			else
+				$groupname = htmlspecialchars($g["groupname"]);
+			$groups_options .= "<option value=\"$groupid\">$groupname</option>";
+		}
+		$q_mwusername = htmlspecialchars($this->getMWUsername());
 		$output .= <<<BLOCK
 <li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a New Wiki</a></li>
 </ul>$content
 <div id="newwikitab">
-<form id="createwiki">
-create wiki stuff...
+<form id="createwikiform" action="#">
+<table>
+
+<tr><td>Wiki title:</td>
+<td><input type=text name=realname size=32 value="Lab Notebook"></td>
+<td>Full title of your wiki, like "Jane Bobbleson's Lab Notebook"</td>
+</tr>
+
+<tr><td>Wiki name: </td>
+<td><input type=text name=wikiname size=32 maxlength=12></td>
+<td>3 to 12 lower case letters. url of wiki will be http://$_SERVER[HTTP_HOST]/name</td>
+</tr>
+
+<tr><td>Your username in the new wiki: </td>
+<td><input type=text name=mwusername size=32 value="$q_mwusername"></td>
+<td>letters and digits only.  start with an upper case letter.
+</tr>
+
+<tr><td>Groups to invite to the new wiki: </td>
+<td><select multiple name="groups[]">$groups_options</select></td>
+<td>control-click to select and de-select multiple groups
+</tr>
+
+
+<tr><td></td>
+<td><button class="generic_ajax" ga_form_id="createwikiform" ga_message_id="createwiki_message" ga_action="createwiki">Create new wiki</button></td>
+<td></td>
+</tr>
+
+<tr><td></td>
+<td colspan=2><span id="createwiki_message"></span></td>
+</tr>
+</table>
 </form>
 </div>
 </div>
@@ -292,6 +335,42 @@ BLOCK;
 			return array ("success" => false,
 				      "message" => "Sorry, your account is not yet activated.");
 		}
+	}
+
+	function ajax_createwiki ($post) {
+		if (!$this->isActivated())
+			return $this->fail ("You are not allowed to do that.");
+		if (!$this->canCreateWikis())
+			return $this->fail ("You have reached your wiki quota.  Please contact an administrator to increase your quota.");
+		$post["realname"] = trim($post["realname"]);
+		if ($post["realname"] == "")
+			return $this->fail ("You must provide a title for your wiki.");
+		if (!preg_match ('{^[\w\' ]+$}', $post["realname"]))
+			return $this->fail ("Your wiki title cannot contain quotation marks, symbols, or special characters.");
+
+		if (!preg_match ('{^[a-z][a-z0-9]{3,12}$}', $post["wikiname"]))
+			return $this->fail ("Your wiki name must be 3 to 12 lower case letters and digits, and must start with a letter.");
+		if (!$this->isWikiNameAvailable ($post["wikiname"]))
+			return $this->fail ("The wiki name \"$post[wikiname]\" is already in use.");
+
+		if (!preg_match ('{^[A-Z][a-zA-Z0-9]*$}', $post["mwusername"]))
+			return $this->fail ("Your MediaWiki account name must contain only letters and digits, and must begin with an upper case letter.");
+		$ok = $this->createWiki ($post["wikiname"],
+					 $post["realname"],
+					 $post["mwusername"],
+					 $post["groups"]);
+		if (!$ok)
+			return $this->fail ("Something went wrong while setting up your wiki.  Please contact a site administrator before trying again.");
+		return array ("success" => true,
+			      "alert" => "Your wiki has been created.  You will be logged in to your new wiki now.",
+			      "redirect" => "/".$post["wikiname"]."/Main_Page");
+		
+	}
+
+	function fail($message) {
+		return array ("success" => false,
+			      "message" => $message,
+			      "alert" => $message);
 	}
 
 }  // class ends

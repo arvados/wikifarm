@@ -34,29 +34,34 @@ SetEnv OPENID_DB_FILE $OPENID_DB_FILE
 RewriteEngine On
 };
 
+open HTACCESS, ">", "$ENV{INSTALLDIR}/wikis/.htaccess.$$" or die "$!";
+print HTACCESS "RewriteEngine On\n\n";
 while (<STDIN>)
 {
     chomp;
     my ($wikiid, $wikiname) = split /\|/;
     $wikiid = sprintf "%02d", $wikiid;
-    print qq{
+    print HTACCESS qq{
 RewriteCond %{ENV:WIKIID} !.
-RewriteRule ^/$wikiid(/(.*))?\$ /$wikiid/\$2 [E=WIKIID:$wikiid]
+RewriteRule ^$wikiid(/(.*))?\$ $wikiid/\$2 [E=WIKIID:$wikiid]
 RewriteCond %{ENV:WIKIID} !.
-RewriteRule ^/$wikiname(/(.*))?\$ /$wikiid/index.php?title=\$2 [E=WIKIID:$wikiid,QSA]
+RewriteRule ^$wikiname(/(.*))?\$ $wikiid/index.php?title=\$2 [E=WIKIID:$wikiid,QSA]
 };
 }
 
-print qq{
+print HTACCESS qq{
 RewriteCond \${wikifarm_auth:${WIKIFARM_DB_FILE}:::${OPENID_DB_FILE}:::%{ENV:WIKIID}:::%{REQUEST_URI}:::%{HTTP_COOKIE}} !=yes
 RewriteRule .* . [F]
 
 # Prevent direct access to mediawiki installations
-RewriteCond %{REQUEST_URI} ^/mediawiki
+RewriteCond %{REQUEST_URI} ^mediawiki
 RewriteRule . / [F]
 };
 
+close HTACCESS;
 close STDOUT;
 
+rename ("$ENV{INSTALLDIR}/wikis/.htaccess.$$",
+	"$ENV{INSTALLDIR}/wikis/.htaccess") or die "$!";
 rename ("$ENV{INSTALLDIR}/etc/apache2.conf.$$",
 	"$ENV{INSTALLDIR}/etc/apache2.conf.inc") or die "$!";

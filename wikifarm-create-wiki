@@ -1,0 +1,41 @@
+#!/bin/bash
+
+wikiid="$1"
+wikishortname="$2"
+wikirealname="$3"
+
+exec 2>&1
+
+set -e -x -o pipefail
+
+mkdir /home/wikifarm/wikis/$wikiid
+cd /home/wikifarm/wikis/$wikiid
+ln -s ../mediawiki2/* ./
+rm images LocalSettings.php
+rm extensions.copy || true
+mkdir images private private/stats
+sudo chown -R www-data images private
+rsync ../00/LocalSettings.php ./
+rsync ../6tna.png ./
+
+perl -pi~ -e "s/00/$wikiid/g; s/xxx/$wikishortname/g; s/^#// if /createaccount/;" /home/wikifarm/wikis/$wikiid/LocalSettings.php
+
+mysqlrootpw=$(echo '<? require("/home/wikifarm/wikis/'$wikiid'/AdminSettings.php"); print $wgDBadminpassword;' | php)
+
+mysql -uroot -p"$mysqlrootpw" <<EOF
+create database wikidb$wikiid;
+use wikidb$wikiid;
+source /home/wikifarm/etc/blankwiki.sql
+GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@'%' IDENTIFIED BY 'wikipass';
+GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@localhost IDENTIFIED BY 'wikipass';
+GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@localhost.localdomain IDENTIFIED BY 'wikipass';
+EOF
+
+(
+ cd /home/wikifarm/wikis/mediawiki2/maintenance
+ php update.php --quick --conf /home/wikifarm/wikis/$wikiid/LocalSettings.php --aconf ../AdminSettings.php
+)
+
+sudo chown -R mysql:adm /var/lib/mysql/
+sudo chmod -R g+rX /var/lib/mysql/
+sudo /home/wikifarm/etc/wikifarm-update-config.pl

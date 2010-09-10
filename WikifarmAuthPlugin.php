@@ -140,7 +140,6 @@ class WikifarmAuthPlugin extends AuthPlugin {
 		$user = User::newFromName($this->mwusername);
 		if($user->getID() == 0) {
 			$user->addToDatabase();
-			$user->setPassword(User::randomPassword());
 			$user->setToken();
 			$this->initUser($user);
 		} else {

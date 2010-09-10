@@ -29,6 +29,9 @@ RewriteLock /tmp/rewritelock
 
   Include {{INSTALLDIR}}/etc/apache2.conf.inc
 
+  <Directory {{INSTALLDIR}}/wikis>
+    AllowOverride FileInfo
+  </Directory>
   <Directory {{INSTALLDIR}}/wikis/*/images>
     php_admin_value engine Off
     AllowOverride none

@@ -22,26 +22,31 @@ function generic_ajax_error(req, textStatus, errorThrown)
 
 function generic_ajax_submit()
 {
-    var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
-    postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
-		{name: 'ga_button_id', value: $(this).attr('id')},
-		{name: 'ga_action', value: $(this).attr('ga_action')});
-    if ($(this).attr('ga_message_id') &&
-	$('#'+$(this).attr('ga_message_id'))) {
-	$('#'+$(this).attr('ga_message_id')).hide();
+    try {
+	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
+	postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
+		    {name: 'ga_button_id', value: $(this).attr('id')},
+		    {name: 'ga_action', value: $(this).attr('ga_action')});
+	if ($(this).attr('ga_message_id') &&
+	    $('#'+$(this).attr('ga_message_id'))) {
+	    $('#'+$(this).attr('ga_message_id')).hide();
+	}
+	$.ajax({
+		url: '/',
+		    type: 'POST',
+		    dataType: 'json',
+		    data: postme,
+		    success: generic_ajax_success,
+		    error: generic_ajax_error,
+		    cache: false,
+		    beforeSend: function(xhr) {
+		    xhr.setRequestHeader('Accept','application/json');
+		}
+	    });
+    } catch(e) {
+	alert ("Browser compatibility problem: " + e.name + " (" + e.message + ")");
     }
-    $.ajax({
-	    url: '/',
-	    type: 'POST',
-	    dataType: 'json',
-	    data: postme,
-	    success: generic_ajax_success,
-	    error: generic_ajax_error,
-	    cache: false,
-	    beforeSend: function(xhr) {
-		xhr.setRequestHeader('Accept','application/json');
-	    }
-	});
+    return false;
 }
 
 $('.generic_ajax').live('click', generic_ajax_submit);

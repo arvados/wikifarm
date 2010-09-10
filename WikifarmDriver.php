@@ -204,6 +204,37 @@ class WikifarmDriver {
 		return array("wikiname" => array("recent1","recent2"), "realname" => array('recent array 1', 'recent array 2'));
 	}
 
+	function canCreateWikis() {
+		return 1;
+	}
+
+	function isWikiNameAvailable($wikiname) {
+		return !$this->querySingle ("SELECT 1 FROM wikis WHERE wikiname='".SQLite3::escapeString ($wikiname)."'");
+	}
+
+	function createWiki($wikiname, $realname, $mwusername, $groups) {
+		$ok = $this->DB->exec ("INSERT INTO wikis (wikiname, userid, realname) values ('"
+				       .SQLite3::escapeString ($wikiname)."','"
+				       .SQLite3::escapeString ($this->openid)."','"
+				       .SQLite3::escapeString ($realname)."')");
+		if (!$ok) return false;
+		$wikiid = $this->querySingle ("SELECT last_insert_rowid()");
+		if (!$wikiid) return false;
+		$wikiid = sprintf ("%02d", $wikiid);
+		$this->DB->exec ("INSERT INTO autologin (wikiid, userid, mwusername, lastlogintime, sysop) values ('$wikiid', '".$this->q_openid."','".SQLite3::escapeString ($mwusername)."',strftime('%s','now'),1)");
+		foreach ($this->getAllGroups() as $g)
+			if (array_search ($g["groupid"], $groups))
+				$this->DB->exec ("INSERT INTO wikipermission (wikiid, userid_or_groupname) VALUES ('$wikiid', '".SQLite3::escapeString ($g["groupid"])."')");
+
+		if (false === system ("sudo -u ubuntu /home/wikifarm/etc/wikifarm-create-wiki "
+				      .escapeshellarg($wikiid)." "
+				      .escapeshellarg($wikiname)." "
+				      .escapeshellarg($realname)." "
+				      ." >>/tmp/wikifarm-create-wiki.log." . posix_getpid()))
+			return false;
+		return true;
+	}
+
 	// returns true if $this->openid is a wikifarm admin	
 	function isAdmin () {
 		$id = $this->q_openid;
@@ -230,7 +261,7 @@ class WikifarmDriver {
 		if (!array_key_exists ("allgroups", $this->_cache)) {
 			$this->_preloadMyRequests();
 			$skipadmin = $this->isAdmin() ? "" : "WHERE groupname <> 'ADMIN'";
-			$this->_cache["allgroups"] = $this->query("SELECT groupname FROM usergroups $skipadmin GROUP BY groupname UNION SELECT 'users'");
+			$this->_cache["allgroups"] = $this->query("SELECT groupname as groupid, groupname as groupname FROM usergroups $skipadmin GROUP BY groupname UNION SELECT 'users', 'users'");
 			foreach ($this->_cache["allgroups"] as &$g) {
 				$g["requested"] = false !== array_search ($g["groupname"], $this->_cache["requested_group"]);
 				$g["member"] = false !== array_search ($g["groupname"], $this->getUserGroups());
@@ -471,7 +502,6 @@ class WikifarmDriver {
 		return true;
 	}
 
-	
 }  // WikifarmDriver class ends
 
 
