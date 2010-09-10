@@ -250,6 +250,9 @@ BLOCK;
 		return ($output . $this->uglydumpling ($this->getAllGroups()) );
 	}
 
+	function page_users() {
+		return $this->uglydumpling ($this->getAllActivatedUsers());
+	}
 
 	function page_tools() {
 		return <<<BLOCK

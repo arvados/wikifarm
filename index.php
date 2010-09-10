@@ -38,6 +38,7 @@ $tabTitles = array(
 			'myaccount'=>'My Account',
 			'getaccess'=>'Get Access',
 			'tools'=>'Tools',
+			'users'=>'User List',
 			'debug'=>'Debug',
 			'settings'=>'Wikifarm Settings' );
 

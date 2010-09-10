@@ -381,7 +381,7 @@ class WikifarmDriver {
 		}
 
 		// admin can approve any request
-		if ($this->isAdmin()) return $reqs[0];
+		if ($this->isAdmin()) return $req[0];
 
 		// non-admin can only approve a request concerning a wiki she actually owns
 		if ($this->querySingle("select 1 from wikis where id=".$req[0]["wikiid"]." and userid='".$this->q_openid."'"))
@@ -500,6 +500,14 @@ class WikifarmDriver {
 			return false;
 		}
 		return true;
+	}
+
+	function getAllActivatedUsers() {
+		if (!$this->isActivated()) {
+			error_log ("getAllActivatedUsers: called by non-activated user");
+			return false;
+		}
+		return $this->query ("SELECT usergroups.userid userid, email, realname, mwusername FROM usergroups LEFT JOIN users ON users.userid = usergroups.userid GROUP BY usergroups.userid");
 	}
 
 }  // WikifarmDriver class ends
