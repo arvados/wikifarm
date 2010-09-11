@@ -124,20 +124,21 @@ BLOCK;
 				"\t\t$('.requestedbutton').click(function(){ $('#tabs').tabs('select', 0); });\n".
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
-				"#allwikis td { padding-right: 10px; }\n".
+				"#allwikis td { padding-right: 20px; }\n".
 				"#allwikis td.wikiid { width: 25px; text-align: right; padding-right: 10px; }\n".
 				"#allwikis td.controls { padding-right: 0px; }\n".
 				".controls a { padding: 0px; margin: 0px; }\n".
 			"</style>\n";
-			//$output .= $this->textRequestAccess();
+			$output .= $this->textRequestAccess();
 /* --- Page Heading --- */		
 		$output .= "<h2>All Wikis</h2>\n".			
-			//"<form>\n".
-			"<div align=right id='viewallradio'>\n".
-				"\t<input type='radio' id='viewallyes' name='viewallradio' checked='checked' /><label for='viewallyes'>View All</label>\n".
-				"\t<input type='radio' id='viewreadable' name='viewallradio' /><label for='viewreadable'>View Readable</label>\n".
-			"</div>\n".
-			"<table id='allwikis' class='ui-widget' >\n<tr class='ui-widget-header'>" .
+			"<table id='allwikis' class='ui-widget' >\n" .
+			"<tr class=\"ui-widget-content\">".
+			"\t<td colspan=5><div align=right id='viewallradio'>\n".
+				"\t\t<input type='radio' id='viewallyes' name='viewallradio' checked='checked' /><label for='viewallyes'>View All</label>\n".
+				"\t\t<input type='radio' id='viewallno' name='viewallradio' /><label for='viewallno'>View Readable</label>\n".
+			"\t</div></td></tr>\n".
+			"<tr class='ui-widget-header'>\n".
 				"<td class='wikiid ui-corner-tl'>#</td>".
 				"<td>Wiki</td>".
 				"<td>Owner</td>".
@@ -147,14 +148,14 @@ BLOCK;
 /* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
 			extract ($row);
-			if ($id==1) { //hack
+			if ($id<11) { //hack
 				$readable = 0;
-				$requested_readable = 1;
+				$requested_readable = 0;
 			}
 			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
 			$output .= "\t<tr class=\"ui-widget-content" . (!$readable ? " nonreadable" : "") . "\">".
 				"<td class=\"wikiid\">$wikiid</td>".
-				"<td>".($readable ? "<a href=\"/$wikiid/\">$realname</a>" : $realname)."</td>".
+				"<td>".($readable ? "<a href=\"/$wikiname/\">$realname</a>" : $realname)."</td>".
 				"<td>$owner_realname</td>".
 				"<td>&nbsp;".(implode(", ", $groups))."</td>".
 				"<td class=\"controls\">";
@@ -167,17 +168,17 @@ BLOCK;
 					"</select>";
 				if (!$readable) $output .= "<input type=button class='requestbutton' value='Request Write Access'>";
 			} elseif ($readable) {
-				$output .= "<input type=button class='linkbutton' link='/$wikiid/' name='$wikiid' value=\"Manual sign-in\">\n";
+				$output .= "<input type=button class='linkbutton' link='/$wikiname/' name='wiki $wikiid' value=\"Manual sign-in\">\n";
 			} elseif ($requested_readable) {
 				$output .= "<input type=button class='requestedbutton' value='View Request Status'>\n";
 			} else { 
-				$output .= "<input type=button class='requestbutton' value='Request Access'>";
+				$output .= "<input type=button class='requestbutton' wikiid='$wikiid' wikiname='$realname' value='Request Access'>";
 			}
 			$output .= "</td></tr>\n";
 				
 		}
 		$output .= "</table>\n";
-		$output .= "<div class='ui-helper-hidden'><form name='hiddenform' method='post' action='index.php'></form></div>\n";
+		// $output .= "<div class='ui-helper-hidden'><form name='hiddenform' method='post' action='index.php'></form></div>\n";
 		$output .= $this->uglydumpling ($this->getAllWikis());
 		return $output;
 	}
@@ -351,39 +352,35 @@ BLOCK;
 			</div>
 		</div>";
 	}
-	// Request access to a wiki, best served in a popup.
+	
+	// Request access to a wiki, served in a popup.
 	function textRequestAccess() {
 $output = <<<EOT
 <script type="text/javascript">
 	$(function() {
-		$('.getaccessdialog').dialog({
-			autoOpen: false,
-			width: 600,
-			buttons: {
-				"Send Request": function() {					
-					$(this).dialog("close"); 
-				}, 
-				"Cancel": function() { 
-					$(this).dialog("close"); 
-				}
-			}
-		});
-		$('#requestbutton').click(function(){	
+		$('#getaccessdialog').dialog({ modal: true, autoOpen: false,	buttons: { 
+			"Send Request": function() { $(this).dialog("close"); }, 
+			"Cancel": function() { $(this).dialog("close"); }
+		} });
+		
+		$('.requestbutton').click(function(){	
 			$('#reqwikiname').html('<strong>'+$(this).attr('wikiname')+'</strong>');
+			$(':input', '#getaccess').val('');
+			$('#getaccess:checkbox').attr('checked',true);
+			$('#getaccess:hidden').val($(this).attr('wikiid'));
 			$('#getaccessdialog').dialog('open');
 			return false;
 		});
 	});
 </script>
 
-<p><a href="#" class="getaccessdialog"><span class="ui-icon ui-icon-flag"></span>Request Access</a></p>
-
 <div id="getaccessdialog" title="Request Access To A Wiki">
-	<form><table>
+	<form id="getaccess"><table>
 	<tr><td align=right>Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
-	<tr><td align=right>Write access wanted?</td><td><checkbox name="writeaccess" checked></td></tr>
-	<tr><td align=right>Username you want:</td><td><input type="text" name="reqmwusername"></td></tr>
-	</table></form>
+	<tr><td align=right>Write access wanted?</td><td><input type=checkbox name="writeaccess" value="true" checked="checked">&nbsp;</td></tr>
+	<tr><td align=right>Username you want:<br>(optional)</td><td><input type="text" name="reqmwusername"></td></tr>	
+	</table>
+	<input type='hidden' name='wikiid' value=''></form>
 </div>
 EOT;
 	return $output;
