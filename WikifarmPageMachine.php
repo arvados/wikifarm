@@ -148,10 +148,6 @@ BLOCK;
 /* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
 			extract ($row);
-			if ($id<11) { //hack
-				$readable = 0;
-				$requested_readable = 0;
-			}
 			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
 			$output .= "\t<tr class=\"ui-widget-content" . (!$readable ? " nonreadable" : "") . "\">".
 				"<td class=\"wikiid\">$wikiid</td>".

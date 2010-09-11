@@ -137,14 +137,12 @@ class WikifarmDriver {
 
 		foreach ($wikis as &$row) {
 		    $row["wikiid"] = $row["id"];
-		    if (array_key_exists ($row["id"], $readable)) {
+		    $row["readable"] = false;
+		    $row["requested_readable"] = false;
+		    if (array_key_exists ($row["id"], $readable))
 			$row["readable"] = true;
-			$row["requested_readable"] = false;
-		    }
 		    else if (array_key_exists ($row["id"], $this->_cache["requested_readable"]))
 			$row["requested_readable"] = true;
-		    else
-			$row["requested_readable"] = false;
 
 		    if (array_key_exists ($row["id"], $autologin))
 			$row["autologin"] = $autologin[$row["id"]];
