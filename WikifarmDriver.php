@@ -18,7 +18,6 @@ class WikifarmDriver {
 		}
 		if (!$this->DB) die("Fatal: The wikifarm database was unavailable.\n\n");
 		$this->Focus();  // $_SERVER["REMOTE_USER"] by default, the user in focus is the currently signed-in one.
-		$this->cacheClear();
 	}
 
 	function __destruct () { $this->DB->close(); }  // !!! We should change this if we want to keep the handle later
@@ -47,8 +46,13 @@ class WikifarmDriver {
 		$this->openid = $openid;
 		$this->q_openid = SQLite3::escapeString ($openid);
 		$this->cacheClear();
+		foreach ($this->query ("SELECT * FROM users WHERE userid='".$this->q_openid."' LIMIT 1") as $u)
+			$this->_cache["user"] = $u;
+		if (!isset($this->_cache["user"]))
+			foreach ($this->query ("SELECT users.* FROM wikis LEFT JOIN users ON 1=2 LIMIT 1") as $u)
+				$this->_cache["user"] = $u;
 	}
-	
+
 	// sanity functions
 	// NOTE: These are not for sanitizing text input, and do not. They merely verify table data.
 	// Never mind, it appears now as though they do
@@ -208,8 +212,15 @@ class WikifarmDriver {
 		return array("wikiname" => array("recent1","recent2"), "realname" => array('recent array 1', 'recent array 2'));
 	}
 
+	function getWikiQuota() {
+		if (!$this->isActivated()) return 0;
+		$quota = $this->_cache["user"]["wikiquota"];
+		if (!isset($quota)) $quota = 5;
+		return $quota;
+	}
+
 	function canCreateWikis() {
-		return 1;
+		return (count($this->getMyWikis()) < $this->getWikiQuota());
 	}
 
 	function isWikiNameAvailable($wikiname) {
