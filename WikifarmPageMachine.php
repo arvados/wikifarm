@@ -257,16 +257,14 @@ BLOCK;
 <td>control-click to select and de-select multiple groups
 </tr>
 
-
 <tr><td></td>
 <td><button class="generic_ajax" ga_form_id="createwikiform" ga_loader_id="createwiki_loader" ga_message_id="createwiki_message" ga_action="createwiki">Create new wiki</button></td>
 <td></td>
 </tr>
-
-<tr><td></td>
-<td colspan=2><div style="height:18px"><span id="createwiki_loader" /><span id="createwiki_message" /></div></td>
-</tr>
 </table>
+
+<div style="min-height:40px"><div id="createwiki_loader" /><div id="createwiki_message" /></div>
+
 </form>
 </div>
 </div>
