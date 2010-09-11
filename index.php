@@ -46,23 +46,17 @@ $tabTitles = array(
 			'settings'=>'Wikifarm Settings' );
 
 if (!$wf->isAdmin()) {
+	unset ( $tabTitles['debug'] );
 	unset ( $tabTitles['settings'] );
-	// unset ( $tabTitles['wikis'] );
-	if (!$wf->isActivated()) {
-		unset ( $tabTitles['mywikis'] );
-		
-	}
 }
-		
-	
 
-
-if (count($wf->getUserGroups()))
+if ($wf->isActivated())
 	$tabActive = "wikis";
 else {
 	if ($wf->getUserRealname() && $wf->getUserEmail()) {
 		$tabActive = "groups";
-		unset ($tabTitles['wikis']);
+		$tabTitles = array ($tabActive => $tabTitles[$tabActive],
+				    'myaccount' => $tabTitles['myaccount']);
 	} else {
 		$tabActive = "myaccount";
 		$tabTitles = array ($tabActive => $tabTitles[$tabActive]);
