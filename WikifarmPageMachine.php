@@ -284,20 +284,55 @@ BLOCK;
 	function page_requests() {
 		$requests = $this->getAllRequests();
 		$num = count($requests);
-		$output = "";
-		
-		if ($num > 0) $output .= $this->textHighlight("You have <strong>$num</strong> pending request". ($num == 1 ? "." : "s.") );
-		$output .= "<table class=\"ui-state-default ui-corner-all\" style=\"padding: 0 .7em;\">\n";
+		$html = $this->textHighlight("You have <strong>$num</strong> pending request". ($num == 1 ? "." : "s.") );
+
+		$html .= <<<BLOCK
+<table id="myreqs">
+<thead>
+<tr><th>&nbsp;</th><th>&nbsp;</th><th>Request</th><th>Name</th><th>Email</th><th>OpenID</th></tr>
+</thead>
+<tbody>
+BLOCK;
 		foreach ($requests as $req) {
+			$email = "";
+			$wikiname = null;
+			$mwusername = null;
 			extract ($req);
-			$output .= "\t<tr><td><span class=\"ui-icon ui-icon-flag\" style=\"float: left; margin-right: .3em;\"></span>" . 
-				(!$this->isAdmin() ? "<td>#$requestid</td>" : "") .
-				"<td>wiki: $wikiid, mwusername: $mwusername, groupname: $groupname </td>
-				</tr>\n";
+			$q_wikiname = htmlspecialchars(isset($wikiname) ? $wikiname : "");
+			$q_mwusername = htmlspecialchars(isset($mwusername) ? $mwusername : "");
+			$q_groupname = htmlspecialchars(isset($groupname) ? $groupname : "");
+			if (!$wikiid && $groupname == "users")
+				$request = "Activate account";
+			else if (!$wikiid)
+				$request = "Join \"$q_groupname\" group";
+			else if ($mwusername)
+				$request = "Edit <a href=\"/$q_wikiname/\">$q_wikiname</a> as \"$q_mwusername\"";
+			else
+				$request = "View <a href=\"/$q_wikiname/\">$q_wikiname</a>";
+
+			$q_name = htmlspecialchars($realname);
+			$q_email = htmlspecialchars($email);
+			$q_openid = htmlspecialchars($userid);
+			$html .= <<<BLOCK
+<tr id="req_row_$requestid">
+<td><button class="req_response_button approve" requestid="$requestid">Approve</button></td>
+<td><button class="req_response_button reject" requestid="$requestid">Reject</button></td>
+<td requestid="$requestid">$request</td>
+<td>$q_name</td>
+<td>$q_email</td>
+<td>$q_openid</td>
+</tr>
+BLOCK;
 		}
-		$output .= "</table>\n";
+		$html .= <<<BLOCK
+</tbody></table>
+<script language="JavaScript">
+$("#myreqs").dataTable({"bInfo": false, "bPaginate": false, "aaSorting": [[5,"asc"],[2,"asc"]]});
+</script>
+<br clear />
+BLOCK;
 		
-		return $output . $this->uglydumpling ($this->getAllRequests());
+		return $html . $this->uglydumpling ($this->getAllRequests());
 	}
 	
 	function page_createwiki() {
@@ -528,6 +563,16 @@ EOT;
 			$this->requestWiki ($post["wikiid"]+0, $post["mwusername"]);
 		} else
 			$this->requestWiki ($post["wikiid"]+0);
+		return $this->success();
+	}
+
+	function ajax_approve_request ($post) {
+		$this->approveRequestId ($post["requestid"]+0);
+		return $this->success();
+	}
+
+	function ajax_reject_request ($post) {
+		$this->rejectRequestId ($post["requestid"]+0);
 		return $this->success();
 	}
 

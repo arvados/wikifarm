@@ -87,4 +87,36 @@ function dialog_submit(dialog, form)
     return false;
 }
 
+function req_response_click ()
+{
+    var ga_action;
+    if ($(this).hasClass('approve')) ga_action = 'approve';
+    else if ($(this).hasClass('reject')) ga_action = 'reject';
+    else return false;
+
+    var requestid = $(this).attr('requestid');
+    if (!requestid) return false;
+
+    $.ajax({
+	    url: '/',
+		type: 'POST',
+		dataType: 'json',
+		cache: false,
+		data: [{name: 'ga_action', value: ga_action+'_request' },
+		       {name: 'requestid', value: requestid }],
+		success: function (d,t,r)
+		{
+		    if (d && d.success) {
+			$('.req_response_button[requestid='+requestid+']').hide();
+			if (d.request.ga_action == 'reject_request')
+			    $('[requestid='+requestid+']').css('text-decoration','line-through');
+		    }
+		    else if (d.alert) alert(d.alert);
+		    else if (d.message) alert(d.message);
+		},
+		error: function (r,t,e) { alert(e); }
+	});
+}
+
 $('.generic_ajax').live('click', generic_ajax_submit);
+$('.req_response_button').live('click', req_response_click);

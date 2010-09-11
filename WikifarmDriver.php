@@ -377,11 +377,11 @@ class WikifarmDriver {
 	// Responding to requests	
 	function getAllRequests() {
 		if (!array_key_exists ("getAllRequests", $this->_cache)) {
-			$reqs = $this->query ("select * from request where wikiid in (select id from wikis where userid='".$this->q_openid."')");
+			$reqs = $this->query ("SELECT request.*, wikis.realname wikititle, wikiname, users.realname, users.email FROM request LEFT JOIN wikis ON request.wikiid=wikis.id LEFT JOIN users ON users.userid=request.userid WHERE wikiid IN (SELECT id FROM wikis WHERE userid='".$this->q_openid."')");
 			if (!$this->isAdmin()) {
 				$this->_cache['getAllRequests'] = $reqs;
 			} else {
-				$group_reqs = $this->query ("select * from request where wikiid is null");
+				$group_reqs = $this->query ("SELECT request.*, email, realname FROM request LEFT JOIN users ON users.userid=request.userid WHERE wikiid IS NULL ORDER BY request.userid");
 				$this->_cache['getAllRequests'] = array_merge ($group_reqs, $reqs);
 			}
 		}
@@ -400,7 +400,7 @@ class WikifarmDriver {
 		$req = $this->query ("select * from request where requestid=$requestid");
 		if (count($req) != 1) {
 			error_log ("canApproveRequest: count(req id $requestid)=".count($req));
-			return false;
+			throw new Exception ("No such request.");
 		}
 
 		// admin can approve any request
@@ -411,14 +411,14 @@ class WikifarmDriver {
 			return $reqs[0];
 
 		error_log ("canApproveRequest: user ".$this->openid." cannot do ".print_r($reqs[0],true));
-
 		return false;
 	}
 	
 	function approveRequestId($requestid) {
 		$req = $this->canApproveRequest ($requestid);
 		if (!$req)
-			return false;
+			throw new Exception ("You are not allowed to do that.");
+		error_log ("approving request: ".print_r($req,true));
 		if ($req["wikiid"]) {
 			if ($req["userid"]) $who = $req["userid"];
 			else $who = $req["groupname"];
@@ -426,21 +426,18 @@ class WikifarmDriver {
 		}
 		else if ($req["groupname"])
 			$this->DB->exec ("insert or replace into usergroups (userid, groupname) values ('".SQLite3::escapeString($req["userid"])."', '".SQLite3::escapeString($req["groupname"])."')");
-		else {
-			error_log ("approveRequestId: unknown request type: ".print_r($req,true));
-			return false;
-		}
-		
+		else
+			throw new Exception ("approveRequestId: unknown request type: ".print_r($req,true));
+
 		$this->DB->exec ("delete from request where requestid=$requestid");
+		return true;
 	}
 	
 	function rejectRequestId($requestid) {
-		if ($this->canApproveRequest ($requestid)) {
-			$this->DB->exec ("delete from request where requestid=$requestid");
-			return $this->DB->changes() == 1;
-		}
-		else
-			return false;
+		if (!$this->canApproveRequest ($requestid))
+			throw new Exception ("You are not allowed to do that.");
+		$this->DB->exec ("delete from request where requestid=$requestid");
+		return $this->DB->changes() == 1;
 	}
 
 	// Invitations
