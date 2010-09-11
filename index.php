@@ -16,13 +16,11 @@ if (isset($_GET["modauthopenid_referrer"]) && $wf->isActivated()) {   //TODO is 
 // Perhaps this is an ajax request.
 if (preg_match ('{application/json}', $_SERVER["HTTP_ACCEPT"]) ||
     array_key_exists ("ga_action", $_POST)) {
-	error_log(print_r($_POST,true));
 	ini_set ('display_errors', false);
 	header ("Content-type: application/json");
 	$response = array_merge(array ("request" => $_POST),
 				$wf->dispatch_ajax(&$_POST));
 	print json_encode($response);
-	error_log(print_r($response,true));
 	exit;
 }
 
