@@ -420,9 +420,10 @@ class WikifarmDriver {
 			throw new Exception ("You are not allowed to do that.");
 		error_log ("approving request: ".print_r($req,true));
 		if ($req["wikiid"]) {
-			if ($req["userid"]) $who = $req["userid"];
-			else $who = $req["groupname"];
+			$who = $req["userid"];
 			$this->DB->exec ("insert or replace into wikipermission (wikiid, userid_or_groupname) values ('".$req["wikiid"]."', '".SQLite3::escapeString($who)."')");
+			if ($req["mwusername"])
+				$this->DB->exec ("insert or ignore into autologin (wikiid, userid, mwusername, sysop) values ('".$req["wikiid"]."', '".SQLite3::escapeString($who)."', '".SQLite3::escapeString($req["mwusername"])."', 0)");
 		}
 		else if ($req["groupname"])
 			$this->DB->exec ("insert or replace into usergroups (userid, groupname) values ('".SQLite3::escapeString($req["userid"])."', '".SQLite3::escapeString($req["groupname"])."')");
