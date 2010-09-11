@@ -22,6 +22,8 @@ function generic_ajax_success(data, textStatus, req, button)
 	alert (data.alert);
     if (data.redirect)
 	window.location = data.redirect;
+    if (data.refreshtab)
+	$('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
 }
 
 function generic_ajax_error(req, textStatus, errorThrown, button)
@@ -118,5 +120,14 @@ function req_response_click ()
 	});
 }
 
+function group_request_enable ()
+{
+    if ($("form#group_request").serialize())
+	$("#group_request_submit").attr("disabled", false);
+    else
+	$("#group_request_submit").attr("disabled", true);
+}
+
 $('.generic_ajax').live('click', generic_ajax_submit);
 $('.req_response_button').live('click', req_response_click);
+$('input[name^=group_request]').live('click', group_request_enable);

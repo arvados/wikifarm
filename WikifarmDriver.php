@@ -292,8 +292,16 @@ class WikifarmDriver {
 	// sanctioned as a legitimate user?  If not, we have no idea
 	// whether she's a spammer, attacker, spy, hater, etc.
 
-	function isActivated($openid = null) {
+	function isActivated() {
 		return 0 != count ($this->getUserGroups());
+	}
+
+	function isActivationRequested() {
+		if ($this->isActivated()) return false;
+		foreach ($this->getAllGroups() as $g)
+			if ($g["groupid"] == "users" && $g["requested"])
+				return true;
+		return false;
 	}
 	
 	function getUserRealname() {

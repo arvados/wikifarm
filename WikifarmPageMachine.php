@@ -263,9 +263,69 @@ BLOCK;
 	}
 
 	function page_groups() {
-		$output = "<h3>Groups</h3>";
-	
-		return ($output . $this->uglydumpling ($this->getAllGroups()) );
+		$need_activation_request = !$this->isActivated() && !$this->isActivationRequested();
+		$html = "<form id=\"group_request\">\n";
+		if ($need_activation_request)
+			$html .= <<<BLOCK
+<p>Please select any groups your account should belong to, then click the "submit" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>
+<input type=hidden name="group_request[]" value="users" />
+BLOCK;
+		else
+			$html .= "<p>This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator).</p>";
+		$html .= <<<BLOCK
+<table id="grouplist">
+<thead>
+<tr>
+<th class="minwidth">&nbsp;</th>
+<th class="minwidth">Group</th>
+<th>&nbsp;</th>
+</tr>
+</thead>
+<tbody>
+BLOCK;
+		foreach ($this->getAllGroups() as $g) {
+			if ($g["groupid"] == "ADMIN" || $g["groupid"] == "users")
+				continue;
+			$groupid = htmlspecialchars($g["groupid"]);
+			$attrs = "checked disabled";
+			$extra = "";
+			if ($g["member"])
+				;
+			else if ($g["requested"])
+				$extra = "(request&nbsp;pending)";
+			else
+				$attrs = "";
+			
+			$html .= <<<BLOCK
+<tr>
+<td class="minwidth"><input type="checkbox" name="group_request[]" value="$groupid" $attrs/></td>
+<td class="minwidth">$groupid</td>
+<td>$extra</td>
+</tr>
+BLOCK;
+		}
+		$html .= <<<BLOCK
+</tbody>
+</table>
+<p>
+<button
+ id="group_request_submit"
+ class="generic_ajax"
+ ga_form_id="group_request"
+ ga_action="requestgroups"
+ ga_loader_id="group_request_loader"
+ disabled>Submit request</button> after selecting groups.
+<span id="group_request_loader"></span></p>
+</form>
+
+<script language="JavaScript">
+$("#grouplist").dataTable({"bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
+group_request_enable();
+</script>
+<br clear />
+BLOCK;
+		return $html;
+		// return ($output . $this->uglydumpling ($this->getAllGroups()) );
 	}
 
 	function page_users() {
@@ -298,9 +358,8 @@ BLOCK;
 </table>
 
 <script language="JavaScript">
-$("#userlist").dataTable({"iDisplayLength": 25});
+$("#userlist").dataTable({"iDisplayLength": 25, "bLengthChange": false});
 </script>
-<br clear />
 BLOCK;
 		return $html;
 	}
@@ -582,6 +641,11 @@ EOT;
 			      "alert" => "Your wiki has been created.  You will be logged in to your new wiki now.",
 			      "redirect" => "/".$post["wikiname"]."/Main_Page");
 		
+	}
+
+	function ajax_requestgroups ($post) {
+		$this->requestGroup ($post["group_request"]);
+		return array ("success" => true, "refreshtab" => true);
 	}
 
 	function ajax_requestwiki ($post) {
