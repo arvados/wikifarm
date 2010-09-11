@@ -19,8 +19,9 @@ class WikifarmPageMachine extends WikifarmDriver {
 <P>test_ajax_error: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_ajax_error">Test ajax error</button></P>
 <P>test_alert: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_alert">Test alert</button></P>
 <P>test_alert_redirect: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_alert_redirect">Test alert-and-redirect</button></P>
+<P>test_selecttab: <button class="generic_ajax" ga_form_id="fooform" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_selecttab">Test selecttab</button></P>
 <P>test_activated: <button class="generic_ajax" ga_loader_id="fooloader" ga_message_id="foomessage" ga_action="test_activated">Make sure my account is activated</button></P>
-<P><div style="height:18px"><span id="fooloader" /><span id="foomessage" /></div></P>
+<div style="min-height:40px"><div id="fooloader" class="ui-helper-hidden" /><div id="foomessage" class="ui-helper-hidden" /></div>
 <h3>current sqlite schema</h3>
 <pre>
 BLOCK;
@@ -119,8 +120,9 @@ BLOCK;
 </tr><tr>
 <td class="minwidth" align="right">Preferred&nbsp;MediaWiki&nbsp;username</td><td><input type="text" name="mwusername" value="$q_mwusername" /></td>
 </tr><tr>
-<td class="minwidth" align="right"></td><td><button class="generic_ajax" ga_form_id="myaccountform" ga_action="myaccount_save" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader"></span></td>
+<td class="minwidth" align="right"></td><td><button class="generic_ajax" ga_form_id="myaccountform" ga_action="myaccount_save" ga_message_id="myaccount_message" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader" class="ui-helper-hidden"></span></td>
 </tr></tbody></table>
+<div id="myaccount_message" class="ui-helper-hidden" />
 </form>
 BLOCK;
 	}
@@ -255,16 +257,14 @@ BLOCK;
 <td>control-click to select and de-select multiple groups
 </tr>
 
-
 <tr><td></td>
 <td><button class="generic_ajax" ga_form_id="createwikiform" ga_loader_id="createwiki_loader" ga_message_id="createwiki_message" ga_action="createwiki">Create new wiki</button></td>
 <td></td>
 </tr>
-
-<tr><td></td>
-<td colspan=2><div style="height:18px"><span id="createwiki_loader" /><span id="createwiki_message" /></div></td>
-</tr>
 </table>
+
+<div style="min-height:40px"><div id="createwiki_loader" /><div id="createwiki_message" /></div>
+
 </form>
 </div>
 </div>
@@ -582,6 +582,10 @@ EOT;
 			      "message" => "I alerted you.",
 			      "redirect" => "/?tabActive=wikis");
 	}
+	function ajax_test_selecttab ($post) {
+		return array ("success" => true,
+			      "selecttab" => "groups");
+	}
 	function ajax_test_activated ($post) {
 		if ($this->isActivated()) {
 			return array ("success" => true,
@@ -686,7 +690,7 @@ EOT;
 				      "redirect" => "/");
 		else
 			return array ("success" => true,
-				      "refreshtab" => true);
+				      "message" => "Changes saved.");
 	}
 
 	function ajax_approve_request ($post) {

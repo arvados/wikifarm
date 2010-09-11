@@ -13,10 +13,14 @@ function generic_ajax_success(data, textStatus, req, button)
 	$('#'+data.request.ga_loader_id).hide();
     if (data.message && data.request && data.request.ga_message_id) {
 	var msg = $('#'+data.request.ga_message_id);
-	msg.removeClass('ga_success ga_failure ga_warning');
-	msg.addClass(data.success ? 'ga_success' : 'ga_failure');
-	if (data.warning) msg.addClass('ga_warning');
-	msg.html(data.message).show();
+	msg.addClass('ui-widget ui-state-highlight ui-corner-all wf-message-box');
+	msg.removeClass('ui-state-error ui-state-highlight');
+	msg.addClass(data.success ? 'ui-state-highlight' : 'ui-state-error');
+	var html = '<P><SPAN class="ui-icon wf-message-icon ';
+	if (data.success) html += 'ui-icon-info';
+	else html += 'ui-icon-alert';
+	html += '" />'+data.message+'</P>';
+	msg.html(html).show();
     }
     if (data.alert)
 	alert (data.alert);
@@ -24,6 +28,8 @@ function generic_ajax_success(data, textStatus, req, button)
 	window.location = data.redirect;
     if (data.refreshtab)
 	$('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
+    if (data.selecttab)
+	$('#tabs>ul>li>a').each(function(i,e){ if($(e).attr('tab_id')==data.selecttab) $('#tabs').tabs('select', i); });
 }
 
 function generic_ajax_error(req, textStatus, errorThrown, button)
