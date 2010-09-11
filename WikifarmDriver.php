@@ -249,6 +249,12 @@ class WikifarmDriver {
 		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid='$wikiid' AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
 	}
 
+	function getInvitedUsers ($wikiid) {
+		$u = $this->query ("SELECT userid_or_groupname userid, autologin.mwusername, autologin.sysop FROM wikipermission LEFT JOIN usergroups ON userid_or_groupname=groupname LEFT JOIN autologin ON autologin.wikiid='$wikiid' AND autologin.userid=userid_or_groupname WHERE wikipermission.wikiid='$wikiid' AND usergroups.groupname IS NULL");
+		error_log(print_r($u,true));
+		return $u;
+	}
+
 	// returns true if $this->openid is a wikifarm admin	
 	function isAdmin () {
 		$id = $this->q_openid;
@@ -484,18 +490,12 @@ class WikifarmDriver {
 			      "access_claimed" => $access_claimed);
 	}
 	
-	function createInvitation($group, $wiki, $email) {
+	function createInvitation ($group, $wiki, $email) {
 		// TODO: make this useful
 		return md5(`head -c32 /dev/urandom`);
 	}
 	
-	function inviteUser($wikiid,$invitee_email,$mwusername=false) {
-		$userid = $this->getUserByEmail($email);
-		if (!$userid) {
-			error_log ("inviteUser: no such user: $email");
-			$this->_error = "No such user";
-			return false;
-		}
+	function inviteUser ($wikiid, $userid, $mwusername=false) {
 		$q_userid = SQLite3::escapeString ($userid);
 		if (!ereg ('^[0-9]+$', $wikiid)) {
 			error_log ("inviteUser: invalid wikiid $wikiid");
@@ -513,7 +513,15 @@ class WikifarmDriver {
 			$this->_error = "Database error";
 			return false;
 		}
+		if ($mwusername) {
+			$q_mwusername = SQLite3::escapeString ($mwusername);
+			$this->DB->exec ("insert or ignore into autologin (wikiid, userid, mwusername, sysop) values ('$wikiid', '$q_userid', '$q_mwusername', 0)");
+		}
 		return true;
+	}
+
+	function disinviteUser ($wikiid, $userid) {
+		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid='$wikiid' AND userid_or_groupname='".SQLite3::escapeString($userid)."'");
 	}
 
 	function getAllActivatedUsers() {

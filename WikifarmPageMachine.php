@@ -316,20 +316,42 @@ BLOCK;
 		$html = "<form id=\"mwf$wikiid\">";
 		$html .= "<input type=\"hidden\" name=\"wikiid\" value=\"$wikiid\" />\n";
 		$html .= "<table id=\"mwg${wikiid}\">";
-		$html .= "<thead><tr><th colspan=\"2\">Groups with access to this wiki</th></tr></thead><tbody>";
+		$html .= "<thead><tr><th class=\"minwidth\">View?&nbsp;</th><th>Group</th></tr></thead><tbody>";
 		foreach ($this->getAllGroups() as $g) {
 			if ($g["groupid"] == "ADMIN") continue;
 			$html .= "<tr>";
 			$checked = false === array_search ($g["groupid"], $groups) ? "" : "checked";
 			$groupid = $g["groupid"];
-			$html .= "<td><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki\" id=\"mw${wikiid}_group_".htmlspecialchars($g["groupid"])."\" name=\"mw${wikiid}_groups[]\" value=\"".htmlspecialchars($g["groupid"])."\" $checked></td>";
+			$html .= "<td class=\"minwidth\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki\" id=\"mw${wikiid}_group_".htmlspecialchars($g["groupid"])."\" name=\"mw${wikiid}_groups[]\" value=\"".htmlspecialchars($g["groupid"])."\" $checked></td>";
 			$html .= "<td>".htmlspecialchars($g["groupname"])."</td>";
 			$html .= "</tr>";
 		}
 		$html .= "</tbody></table>";
+
+		$html .= "<br clear=all /><p>&nbsp;</p>";
+
+		$invited_users = $this->getInvitedUsers ($wikiid);
+		$invited_userid = array();
+		foreach ($invited_users as $u) {
+			$invited_userid[] = $u["userid"];
+		}
+		$html .= "<table id=\"mwu${wikiid}\">";
+		$html .= "<thead><tr><th class=\"minwidth\">View?&nbsp;</th><th>User</th></tr></thead><tbody>";
+		foreach ($this->getAllActivatedUsers() as $u) {
+			$html .= "<tr>";
+			$checked = false === array_search ($u["userid"], $invited_userid) ? "" : "checked";
+			$html .= "<td class=\"minwidth\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki\" id=\"mw${wikiid}_user_".htmlspecialchars($u["userid"])."\" name=\"mw${wikiid}_users[]\" value=\"".htmlspecialchars($u["userid"])."\" $checked></td>";
+			$html .= "<td>".htmlspecialchars($u["realname"]." (".$u["userid"].")")."</td>";
+			$html .= "</tr>";
+		}
+		$html .= "</tbody></table>";
+
+		$html .= "<br /><div style=\"min-height: 12px;\" /><br />";
+
 		$html .= "</form>";
 		$html .= "<script language=\"JavaScript\">
-\$(\"#mwg$wikiid\").dataTable({\"bInfo\": false, \"bFilter\": false, \"bLengthChange\": false});
+\$(\"#mwg$wikiid\").dataTable({\"bInfo\": false, \"bSort\": false, \"bFilter\": false, \"bLengthChange\": false});
+\$(\"#mwu$wikiid\").dataTable({\"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
 </script>\n";
 		return $html;
 	}
@@ -437,9 +459,11 @@ EOT;
 		$wiki = $this->getWiki($wikiid);
 		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
 			return $this->fail ("You are not allowed to do that.");
-		$want = $post["mw${wikiid}_groups"];
+
 		$checkus = array();
 		$uncheckus = array();
+
+		$want = $post["mw${wikiid}_groups"];
 		foreach ($this->getAllGroups() as $g) {
 			if ($g["groupid"] == "ADMIN") continue;
 			if (!$want || false === array_search ($g["groupid"], $want)) {
@@ -451,6 +475,19 @@ EOT;
 				$checkus[] = "mw${wikiid}_group_".$g["groupid"];
 			}
 		}
+
+		$want = $post["mw${wikiid}_users"];
+		foreach ($this->getAllActivatedUsers() as $u) {
+			if (!$want || false === array_search ($u["userid"], $want)) {
+				$this->disinviteUser ($wikiid, $u["userid"]);
+				$uncheckus[] = "mw${wikiid}_user_".$u["userid"];
+			}
+			else {
+				$this->inviteUser ($wikiid, $u["userid"]);
+				$checkus[] = "mw${wikiid}_user_".$u["userid"];
+			}
+		}
+
 		return array ("success" => true,
 			      "check" => $checkus,
 			      "uncheck" => $uncheckus);

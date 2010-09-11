@@ -1,9 +1,9 @@
 img {border:none;}
 body, p, th, td, p, li { font: 11px verdana, arial, helvetica, sans-serif; }
 th { text-align: left; border-bottom: 1px solid black; }
-tr.even { background: #dddddd; }
-tr.odd { background: #eeeeee; }
-table { border-collapse: true; border-spacing: 0; }
+table { border-collapse: true; border-spacing: 0; width: 100%; }
+.minwidth { width: 1; }
+.dataTables_wrapper { min-height: 0; }
 .foo {position:absolute; bottom:30px; right:30px;}
 /*
  a {text-decoration:none; color:#0000ff;}
