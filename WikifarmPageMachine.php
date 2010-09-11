@@ -341,7 +341,6 @@ group_request_enable();
 <br clear />
 BLOCK;
 		return $html;
-		// return ($output . $this->uglydumpling ($this->getAllGroups()) );
 	}
 
 	function page_users() {
@@ -440,7 +439,7 @@ $("#myreqs").dataTable({"bInfo": false, "bPaginate": false, "aaSorting": [[5,"as
 <br clear />
 BLOCK;
 		
-		return $html . $this->uglydumpling ($this->getAllRequests());
+		return $html;
 	}
 	
 	function uglydumpling ($x) {
