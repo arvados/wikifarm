@@ -368,11 +368,6 @@ BLOCK;
 		return $html . $this->uglydumpling ($this->getAllRequests());
 	}
 	
-	function page_createwiki() {
-		return "Use (My Wikis-&gt;Create a New Wiki) instead...";
-		
-	}
-
 	function uglydumpling ($x) {
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
