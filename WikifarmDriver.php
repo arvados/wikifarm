@@ -182,6 +182,12 @@ class WikifarmDriver {
 				$wikis[] = $w;
 		return $wikis;
 	}
+
+	function getWiki ($wikiid) {
+		foreach ($this->getAllWikis() as $w)
+			if ($w["wikiid"] == $wikiid)
+				return $w;
+	}
 	
 	# returns a list of wikis selected by the focus user as favorites  TODO - invent this table
 	function getFavoriteWikis() {
@@ -233,6 +239,14 @@ class WikifarmDriver {
 				      ." >>/tmp/wikifarm-create-wiki.log." . posix_getpid()))
 			return false;
 		return true;
+	}
+
+	function inviteGroup ($wikiid, $groupid) {
+		$this->DB->exec ("INSERT OR IGNORE INTO wikipermission (wikiid, userid_or_groupname) values ('$wikiid', '".SQLite3::escapeString($groupid)."')");
+	}
+
+	function disinviteGroup ($wikiid, $groupid) {
+		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid='$wikiid' AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
 	}
 
 	// returns true if $this->openid is a wikifarm admin	

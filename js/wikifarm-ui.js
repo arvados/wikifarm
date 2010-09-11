@@ -3,6 +3,12 @@
 function generic_ajax_success(data, textStatus, req, button)
 {
     button.disabled = false;
+
+    if (data.check)
+	$.each(data.check, function (i,e) { if ($('#'+e)) $('#'+e).attr('checked', true); });
+    if (data.uncheck)
+	$.each(data.uncheck, function (i,e) { if ($('#'+e)) $('#'+e).attr('checked', false); });
+
     if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
 	$('#'+data.request.ga_loader_id).hide();
     if (data.message && data.request && data.request.ga_message_id) {

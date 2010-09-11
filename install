@@ -30,6 +30,8 @@ install $SOURCEDIR/js/ajax-loader.gif $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/jquery-1.4.2.min.js $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/jquery-ui-1.8.4.custom.min.js $INSTALLDIR/wikis/js/
 install $SOURCEDIR/js/wikifarm-ui.js $INSTALLDIR/wikis/js/
+[ -d DataTables-1.7.1 ] || unzip DataTables-1.7.1.zip
+rsync -av $SOURCEDIR/DataTables-1.7.1/media/js/ $INSTALLDIR/wikis/js/
 
 mkdir -p $INSTALLDIR/wikis/css
 cp -r $SOURCEDIR/css/* $INSTALLDIR/wikis/css/

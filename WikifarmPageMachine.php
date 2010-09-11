@@ -174,13 +174,9 @@ BLOCK;
 			extract ($row);
 			$visible_to = implode(", ", $groups);
 			$output .= "\t\t<li><a href=\"#tab_$wikiname\">#$wikiid: $realname</a></li>\n";
-			$content .= "
-	<div id=\"tab_$wikiname\">
-		<p>Wiki #$wikiid: $realname ($wikiname)<br>
-		Login now as: ... <br>
-		This wiki is visible to these groups: $visible_to<br>
-		to do...</p>
-	</div>";
+			$content .= "<div id=\"tab_$wikiname\">";
+			$content .= $this->frag_managewiki ($row);
+			$content .= "</div>\n";
 		}
 		$groups_options = "";
 		foreach ($this->getAllGroups() as $g) {
@@ -285,6 +281,29 @@ BLOCK;
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
 
+	function frag_managewiki ($wiki) {
+		extract ($wiki);
+		$html = "<form id=\"mwf$wikiid\">";
+		$html .= "<input type=\"hidden\" name=\"wikiid\" value=\"$wikiid\" />\n";
+		$html .= "<table id=\"mwg${wikiid}\">";
+		$html .= "<thead><tr><th colspan=\"2\">Groups with access to this wiki</th></tr></thead><tbody>";
+		foreach ($this->getAllGroups() as $g) {
+			if ($g["groupid"] == "ADMIN") continue;
+			$html .= "<tr>";
+			$checked = false === array_search ($g["groupid"], $groups) ? "" : "checked";
+			$groupid = $g["groupid"];
+			$html .= "<td><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki\" id=\"mw${wikiid}_group_".htmlspecialchars($g["groupid"])."\" name=\"mw${wikiid}_groups[]\" value=\"".htmlspecialchars($g["groupid"])."\" $checked></td>";
+			$html .= "<td>".htmlspecialchars($g["groupname"])."</td>";
+			$html .= "</tr>";
+		}
+		$html .= "</tbody></table>";
+		$html .= "</form>";
+		$html .= "<script language=\"JavaScript\">
+\$(\"#mwg$wikiid\").dataTable({\"bInfo\": false, \"bFilter\": false, \"bLengthChange\": false});
+</script>\n";
+		return $html;
+	}
+
 	// $obj->textHighlight("<strong>Hey!</strong> Sample ui-state-highlight style.");
 	function textHighlight($text) {
 		return "<div class=\"ui-widget\">
@@ -346,6 +365,29 @@ BLOCK;
 				      "message" => "Sorry, your account is not yet activated.");
 		}
 	}
+	function ajax_managewiki ($post) {
+		$wikiid = $post["wikiid"];
+		$wiki = $this->getWiki($wikiid);
+		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
+			return $this->fail ("You are not allowed to do that.");
+		$want = $post["mw${wikiid}_groups"];
+		$checkus = array();
+		$uncheckus = array();
+		foreach ($this->getAllGroups() as $g) {
+			if ($g["groupid"] == "ADMIN") continue;
+			if (!$want || false === array_search ($g["groupid"], $want)) {
+				$this->disinviteGroup ($wikiid, $g["groupid"]);
+				$uncheckus[] = "mw${wikiid}_group_".$g["groupid"];
+			}
+			else {
+				$this->inviteGroup ($wikiid, $g["groupid"]);
+				$checkus[] = "mw${wikiid}_group_".$g["groupid"];
+			}
+		}
+		return array ("success" => true,
+			      "check" => $checkus,
+			      "uncheck" => $uncheckus);
+	}
 
 	function ajax_createwiki ($post) {
 		if (!$this->isActivated())
@@ -381,6 +423,10 @@ BLOCK;
 		return array ("success" => false,
 			      "message" => $message,
 			      "alert" => $message);
+	}
+	function success($message) {
+		return array ("success" => true,
+			      "message" => $message);
 	}
 
 }  // class ends
