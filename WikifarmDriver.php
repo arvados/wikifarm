@@ -310,8 +310,8 @@ class WikifarmDriver {
 	}
 	
 	function setUserRealname($name) {
-		$name = SQLite3::escapeString ($name); //TODO verifiy this is filtered enough
 		$id = $this->q_openid;
+		$this->DB->exec ("INSERT OR IGNORE INTO users (userid) VALUES ('$id')");
 		return $this->DB->exec("UPDATE users SET realname='$name' WHERE userid='$id';" );
 	}		
 
@@ -322,6 +322,7 @@ class WikifarmDriver {
 
 	function setUserEmail($email) {
 		$id = $this->q_openid;
+		$this->DB->exec ("INSERT OR IGNORE INTO users (userid) VALUES ('$id')");
 		return $this->DB->exec("UPDATE users SET email='".SQLite3::escapeString(filter_var($email, FILTER_VALIDATE_EMAIL))."' WHERE userid='$id';" );
 	}
 
@@ -330,6 +331,8 @@ class WikifarmDriver {
 	}
 
 	function setUserPrefs() {
+		$id = $this->q_openid;
+		$this->DB->exec ("INSERT OR IGNORE INTO users (userid) VALUES ('$id')");
 		// TODO
 	}
 
@@ -345,7 +348,9 @@ class WikifarmDriver {
 		
 	function setMWUsername($nickname) {
 		if (strlen ($nickname = trim($nickname))) {
-			$this->DB->exec ("UPDATE users SET mwusername='".SQLite3::escapeString ($nickname)."' WHERE userid='".SQLite3::escapeString ($this->q_openid)."'");
+			$id = $this->q_openid;
+			$this->DB->exec ("INSERT OR IGNORE INTO users (userid) VALUES ('$id')");
+			$this->DB->exec ("UPDATE users SET mwusername='".SQLite3::escapeString ($nickname)."' WHERE userid='$id'");
 			return $this->DB->changes() == 1;
 		}
 	}

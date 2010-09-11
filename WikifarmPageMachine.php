@@ -102,11 +102,27 @@ BLOCK;
 	}
 
 	function page_myaccount() {
-		return $this->uglydumpling (array ("userid" => $this->openid,
-						   "email" => $this->getUserEmail(),
-						   "realname" => $this->getUserRealname(),
-						   "mwusername" => $this->getMWUsername(),
-						   "prefs" => $this->getUserPrefs()));
+		$q_openid = $_SERVER["REMOTE_USER"];
+		$q_email = htmlspecialchars($this->getUserEmail());
+		$q_realname = htmlspecialchars($this->getUserRealname());
+		$q_mwusername = htmlspecialchars($this->getMWUsername());
+		return <<<BLOCK
+<form id="myaccountform">
+<table>
+<thead></thead><tbody>
+<tr>
+<td class="minwidth" align="right">OpenID</td><td><input type="text" name="openid" value="$q_openid" size=48 disabled /></td>
+</tr><tr>
+<td class="minwidth" align="right">Email&nbsp;address</td><td><input type="text" name="email" value="$q_email" /></td>
+</tr><tr>
+<td class="minwidth" align="right">Real&nbsp;name</td><td><input type="text" name="realname" value="$q_realname" /></td>
+</tr><tr>
+<td class="minwidth" align="right">Preferred&nbsp;MediaWiki&nbsp;username</td><td><input type="text" name="mwusername" value="$q_mwusername" /></td>
+</tr><tr>
+<td class="minwidth" align="right"></td><td><button class="generic_ajax" ga_form_id="myaccountform" ga_action="myaccount_save" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader"></span></td>
+</tr></tbody></table>
+</form>
+BLOCK;
 	}
 
 
@@ -658,6 +674,22 @@ EOT;
 		return $this->success();
 	}
 
+	function ajax_myaccount_save ($post) {
+		$this->validate_email ($post["email"]);
+		if (isset ($post["mwusername"]) && $post["mwusername"] != "")
+			$this->validate_mwusername ($post["mwusername"]);
+		$did_not_have_basics = !$this->getUserEmail() || !$this->getUserRealname();
+		$this->setUserEmail ($post["email"]);
+		$this->setMWUsername ($post["mwusername"]);
+		$this->setUserRealname ($post["realname"]);
+		if ($did_not_have_basics && $this->getUserEmail() && $this->getUserRealname())
+			return array ("success" => true,
+				      "redirect" => "/");
+		else
+			return array ("success" => true,
+				      "refreshtab" => true);
+	}
+
 	function ajax_approve_request ($post) {
 		$this->approveRequestId ($post["requestid"]+0);
 		return $this->success();
@@ -676,6 +708,11 @@ EOT;
 	function validate_mwusername ($x) {
 		if (!preg_match ('{^[a-z][-a-z0-9_\.]*$}i', $x))
 			throw new Exception ("A MediaWiki username must contain only letters, digits, underscores, dots, and dashes, and must begin with a letter.");
+	}
+
+	function validate_email ($x) {
+		if (!preg_match ('{^[-_\.a-z0-9]+@[-_\.a-z0-9]+\.[a-z]+$}i', $x))
+			throw new Exception ("That email address does not look like an email address.");
 	}
 
 	function validate_activated () {
