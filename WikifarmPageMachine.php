@@ -107,12 +107,30 @@ BLOCK;
 		$q_email = htmlspecialchars($this->getUserEmail());
 		$q_realname = htmlspecialchars($this->getUserRealname());
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
+		$q_uota = $this->getWikiQuota();
+		$icon = "info";
+		if ($this->isActivated())
+			$activation_status = "Your account is active.";
+		else if ($this->isActivationRequested())
+			$activation_status = "Your account has not yet been activated by a site administrator.  You can update your personal information and request more group memberships, but you cannot view or create any wikis until your account is activated.";
+		else if ($this->getUserEmail() && $this->getUserRealname()) {
+			$icon = "circle-arrow-e";
+			$activation_status = "If the information on this page is correct, please <a href=\"/?tabActive=groups\">select your group affiliations and request account activation</a>.";
+		}
+		else {
+			$icon = "circle-arrow-e";
+			$activation_status = "Please provide your real name and email address.";
+		}
 		return <<<BLOCK
+<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-$icon" />$activation_status</p></div>
+<div class="clear1em" />
 <form id="myaccountform">
 <table>
 <thead></thead><tbody>
 <tr>
 <td class="minwidth" align="right">OpenID</td><td><input type="text" name="openid" value="$q_openid" size=48 disabled /></td>
+</tr><tr>
+<td class="minwidth" align="right">Wiki&nbsp;quota</td><td><input type="text" value="$q_uota" size=5 disabled /></td>
 </tr><tr>
 <td class="minwidth" align="right">Email&nbsp;address</td><td><input type="text" name="email" value="$q_email" /></td>
 </tr><tr>

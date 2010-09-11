@@ -1,5 +1,10 @@
 /* original tab code */
 
+function wf_tab_select (tabset, selecttab)
+{
+    $('#'+tabset+'>ul>li>a').each(function(i,e){ if($(e).attr('tab_id')==selecttab) $('#tabs').tabs('select', i); });
+}
+
 function generic_ajax_success(data, textStatus, req, button)
 {
     button.disabled = false;
@@ -29,7 +34,7 @@ function generic_ajax_success(data, textStatus, req, button)
     if (data.refreshtab)
 	$('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
     if (data.selecttab)
-	$('#tabs>ul>li>a').each(function(i,e){ if($(e).attr('tab_id')==data.selecttab) $('#tabs').tabs('select', i); });
+	wf_tab_select('tabs', data.selecttab);
 }
 
 function generic_ajax_error(req, textStatus, errorThrown, button)
