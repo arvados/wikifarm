@@ -121,13 +121,14 @@ BLOCK;
 				"\t\t$('#viewallradio').buttonset();\n".
 				"\t\t$('#viewallradio input').change( function(){ if ($('#viewallyes').attr('checked')) { $('.nonreadable').show(); } else { $('.nonreadable').hide(); } });\n" .
 				"\t\t$('.requestedbutton').click(function(){ $('#tabs').tabs('select', 0); });\n".
-//				"\t\t$('.signinbutton').click(function(){ window.location='$(this).attr('wikiid'); });\n".
+				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
 				"#allwikis td { padding-right: 10px; }\n".
 				"#allwikis td.wikiid { width: 25px; text-align: right; padding-right: 10px; }\n".
 				"#allwikis td.controls { padding-right: 0px; }\n".
-				".controls a { padding: 0px; margin: 0px; }".
-			"</style>\n";	
+				".controls a { padding: 0px; margin: 0px; }\n".
+			"</style>\n";
+			//$output .= $this->textRequestAccess();
 /* --- Page Heading --- */		
 		$output .= "<h2>All Wikis</h2>\n".			
 			//"<form>\n".
@@ -165,9 +166,9 @@ BLOCK;
 					"</select>";
 				if (!$readable) $output .= "<input type=button class='requestbutton' value='Request Write Access'>";
 			} elseif ($readable) {
-				$output .= "<input type=button name=\"goto$wikiid\" value=\"Manual sign-in\">\n";
+				$output .= "<input type=button class='linkbutton' link='/$wikiid/' name='$wikiid' value=\"Manual sign-in\">\n";
 			} elseif ($requested_readable) {
-				$output .= "<input type=button class='requestedbutton' value='Check Request Status'>\n";
+				$output .= "<input type=button class='requestedbutton' value='View Request Status'>\n";
 			} else { 
 				$output .= "<input type=button class='requestbutton' value='Request Access'>";
 			}
@@ -175,6 +176,7 @@ BLOCK;
 				
 		}
 		$output .= "</table>\n";
+		$output .= "<div class='ui-helper-hidden'><form name='hiddenform' method='post' action='index.php'></form></div>\n";
 		$output .= $this->uglydumpling ($this->getAllWikis());
 		return $output;
 	}
@@ -292,7 +294,7 @@ $output = <<<EOT
 			autoOpen: false,
 			width: 600,
 			buttons: {
-				"Send Request": function() { 
+				"Send Request": function() {					
 					$(this).dialog("close"); 
 				}, 
 				"Cancel": function() { 
@@ -300,9 +302,9 @@ $output = <<<EOT
 				}
 			}
 		});
-		$('#dialog_link').click(function(){
-			$('#reqwikiname').html('<strong>'+this.wikiname+'</strong>');
-			$('#dialog').dialog('open');
+		$('#requestbutton').click(function(){	
+			$('#reqwikiname').html('<strong>'+$(this).attr('wikiname')+'</strong>');
+			$('#getaccessdialog').dialog('open');
 			return false;
 		});
 	});
@@ -311,18 +313,14 @@ $output = <<<EOT
 <p><a href="#" class="getaccessdialog"><span class="ui-icon ui-icon-flag"></span>Request Access</a></p>
 
 <div id="getaccessdialog" title="Request Access To A Wiki">
-	<form><table><tr><td align=right>Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
-	<tr><td>Write access wanted? <checkbox name="writeaccess" checked><br>
-	Username you want: <input type="text" name="reqmwusername"><br>
-	
-	
+	<form><table>
+	<tr><td align=right>Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
+	<tr><td align=right>Write access wanted?</td><td><checkbox name="writeaccess" checked></td></tr>
+	<tr><td align=right>Username you want:</td><td><input type="text" name="reqmwusername"></td></tr>
+	</table></form>
 </div>
-
-
 EOT;
-
-	
-	
+	return $output;
 	}
 
 	// AJAX handlers
