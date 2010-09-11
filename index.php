@@ -104,7 +104,7 @@ if (isset ($_GET["tabActive"]))
 
 	echo "<div id=\"tabs\">\n\t<ul>";
 	foreach ($tabTitles as $tab => $title) {
-		echo "\n\t\t<li><a href=\"?tab=$tab\" title=\"$title\">$title</a></li>";
+		echo "\n\t\t<li><a tab_id=\"$tab\" href=\"?tab=$tab\" title=\"$title\">$title</a></li>";
 	}
 	echo "\n\t</ul>\n</div>";
 

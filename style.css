@@ -5,6 +5,8 @@ table { border-collapse: true; border-spacing: 0; width: 100%; }
 .minwidth { width: 1; }
 .dataTables_wrapper { min-height: 0; }
 .foo {position:absolute; bottom:30px; right:30px;}
+.wf-message-icon { float: left; margin-right: 1em; }
+.wf-message-box { padding: 0 1em; }
 /*
  a {text-decoration:none; color:#0000ff;}
  a:visited {text-decoration:none; color:#0000ff;}
