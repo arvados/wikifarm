@@ -269,7 +269,40 @@ BLOCK;
 	}
 
 	function page_users() {
-		return $this->uglydumpling ($this->getAllActivatedUsers());
+		$html = <<<BLOCK
+<table id="userlist">
+<thead>
+<tr>
+<th>Email</th>
+<th>Real Name</th>
+<th>Preferred MW Username</th>
+<th>ID</th>
+</tr>
+</thead>
+<tbody>
+BLOCK;
+		foreach ($this->getAllActivatedUsers() as $u) {
+			foreach ($u as $k => $v) { $u["q_$k"] = htmlspecialchars($v); }
+			extract ($u);
+			$html .= <<<BLOCK
+<tr>
+<td>$q_email</td>
+<td>$q_realname</td>
+<td>$q_mwusername</td>
+<td>$q_userid</td>
+</tr>
+BLOCK;
+		}
+		$html .= <<<BLOCK
+</tbody>
+</table>
+
+<script language="JavaScript">
+$("#userlist").dataTable({"iDisplayLength": 25});
+</script>
+<br clear />
+BLOCK;
+		return $html;
 	}
 
 	function page_tools() {
