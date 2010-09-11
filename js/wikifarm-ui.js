@@ -26,9 +26,13 @@ function generic_ajax_success(data, textStatus, req, button)
 	else html += 'ui-icon-alert';
 	html += '" />'+data.message+'</P>';
 	msg.html(html).show();
+	if (data.alert && (data.redirect || data.refreshtab || data.selecttab))
+	    alert (data.alert);
     }
-    if (data.alert)
+    else if (data.alert)
 	alert (data.alert);
+    else if (data.message)
+	alert (data.message);
     if (data.redirect)
 	window.location = data.redirect;
     if (data.refreshtab)
