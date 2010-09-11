@@ -59,14 +59,31 @@ function generic_ajax_submit()
 		    data: postme,
 		    success: function(d,t,r) { return generic_ajax_success(d,t,r,button); },
 		    error: function(r,t,e) { return generic_ajax_error(r,t,e,button); },
-		    cache: false,
-		    beforeSend: function(xhr) {
-		    xhr.setRequestHeader('Accept','application/json');
-		}
+		    cache: false
 	    });
     } catch(e) {
 	alert ("Browser compatibility problem: " + e.name + " (" + e.message + ")");
     }
+    return false;
+}
+
+function dialog_submit(dialog, form)
+{
+    $.ajax({
+	    url: '/',
+		type: 'POST',
+		dataType: 'json',
+		data: $(form).serializeArray(),
+		success: function(d,t,r)
+		{
+		    if (d && d.success)
+			$(dialog).dialog("close");
+		    else if (d.alert) alert(d.alert);
+		    else if (d.message) alert(d.message);
+		},
+		error: function(r,t,e) { alert (e); },
+		cache: false
+		});
     return false;
 }
 

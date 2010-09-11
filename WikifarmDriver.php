@@ -249,7 +249,6 @@ class WikifarmDriver {
 
 	function getInvitedUsers ($wikiid) {
 		$u = $this->query ("SELECT userid_or_groupname userid, autologin.mwusername, autologin.sysop FROM wikipermission LEFT JOIN usergroups ON userid_or_groupname=groupname LEFT JOIN autologin ON autologin.wikiid='$wikiid' AND autologin.userid=userid_or_groupname WHERE wikipermission.wikiid='$wikiid' AND usergroups.groupname IS NULL");
-		error_log(print_r($u,true));
 		return $u;
 	}
 
@@ -367,6 +366,12 @@ class WikifarmDriver {
 			if (!$found)
 				error_log ("requestGroup nonexistent group: $group");
 		}
+	}
+
+	function requestWiki ($wikiid, $mwusername=false) {
+		$this->DB->exec ("delete from request where userid='".$this->q_openid."' and wikiid='$wikiid'");
+		$this->DB->exec ("insert into request (userid, wikiid, mwusername) values ('".$this->q_openid."', '$wikiid', '".SQLite3::escapeString($mwusername)."')");
+		return true;
 	}
 
 	// Responding to requests	

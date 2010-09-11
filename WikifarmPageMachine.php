@@ -168,7 +168,7 @@ BLOCK;
 			} elseif ($requested_readable) {
 				$output .= "<input type=button class='requestedbutton' value='View Request Status'>\n";
 			} else { 
-				$output .= "<input type=button class='requestbutton' wikiid='$wikiid' wikiname='$realname' value='Request Access'>";
+				$output .= "<input type=button class='requestbutton' wikiid='$wikiid' wikititle='$realname' value='Request Access'>";
 			}
 			$output .= "</td></tr>\n";
 				
@@ -284,7 +284,8 @@ BLOCK;
 	function page_requests() {
 		$requests = $this->getAllRequests();
 		$num = count($requests);
-		$output = "<h2>Requests</h2>What's this page do?";
+		$output = "";
+		
 		if ($num > 0) $output .= $this->textHighlight("You have <strong>$num</strong> pending request". ($num == 1 ? "." : "s.") );
 		$output .= "<table class=\"ui-state-default ui-corner-all\" style=\"padding: 0 .7em;\">\n";
 		foreach ($requests as $req) {
@@ -373,32 +374,34 @@ BLOCK;
 	
 	// Request access to a wiki, served in a popup.
 	function textRequestAccess() {
+		$q_defaultmwusername = htmlspecialchars ($this->getMWUsername());
 $output = <<<EOT
 <script type="text/javascript">
 	$(function() {
-		$('#getaccessdialog').dialog({ modal: true, autoOpen: false,	buttons: { 
-			"Send Request": function() { $(this).dialog("close"); }, 
+			$('#getaccessdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
+			"Send Request": function() { dialog_submit(this, "#getaccess"); }, 
 			"Cancel": function() { $(this).dialog("close"); }
 		} });
 		
 		$('.requestbutton').click(function(){	
-			$('#reqwikiname').html('<strong>'+$(this).attr('wikiname')+'</strong>');
-			$(':input', '#getaccess').val('');
-			$('#getaccess:checkbox').attr('checked',true);
-			$('#getaccess:hidden').val($(this).attr('wikiid'));
+			$('#reqwikiname').html('<strong>'+$(this).attr('wikititle')+'</strong>');
+			$('#reqwriteaccess').attr('checked',true);
+			$('#reqwikiid').val($(this).attr('wikiid'));
 			$('#getaccessdialog').dialog('open');
 			return false;
 		});
 	});
+\$('#reqwriteaccess').live('click', function(){ \$('#reqmwusername').attr('disabled',!\$('#reqwriteaccess').attr('checked')); });
 </script>
 
 <div id="getaccessdialog" title="Request Access To A Wiki">
 	<form id="getaccess"><table>
 	<tr><td align=right>Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
-	<tr><td align=right>Write access wanted?</td><td><input type=checkbox name="writeaccess" value="true" checked="checked">&nbsp;</td></tr>
-	<tr><td align=right>Username you want:<br>(optional)</td><td><input type="text" name="reqmwusername"></td></tr>	
+	<tr><td align=right>Write access wanted?</td><td><input type=checkbox id="reqwriteaccess" name="writeaccess" value="true" checked="checked">&nbsp;</td></tr>
+	<tr><td align=right>Username you want:</td><td><input type="text" id="reqmwusername" name="mwusername" value="$q_defaultmwusername"></td></tr>
 	</table>
-	<input type='hidden' name='wikiid' value=''></form>
+	<input type="hidden" name="wikiid" id="reqwikiid" value="">
+	<input type="hidden" name="ga_action" value="requestwiki"></form>
 </div>
 EOT;
 	return $output;
@@ -410,7 +413,11 @@ EOT;
 		if (!method_exists ($this, "ajax_" . $post["ga_action"]))
 			return array ("success" => false,
 				      "alert" => "Invalid request (action=".$post["ga_action"].")");
-		return call_user_func (array ($this, "ajax_" . $post["ga_action"]), $post);
+		try {
+			return call_user_func (array ($this, "ajax_" . $post["ga_action"]), $post);
+		} catch (Exception $e) {
+			return $this->fail ($e->getMessage());
+		}
 	}
 
 	function ajax_test_success ($post) {
@@ -487,23 +494,21 @@ EOT;
 	}
 
 	function ajax_createwiki ($post) {
-		if (!$this->isActivated())
-			return $this->fail ("You are not allowed to do that.");
+		$this->validate_activated();
 		if (!$this->canCreateWikis())
 			return $this->fail ("You have reached your wiki quota.  Please contact an administrator to increase your quota.");
 		$post["realname"] = trim($post["realname"]);
 		if ($post["realname"] == "")
 			return $this->fail ("You must provide a title for your wiki.");
-		if (!preg_match ('{^[\w\' ]+$}', $post["realname"]))
+		if (!preg_match ('{^[-\w\' ]+$}', $post["realname"]))
 			return $this->fail ("Your wiki title cannot contain quotation marks, symbols, or special characters.");
 
-		if (!preg_match ('{^[a-z][a-z0-9]{3,12}$}', $post["wikiname"]))
-			return $this->fail ("Your wiki name must be 3 to 12 lower case letters and digits, and must start with a letter.");
+		$this->validate_wikiname ($post["wikiname"]);
+		$this->validate_mwusername ($post["mwusername"]);
+
 		if (!$this->isWikiNameAvailable ($post["wikiname"]))
 			return $this->fail ("The wiki name \"$post[wikiname]\" is already in use.");
 
-		if (!preg_match ('{^[A-Z][a-zA-Z0-9]*$}', $post["mwusername"]))
-			return $this->fail ("Your MediaWiki account name must contain only letters and digits, and must begin with an upper case letter.");
 		$ok = $this->createWiki ($post["wikiname"],
 					 $post["realname"],
 					 $post["mwusername"],
@@ -516,12 +521,37 @@ EOT;
 		
 	}
 
-	function fail($message) {
+	function ajax_requestwiki ($post) {
+		$this->validate_activated();
+		if ($post["writeaccess"]) {
+			$this->validate_mwusername ($post["mwusername"]);
+			$this->requestWiki ($post["wikiid"]+0, $post["mwusername"]);
+		} else
+			$this->requestWiki ($post["wikiid"]+0);
+		return $this->success();
+	}
+
+	function validate_wikiname ($x) {
+		if (!preg_match ('{^[a-z][a-z0-9]{3,12}$}', $x))
+			throw new Exception ("Your wiki name must be 3 to 12 lower case letters and digits, and must start with a letter.");
+	}
+
+	function validate_mwusername ($x) {
+		if (!preg_match ('{^[a-z][-a-z0-9_\.]*$}i', $x))
+			throw new Exception ("A MediaWiki username must contain only letters, digits, underscores, dots, and dashes, and must begin with a letter.");
+	}
+
+	function validate_activated () {
+		if (!$this->isActivated())
+			throw new Exception ("You are not allowed to do that.");
+	}
+
+	function fail($message="Server side error.") {
 		return array ("success" => false,
 			      "message" => $message,
 			      "alert" => $message);
 	}
-	function success($message) {
+	function success($message="OK") {
 		return array ("success" => true,
 			      "message" => $message);
 	}
