@@ -420,10 +420,10 @@ class WikifarmDriver {
 		if ($this->isAdmin()) return $req[0];
 
 		// non-admin can only approve a request concerning a wiki she actually owns
-		if (!$this->querySingle("select 1 from wikis where id=".$req[0]["wikiid"]." and userid='".$this->q_openid."'"))
-			return $reqs[0];
+		if ($this->querySingle("select 1 from wikis where id=".$req[0]["wikiid"]." and userid='".$this->q_openid."'"))
+			return $req[0];
 
-		error_log ("canApproveRequest: user ".$this->openid." cannot do ".print_r($reqs[0],true));
+		error_log ("canApproveRequest: user ".$this->openid." cannot do ".print_r($req[0],true));
 		return false;
 	}
 	
