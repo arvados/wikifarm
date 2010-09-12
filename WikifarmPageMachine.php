@@ -107,6 +107,7 @@ BLOCK;
 		$q_email = htmlspecialchars($this->getUserEmail());
 		$q_realname = htmlspecialchars($this->getUserRealname());
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
+		$claimbutton =  "<input type='button' class='claimaccountbutton' value='Claim Account' />".$this->textClaimAccount();
 		return <<<BLOCK
 <form id="myaccountform">
 <table>
@@ -124,10 +125,11 @@ BLOCK;
 </tr></tbody></table>
 <div id="myaccount_message" class="ui-helper-hidden" />
 </form>
+{$claimbutton}
 BLOCK;
 	}
 
-
+// All Wikis Tab - Show a fancy list of all available wikis on the site
 	function page_wikis() {
 		if (!$this->isActivated()) {			
 			error_log ("page_wikis: requested by unactivated user");
@@ -141,7 +143,7 @@ BLOCK;
 				"\t\t$('.controls a').button();\n".
 				"\t\t$('#viewallradio').buttonset();\n".
 //				"\t\t$('#viewallradio input').change( function(){ if ($('#viewallyes').attr('checked')) { $('.nonreadable').show(); } else { $('.nonreadable').hide(); } });\n" .
-				"\t\tvar oTable = $('#allwikis').dataTable({'bJQueryUI': true });\n".
+				"\t\tvar oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100 });\n".
 				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
 				"\t\t$('.requestedbutton').click(function(){ $('#tabs').tabs('select', 0); });\n".
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
@@ -153,11 +155,11 @@ BLOCK;
 			"</style>\n";
 			$output .= $this->textRequestAccess();
 /* --- Page Heading --- */		
-		$output .= "<h2>All Wikis</h2>\n".			
-			"<div align=right id='viewallradio'>\n".
+		$output .= "<table><tr><td><h2>All Wikis</h2></td>\n".
+			"<td><div align=right id='viewallradio'>\n".
 				"\t<input type='radio' id='viewallyes' name='viewallradio' checked='checked' /><label for='viewallyes'>View All</label>\n".
 				"\t<input type='radio' id='viewallno' name='viewallradio' /><label for='viewallno'>View Readable</label>\n".
-			"</div>\n".
+			"</div></td></tr></table>\n".
 			"<table id='allwikis' class='ui-widget' >\n" .
 			"<thead><tr>\n".
 				"<th class='wikiid'>#</th>".
@@ -169,6 +171,7 @@ BLOCK;
 /* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
 			extract ($row);
+			if ($id < 5) { $readable = 0; $requested_readable = 0; };
 			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
 			$output .= "\t<tr" . (!$readable ? " class='nonreadable'" : "") . ">".
 				"<td class=\"wikiid\">$wikiid</td>".
@@ -500,7 +503,8 @@ BLOCK;
 			<div class=\"ui-state-highlight ui-corner-all\" style=\"margin-top: 20px; padding: 0 .7em;\"> 
 				<p><span class=\"ui-icon ui-icon-info\" style=\"float: left; margin-right: .3em;\"></span>
 				$text</p>
-			</div>";
+			</div>
+		</div>";
 	}
 	// $obj->textError("<strong>Alert:</strong> Sample ui-state-error style.");
 	function textError($text) {
@@ -515,17 +519,18 @@ BLOCK;
 	// Request access to a wiki, served in a popup.
 	function textRequestAccess() {
 		$q_defaultmwusername = htmlspecialchars ($this->getMWUsername());
-$output = <<<EOT
+		$footnote = $this->textHighlight("<strong>Note:</strong> If you already have an invite code, or a pre-OpenID wiki account, you should claim it first in the \"My Account\" tab.");
+		$output = <<<EOT
 <script type="text/javascript">
-	$(function() {
+	$(function() { 
 			$('#getaccessdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
 			"Send Request": function() { dialog_submit(this, "#getaccess"); }, 
 			"Cancel": function() { $(this).dialog("close"); }
 		} });
-		
 		$('.requestbutton').click(function(){	
 			$('#reqwikiname').html('<strong>'+$(this).attr('wikititle')+'</strong>');
 			$('#reqwriteaccess').attr('checked',true);
+			$('#reqmwusername').val('$q_defaultmwusername');
 			$('#reqwikiid').val($(this).attr('wikiid'));
 			$('#getaccessdialog').dialog('open');
 			return false;
@@ -542,9 +547,39 @@ $output = <<<EOT
 	</table>
 	<input type="hidden" name="wikiid" id="reqwikiid" value="">
 	<input type="hidden" name="ga_action" value="requestwiki"></form>
+	{$footnote}
 </div>
 EOT;
 	return $output;
+	}
+	
+// Claim an old account, served in a dialog box.
+	function textClaimAccount() {
+		return <<<EOT
+<script type="text/javascript">
+	$(function() { 
+			$('#claimaccountdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
+			"Claim Account": function() { dialog_submit(this, "#claimaccount"); }, 
+			"Cancel": function() { $(this).dialog("close"); }
+		} });
+		$('.claimaccountbutton').click(function(){	
+			$('#claimaccount').not(':hidden').val('');
+			$('#claimaccountdialog').dialog('open');
+			return false;
+		});
+	});
+</script>
+
+<div id="claimaccountdialog" title="Claim a Pre-OpenID Account">
+	<p>Enter the username and password that you were using before the conversion to <strong>OpenID</strong> authentication.
+	Please note that all existing user rights from your pre-OpenID account will be added to the OpenID-enabled account that you are currently using.</p>
+	<form id="claimaccount"><table>
+	<tr><td align=right>Username:</td><td><input type="text" id="claimusername" name="username" /></td></tr>
+	<tr><td align=right>Password:</td><td><input type="password" id="claimpassword" name="password" /></td></tr>
+	</table>
+	<input type="hidden" name="ga_action" value="claimaccount"></form>	
+</div>
+EOT;
 	}
 
 	// AJAX handlers
