@@ -109,19 +109,19 @@ BLOCK;
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
 		$q_uota = $this->getWikiQuota();
 		$icon = "info";
-		if ($this->isActivated()) {
+		if (!$this->getUserEmail() || !$this->getUserRealname()) {
+			$icon = "circle-arrow-e";
+			$activation_status = "Please provide your real name and email address.";
+		}
+		else if ($this->isActivated()) {
 			$icon = "circle-check";
 			$activation_status = "Your account is active.";
 		}
 		else if ($this->isActivationRequested())
 			$activation_status = "Your account has not yet been activated by a site administrator.  You can update your personal information and request more group memberships, but you cannot view or create any wikis until your account is activated.";
-		else if ($this->getUserEmail() && $this->getUserRealname()) {
-			$icon = "circle-arrow-e";
-			$activation_status = "If the information on this page is correct, please <a href=\"/?tabActive=groups\">select your group affiliations and request account activation</a>.";
-		}
 		else {
 			$icon = "circle-arrow-e";
-			$activation_status = "Please provide your real name and email address.";
+			$activation_status = "If the information on this page is correct, please <a href=\"/?tabActive=groups\">select your group affiliations and request account activation</a>.";
 		}
 		return <<<BLOCK
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-$icon" />$activation_status</p></div>
