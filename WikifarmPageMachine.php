@@ -155,10 +155,14 @@ BLOCK;
 		}
 		$wikiArray = $this->getAllWikis();
 /* --- Javascript and CSS --- */		
-		$output = "<script type='text/javascript'>\n\t$(function() {\n".
+		$output = "<script type='text/javascript'>\n".
+			"\t$.fn.dataTableExt.afnFiltering.push( function(oSettings,aData,iDataIndex) { var nTr = oSettings.aoData[iDataIndex].nTr; if (nTr.className.match(/nonreadable/) && $('#viewallno').attr('checked')) { return false; }; return true; });".
+			"\t$(function() {\n".
 				"\t\t$('.controls a').button();\n".
 				"\t\t$('#viewallradio').buttonset();\n".
-				"\t\t$('#viewallradio input').change( function(){ if ($('#viewallyes').attr('checked')) { $('.nonreadable').show(); } else { $('.nonreadable').hide(); } });\n" .
+//				"\t\t$('#viewallradio input').change( function(){ if ($('#viewallyes').attr('checked')) { $('.nonreadable').show(); } else { $('.nonreadable').hide(); } });\n" .
+				"\t\tvar oTable = $('#allwikis').dataTable({'bJQueryUI': true });\n".
+				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
 				"\t\t$('.requestedbutton').click(function(){ $('#tabs').tabs('select', 0); });\n".
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
@@ -170,24 +174,23 @@ BLOCK;
 			$output .= $this->textRequestAccess();
 /* --- Page Heading --- */		
 		$output .= "<h2>All Wikis</h2>\n".			
+			"<div align=right id='viewallradio'>\n".
+				"\t<input type='radio' id='viewallyes' name='viewallradio' checked='checked' /><label for='viewallyes'>View All</label>\n".
+				"\t<input type='radio' id='viewallno' name='viewallradio' /><label for='viewallno'>View Readable</label>\n".
+			"</div>\n".
 			"<table id='allwikis' class='ui-widget' >\n" .
-			"<tr class=\"ui-widget-content\">".
-			"\t<td colspan=5><div align=right id='viewallradio'>\n".
-				"\t\t<input type='radio' id='viewallyes' name='viewallradio' checked='checked' /><label for='viewallyes'>View All</label>\n".
-				"\t\t<input type='radio' id='viewallno' name='viewallradio' /><label for='viewallno'>View Readable</label>\n".
-			"\t</div></td></tr>\n".
-			"<tr class='ui-widget-header'>\n".
-				"<td class='wikiid ui-corner-tl'>#</td>".
-				"<td>Wiki</td>".
-				"<td>Owner</td>".
-				"<td>Group(s)</td>".
-				"<td class=\"ui-corner-tr\">Actions</td>".
-			"</tr>\n";
+			"<thead><tr>\n".
+				"<th class='wikiid'>#</th>".
+				"<th>Wiki</tdh".
+				"<th>Owner</th>".
+				"<th>Group(s)</th>".
+				"<th>Actions</th>".
+			"</tr></thead>\n<tbody>\n";
 /* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
-			$output .= "\t<tr class=\"ui-widget-content" . (!$readable ? " nonreadable" : "") . "\">".
+			$output .= "\t<tr" . (!$readable ? " class='nonreadable'" : "") . ">".
 				"<td class=\"wikiid\">$wikiid</td>".
 				"<td>".($readable ? "<a href=\"/$wikiname/\">$realname</a>" : $realname)."</td>".
 				"<td>$owner_realname</td>".
@@ -211,7 +214,7 @@ BLOCK;
 			$output .= "</td></tr>\n";
 				
 		}
-		$output .= "</table>\n";
+		$output .= "</tbody></table>\n";
 		// $output .= "<div class='ui-helper-hidden'><form name='hiddenform' method='post' action='index.php'></form></div>\n";
 		$output .= $this->uglydumpling ($this->getAllWikis());
 		return $output;

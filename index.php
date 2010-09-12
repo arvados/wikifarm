@@ -37,7 +37,7 @@ $tabTitles = array(
 			'mywikis'=>'My Wikis',
 			'groups'=>'Groups',
 			'myaccount'=>'My Account',
-			'getaccess'=>'Get Access',
+//			'getaccess'=>'Get Access',
 			'tools'=>'Tools',
 			'users'=>'User List',
 			'debug'=>'Debug',
@@ -88,6 +88,8 @@ if (isset ($_GET["tabActive"]))
 <script language="JavaScript">
 	$(function() {
 		$("#tabs").tabs({selected: <?=$tabActiveId?>});
+		$(".needhelp").css('font-size', '.8em');
+		$("#logoutbutton").button().removeClass('ui-corner-all').css('padding', '0px');
 	});
 </script>
 </head>
@@ -96,8 +98,8 @@ if (isset ($_GET["tabActive"]))
 [ logo or something ]
 <br>
 <br>
-<table width=100%><tr><td>&nbsp;</td><td align=right>Need help? Check out our <a href="docs/Wiki_Tutorial">Wiki Tutorial</a></td>
-<tr><td><font size=-2> Logged in as <?=$_SERVER["REMOTE_USER"]?></font></td><td align=right><font size=-2><a href="logout.php" class="button ui-state-default ui-corner-all">Log out</a></font></td></table>
+<table width=100%><tr><td>&nbsp;</td><td class="needhelp" align=right>Need help? Check out our <a href="docs/Wiki_Tutorial">Wiki Tutorial</a></td>
+<tr><td><font size=-2> Logged in as <?=$_SERVER["REMOTE_USER"]?></font></td><td align=right><font size=-2><a href="logout.php" id="logoutbutton" class="ui-corner-tl ui-corner-tr">Log out</a></font></td></table>
 
 <?php  // Begin tabs and stuff
 
