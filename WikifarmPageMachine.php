@@ -244,7 +244,7 @@ BLOCK;
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			$visible_to = implode(", ", $groups);
-			$output .= "\t\t<li><a href=\"#tab_$wikiname\"><u>$wikiname</u>: $realname</a></li>\n";
+			$output .= "\t\t<li><a href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $realname</a></li>\n";
 			$content .= "<div id=\"tab_$wikiname\">";
 			$content .= $this->frag_managewiki ($row);
 			$content .= "</div>\n";
@@ -482,10 +482,18 @@ BLOCK;
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
 		$html = "";
-		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/wikidb$wikiid.sql.gz\">Download last night's backup</A> of MediaWiki's MySQL database.  Note: this does not include any of your uploaded files.", "disk");
-		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/stats/awstats.$wikiid.html\">View web stats</A>.", "gear");
-		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/access_log.txt\">Download raw web server logs</A>.", "gear");
-		$html .= "<div class=\"clear1em\" />";
+		$html .= <<<BLOCK
+<div style="float: right;">
+<a class="managebutton" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download backup</a>
+<a class="managebutton" href="/$wikiid/private/stats/awstats.$wikiid.html">Web stats</a>
+<a class="managebutton" href="/$wikiid/private/access_log.txt">Raw access log</a>
+</div>
+<script language="JavaScript">
+$(".managebutton").button({icons:{primary:'ui-icon-zoomin'}});
+$(".managebutton:first").button({icons:{primary:'ui-icon-suitcase'}});
+</script>
+<div class="clear1em" />
+BLOCK;
 		$html .= "<form id=\"mwf$wikiid\">";
 		$html .= "<input type=\"hidden\" name=\"wikiid\" value=\"$wikiid\" />\n";
 		$html .= $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");

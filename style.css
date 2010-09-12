@@ -8,6 +8,7 @@ td.formlabelleft { height: 3em; text-align: right; padding-right: 1em; }
 .nowrap { white-space: nowrap; }
 .dataTables_wrapper { min-height: 0; }
 .foo {position:absolute; bottom:30px; right:30px;}
+.wf-button-icon { float: left; }
 .wf-message-icon { float: left; margin-right: 1em; }
 .wf-message-box { padding: 0 1em; }
 .clear1em { min-height: 1em; clear: both; }
