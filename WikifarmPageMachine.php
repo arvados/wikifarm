@@ -474,7 +474,13 @@ BLOCK;
 
 	function frag_managewiki ($wiki) {
 		extract ($wiki);
-		$html = "<form id=\"mwf$wikiid\">";
+		$wikiid = sprintf ("%02d", $wikiid);
+		$html = "";
+		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/wikidb$wikiid.sql.gz\">Download last night's backup</A> of MediaWiki's MySQL database.  Note: this does not include any of your uploaded files.", "disk");
+		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/stats/awstats.$wikiid.html\">View web stats</A>.", "gear");
+		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/access_log.txt\">Download raw web server logs</A>.", "gear");
+		$html .= "<div class=\"clear1em\" />";
+		$html .= "<form id=\"mwf$wikiid\">";
 		$html .= "<input type=\"hidden\" name=\"wikiid\" value=\"$wikiid\" />\n";
 		$html .= $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
 		$html .= "<table id=\"mwg${wikiid}\">";
