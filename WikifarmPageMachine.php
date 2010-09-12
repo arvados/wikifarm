@@ -300,7 +300,6 @@ BLOCK;
 </div>
 </div>
 BLOCK;
-		$output .= $this->uglydumpling ($this->getMyWikis());
 		return $output;
 	}
 	
