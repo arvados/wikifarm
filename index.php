@@ -89,17 +89,15 @@ if (isset ($_GET["tabActive"]))
 	$(function() {
 		$("#tabs").tabs({selected: <?=$tabActiveId?>});
 		$(".needhelp").css('font-size', '.8em');
-		$("#logoutbutton").button().removeClass('ui-corner-all').css('padding', '0px');
+		$("#logoutbutton,#helpbutton").button().removeClass('ui-corner-all').css('padding', '0px');
 	});
 </script>
 </head>
 <body>
 
-[ logo or something ]
-<br>
-<br>
-<table width=100%><tr><td>&nbsp;</td><td class="needhelp" align=right>Need help? Check out our <a href="docs/Wiki_Tutorial">Wiki Tutorial</a></td>
-<tr><td><font size=-2> Logged in as <?=$_SERVER["REMOTE_USER"]?></font></td><td align=right><font size=-2><a href="logout.php" id="logoutbutton" class="ui-corner-tl ui-corner-tr">Log out</a></font></td></table>
+<img width="48" height="44" src="/favicon.png" style="float: left;" />
+<table width="100%">
+<tr><td align="right"><font size=-2><a href="/docs/Wiki_Tutorial" id="helpbutton" class="ui-corner-tl ui-corner-tr">Help</a><a href="logout.php" id="logoutbutton" class="ui-corner-tl ui-corner-tr">Log out</a></font></td></table>
 
 <?php  // Begin tabs and stuff
 
