@@ -1,0 +1,41 @@
+--- a/APC-3.1.3p1/apc_cache.c
++++ b/APC-3.1.3p1/apc_cache.c
+@@ -1144,6 +1144,10 @@
+     unsigned int keylen = key->data.user.identifier_len+1;
+     unsigned int h = string_nhash_8(key->data.user.identifier, keylen);
+ 
++    if(!APCG(slam_defense)) {
++        return 0;
++    }
++
+     /* unlocked reads, but we're not shooting for 100% success with this */
+     if(lastkey->h == h && keylen == lastkey->keylen) {
+         if(lastkey->mtime == t) {
+--- a/APC-3.1.3p1/apc_globals.h
++++ b/APC-3.1.3p1/apc_globals.h
+@@ -86,6 +86,7 @@
+     zend_bool canonicalize;      /* true if relative paths should be canonicalized in no-stat mode */
+     zend_bool stat_ctime;        /* true if ctime in addition to mtime should be checked */
+     zend_bool write_lock;        /* true for a global write lock */
++    zend_bool slam_defense;      /* true for ignoring possible slam defense */
+     zend_bool report_autofilter; /* true for auto-filter warnings */
+     zend_bool include_once;      /* Override the ZEND_INCLUDE_OR_EVAL opcode handler to avoid pointless fopen()s [still experimental] */
+     apc_optimize_function_t apc_optimize_function;   /* optimizer function callback */
+--- a/APC-3.1.3p1/php_apc.c
++++ b/APC-3.1.3p1/php_apc.c
+@@ -91,6 +91,7 @@
+     apc_globals->canonicalize = 1;
+     apc_globals->stat_ctime = 0;
+     apc_globals->write_lock = 1;
++    apc_globals->slam_defense = 0;
+     apc_globals->report_autofilter = 0;
+     apc_globals->include_once = 0;
+     apc_globals->apc_optimize_function = NULL;
+@@ -199,6 +200,7 @@
+ STD_PHP_INI_BOOLEAN("apc.canonicalize", "1",    PHP_INI_SYSTEM, OnUpdateBool,           canonicalize,     zend_apc_globals, apc_globals)
+ STD_PHP_INI_BOOLEAN("apc.stat_ctime", "0",      PHP_INI_SYSTEM, OnUpdateBool,           stat_ctime,       zend_apc_globals, apc_globals)
+ STD_PHP_INI_BOOLEAN("apc.write_lock", "1",      PHP_INI_SYSTEM, OnUpdateBool,           write_lock,       zend_apc_globals, apc_globals)
++STD_PHP_INI_BOOLEAN("apc.slam_defense", "0",    PHP_INI_SYSTEM, OnUpdateBool,           slam_defense,     zend_apc_globals, apc_globals)
+ STD_PHP_INI_BOOLEAN("apc.report_autofilter", "0", PHP_INI_SYSTEM, OnUpdateBool,         report_autofilter,zend_apc_globals, apc_globals)
+ #ifdef MULTIPART_EVENT_FORMDATA
+ STD_PHP_INI_BOOLEAN("apc.rfc1867", "0", PHP_INI_SYSTEM, OnUpdateBool, rfc1867, zend_apc_globals, apc_globals)
