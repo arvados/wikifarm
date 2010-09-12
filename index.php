@@ -95,7 +95,7 @@ if (isset ($_GET["tabActive"]))
 </head>
 <body>
 
-<img width="48" height="44" src="/favicon.png" style="float: left;" />
+<img width="48" height="48" src="/favicon.png" style="float: left;" />
 <table width="100%">
 <tr><td align="right"><font size=-2><a href="/docs/Wiki_Tutorial" id="helpbutton" class="ui-corner-tl ui-corner-tr">Help</a><a href="logout.php" id="logoutbutton" class="ui-corner-tl ui-corner-tr">Log out</a></font></td></table>
 
