@@ -108,20 +108,40 @@ BLOCK;
 		$q_realname = htmlspecialchars($this->getUserRealname());
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
 		$claimbutton =  "<input type='button' class='claimaccountbutton' value='Claim Account' />".$this->textClaimAccount();
+		$q_uota = $this->getWikiQuota();
+		$icon = "info";
+		if (!$this->getUserEmail() || !$this->getUserRealname()) {
+			$icon = "circle-arrow-e";
+			$activation_status = "Please provide your real name and email address.";
+		}
+		else if ($this->isActivated()) {
+			$icon = "circle-check";
+			$activation_status = "Your account is active.";
+		}
+		else if ($this->isActivationRequested())
+			$activation_status = "Your account has not yet been activated by a site administrator.  You can update your personal information and request more group memberships, but you cannot view or create any wikis until your account is activated.";
+		else {
+			$icon = "circle-arrow-e";
+			$activation_status = "If the information on this page is correct, please <a href=\"/?tabActive=groups\">select your group affiliations and request account activation</a>.";
+		}
 		return <<<BLOCK
+<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-$icon" />$activation_status</p></div>
+<div class="clear1em" />
 <form id="myaccountform">
 <table>
 <thead></thead><tbody>
 <tr>
-<td class="minwidth" align="right">OpenID</td><td><input type="text" name="openid" value="$q_openid" size=48 disabled /></td>
+<td class="minwidth formlabelleft">OpenID</td><td>$q_openid</td>
 </tr><tr>
-<td class="minwidth" align="right">Email&nbsp;address</td><td><input type="text" name="email" value="$q_email" /></td>
+<td class="minwidth formlabelleft">Wiki&nbsp;quota</td><td>$q_uota</td>
 </tr><tr>
-<td class="minwidth" align="right">Real&nbsp;name</td><td><input type="text" name="realname" value="$q_realname" /></td>
+<td class="minwidth formlabelleft">Email&nbsp;address</td><td><input type="text" name="email" value="$q_email" /></td>
 </tr><tr>
-<td class="minwidth" align="right">Preferred&nbsp;MediaWiki&nbsp;username</td><td><input type="text" name="mwusername" value="$q_mwusername" /></td>
+<td class="minwidth formlabelleft">Real&nbsp;name</td><td><input type="text" name="realname" value="$q_realname" /></td>
 </tr><tr>
-<td class="minwidth" align="right"></td><td><button class="generic_ajax" ga_form_id="myaccountform" ga_action="myaccount_save" ga_message_id="myaccount_message" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader" class="ui-helper-hidden"></span></td>
+<td class="minwidth formlabelleft">Preferred&nbsp;MediaWiki&nbsp;username</td><td><input type="text" name="mwusername" value="$q_mwusername" /></td>
+</tr><tr>
+<td class="minwidth formlabelleft"></td><td><button class="generic_ajax" ga_form_id="myaccountform" ga_action="myaccount_save" ga_message_id="myaccount_message" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader" class="ui-helper-hidden"></span></td>
 </tr></tbody></table>
 <div id="myaccount_message" class="ui-helper-hidden" />
 </form>
@@ -210,16 +230,21 @@ BLOCK;
 		}
 		$wikiArray = $this->getMyWikis();
 		$element = "mywikistabs";
-		$output = "<script language=\"JavaScript\">\n\t$(function() {\n\t\t$(\"#$element\").tabs();\n\t});\n</script>" .
-			"\n\t" .
-//TODO
-			"<h2>My Wikis</h2>\n" .
-			"<div id=\"$element\">\n\t<ul>\n";
+		$output = <<<BLOCK
+<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
+<script language="JavaScript">
+$(function() {
+	$("#$element").tabs();
+});
+</script>
+<div id="$element">
+<ul>
+BLOCK;
 		$content = "";
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			$visible_to = implode(", ", $groups);
-			$output .= "\t\t<li><a href=\"#tab_$wikiname\">#$wikiid: $realname</a></li>\n";
+			$output .= "\t\t<li><a href=\"#tab_$wikiname\"><u>$wikiname</u>: $realname</a></li>\n";
 			$content .= "<div id=\"tab_$wikiname\">";
 			$content .= $this->frag_managewiki ($row);
 			$content .= "</div>\n";
@@ -288,12 +313,13 @@ BLOCK;
 		$need_activation_request = !$this->isActivated() && !$this->isActivationRequested();
 		$html = "<form id=\"group_request\">\n";
 		if ($need_activation_request)
-			$html .= <<<BLOCK
+			$html .= $this->textHighlight(<<<BLOCK
 <p>Please select any groups your account should belong to, then click the "submit" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>
 <input type=hidden name="group_request[]" value="users" />
-BLOCK;
+BLOCK
+);
 		else
-			$html .= "<p>This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator).</p>";
+			$html .= $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator).");
 		$html .= <<<BLOCK
 <table id="grouplist">
 <thead>
@@ -454,35 +480,53 @@ BLOCK;
 
 	function frag_managewiki ($wiki) {
 		extract ($wiki);
-		$html = "<form id=\"mwf$wikiid\">";
+		$wikiid = sprintf ("%02d", $wikiid);
+		$html = "";
+		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/wikidb$wikiid.sql.gz\">Download last night's backup</A> of MediaWiki's MySQL database.  Note: this does not include any of your uploaded files.", "disk");
+		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/stats/awstats.$wikiid.html\">View web stats</A>.", "gear");
+		$html .= $this->textHighlight ("<A href=\"/$wikiid/private/access_log.txt\">Download raw web server logs</A>.", "gear");
+		$html .= "<div class=\"clear1em\" />";
+		$html .= "<form id=\"mwf$wikiid\">";
 		$html .= "<input type=\"hidden\" name=\"wikiid\" value=\"$wikiid\" />\n";
+		$html .= $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
 		$html .= "<table id=\"mwg${wikiid}\">";
-		$html .= "<thead><tr><th class=\"minwidth\">View?&nbsp;</th><th>Group</th></tr></thead><tbody>";
+		$html .= "<thead><tr><th class=\"minwidth\">&nbsp;</th><th>&nbsp;</th></tr></thead><tbody>";
 		foreach ($this->getAllGroups() as $g) {
 			if ($g["groupid"] == "ADMIN") continue;
 			$html .= "<tr>";
 			$checked = false === array_search ($g["groupid"], $groups) ? "" : "checked";
 			$groupid = $g["groupid"];
-			$html .= "<td class=\"minwidth\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki\" id=\"mw${wikiid}_group_".htmlspecialchars($g["groupid"])."\" name=\"mw${wikiid}_groups[]\" value=\"".htmlspecialchars($g["groupid"])."\" $checked></td>";
+			$html .= "<td class=\"minwidth\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki_groups\" id=\"mw${wikiid}_group_".htmlspecialchars($g["groupid"])."\" name=\"mw${wikiid}_groups[]\" value=\"".htmlspecialchars($g["groupid"])."\" $checked></td>";
 			$html .= "<td>".htmlspecialchars($g["groupname"])."</td>";
 			$html .= "</tr>";
 		}
 		$html .= "</tbody></table>";
 
-		$html .= "<br clear=all /><p>&nbsp;</p>";
+		$html .= "<div class=\"clear1em\" />";
 
 		$invited_users = $this->getInvitedUsers ($wikiid);
 		$invited_userid = array();
+		$invited_userid_w = array();
 		foreach ($invited_users as $u) {
-			$invited_userid[] = $u["userid"];
+			$invited_userid[$u["userid"]] = true;
+			if ($u["mwusername"])
+				$invited_userid_w[$u["userid"]] = true;
+			else if ($u["read_via_group"])
+				$invited_userid_via_group[$u["userid"]] = true;
 		}
+		$html .= $this->textHighlight ("You can also invite individual users to <strong>view</strong> and <strong>edit</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
 		$html .= "<table id=\"mwu${wikiid}\">";
-		$html .= "<thead><tr><th class=\"minwidth\">View?&nbsp;</th><th>User</th></tr></thead><tbody>";
+		$html .= "<thead><tr><th class=\"minwidth\"></th><th></th><th>&nbsp;</th></tr></thead><tbody>";
 		foreach ($this->getAllActivatedUsers() as $u) {
 			$html .= "<tr>";
-			$checked = false === array_search ($u["userid"], $invited_userid) ? "" : "checked";
-			$html .= "<td class=\"minwidth\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki\" id=\"mw${wikiid}_user_".htmlspecialchars($u["userid"])."\" name=\"mw${wikiid}_users[]\" value=\"".htmlspecialchars($u["userid"])."\" $checked></td>";
-			$html .= "<td>".htmlspecialchars($u["realname"]." (".$u["userid"].")")."</td>";
+			$checked = isset ($invited_userid[$u["userid"]]) ? "checked" : "";
+			$disabled = isset ($invited_userid_via_group[$u["userid"]]) ? "disabled" : "";
+			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki_users\" id=\"mw${wikiid}_userview_".md5($u["userid"])."\" name=\"mw${wikiid}_userview_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked $disabled />view</td>";
+			$checked = isset ($invited_userid_w[$u["userid"]]) ? "checked" : "";
+
+			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" $checked />edit&nbsp;</td>";
+			$comma_email = $u["email"] ? ", ".$u["email"] : "";
+			$html .= "<td>".htmlspecialchars($u["realname"].$comma_email." (".$u["userid"].")")."</td>";
 			$html .= "</tr>";
 		}
 		$html .= "</tbody></table>";
@@ -491,29 +535,24 @@ BLOCK;
 
 		$html .= "</form>";
 		$html .= "<script language=\"JavaScript\">
-\$(\"#mwg$wikiid\").dataTable({\"bInfo\": false, \"bSort\": false, \"bFilter\": false, \"bLengthChange\": false});
-\$(\"#mwu$wikiid\").dataTable({\"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
+\$(\"#mwg$wikiid\").dataTable({\"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bFilter\": false, \"bLengthChange\": false, \"bPaginate\": false});
+\$(\"#mwu$wikiid\").dataTable({\"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
 </script>\n";
 		return $html;
 	}
 
-	// $obj->textHighlight("<strong>Hey!</strong> Sample ui-state-highlight style.");
-	function textHighlight($text) {
-		return "<div class=\"ui-widget\">
-			<div class=\"ui-state-highlight ui-corner-all\" style=\"margin-top: 20px; padding: 0 .7em;\"> 
-				<p><span class=\"ui-icon ui-icon-info\" style=\"float: left; margin-right: .3em;\"></span>
-				$text</p>
-			</div>
-		</div>";
+	function textHighlight ($text, $icon="info") {
+		$html = '<div class="ui-widget"><div class="ui-state-highlight ui-corner-all wf-message-box"><p>';
+		if ($icon)
+			$html .= '<span class="ui-icon ui-icon-'.$icon.' wf-message-icon" />';
+		$html .= $text;
+		$html .= '</p></div></div>';
+		return $html;
 	}
-	// $obj->textError("<strong>Alert:</strong> Sample ui-state-error style.");
-	function textError($text) {
-		return "<div class=\"ui-widget\">
-			<div class=\"ui-state-error ui-corner-all\" style=\"padding: 0 .7em;\"> 
-				<p><span class=\"ui-icon ui-icon-alert\" style=\"float: left; margin-right: .3em;\"></span> 
-				$text</p>
-			</div>
-		</div>";
+
+	function textError($text, $icon="alert") {
+		$html = $this->textHighlight ($text, $icon);
+		return str_replace ('ui-state-highlight', 'ui-state-error', $html);
 	}
 	
 	// Request access to a wiki, served in a popup.
@@ -633,7 +672,7 @@ EOT;
 				      "message" => "Sorry, your account is not yet activated.");
 		}
 	}
-	function ajax_managewiki ($post) {
+	function ajax_managewiki_groups ($post) {
 		$wikiid = $post["wikiid"];
 		$wiki = $this->getWiki($wikiid);
 		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
@@ -641,6 +680,12 @@ EOT;
 
 		$checkus = array();
 		$uncheckus = array();
+
+		// Note which users can view the wiki before we make changes
+		$read_via_group_before = array();
+		foreach ($this->getInvitedUsers ($wikiid) as $u)
+			if ($u["read_via_group"])
+				$read_via_group_before[$u["userid"]] = true;
 
 		$want = $post["mw${wikiid}_groups"];
 		foreach ($this->getAllGroups() as $g) {
@@ -655,15 +700,66 @@ EOT;
 			}
 		}
 
-		$want = $post["mw${wikiid}_users"];
+		// Check which users can view the wiki now, and
+		// check/uncheck "view" checkboxes in the "invite
+		// users" table to show the change
+
+		$read_via_group_after = array();
+		$read_anyway_after = array();
+		foreach ($this->getInvitedUsers ($wikiid) as $u)
+			if ($u["read_via_group"])
+				$read_via_group_after[$u["userid"]] = true;
+			else
+				$read_anyway_after[$u["userid"]] = true;
+
+		foreach ($read_via_group_before as $userid => $x)
+			if (!isset($read_via_group_after[$userid])) {
+				if (!$read_anyway_after[$userid])
+					$uncheckus[] = "mw${wikiid}_userview_".md5($userid);
+				$enableus[] = "mw${wikiid}_userview_".md5($userid);
+			}
+		
+		foreach ($read_via_group_after as $userid => $x)
+			if (!isset($read_via_group_before[$userid])) {
+				$disableus[] = "mw${wikiid}_userview_".md5($userid);
+				$checkus[] = "mw${wikiid}_userview_".md5($userid);
+			}
+		
+		return array ("success" => true,
+			      "check" => $checkus,
+			      "uncheck" => $uncheckus,
+			      "enable" => $enableus,
+			      "disable" => $disableus);
+	}
+
+	function ajax_managewiki_users ($post) {
+		$wikiid = $post["wikiid"];
+		$wiki = $this->getWiki($wikiid);
+		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
+			return $this->fail ("You are not allowed to do that.");
+
+		$checkus = array();
+		$uncheckus = array();
+
+		// Don't bother uninviting (and telling the webgui to
+		// uncheck) users who can view the wiki anyway by
+		// virtue of being in a group.
+		$read_via_group = array();
+		foreach ($this->getInvitedUsers ($wikiid) as $u)
+			if ($u["read_via_group"])
+				$read_via_group[$u["userid"]] = true;
+
 		foreach ($this->getAllActivatedUsers() as $u) {
-			if (!$want || false === array_search ($u["userid"], $want)) {
+			if (isset ($read_via_group[$u["userid"]]))
+				continue;
+			$userview_param = "mw${wikiid}_userview_".md5($u["userid"]);
+			if (!(isset($post[$userview_param]) && $post[$userview_param])) {
 				$this->disinviteUser ($wikiid, $u["userid"]);
-				$uncheckus[] = "mw${wikiid}_user_".$u["userid"];
+				$uncheckus[] = $userview_param;
 			}
 			else {
 				$this->inviteUser ($wikiid, $u["userid"]);
-				$checkus[] = "mw${wikiid}_user_".$u["userid"];
+				$checkus[] = $userview_param;
 			}
 		}
 
