@@ -13,6 +13,10 @@ function generic_ajax_success(data, textStatus, req, button)
 	$.each(data.check, function (i,e) { if ($('#'+e)) $('#'+e).attr('checked', true); });
     if (data.uncheck)
 	$.each(data.uncheck, function (i,e) { if ($('#'+e)) $('#'+e).attr('checked', false); });
+    if (data.disable)
+	$.each(data.disable, function (i,e) { if ($('#'+e)) $('#'+e).attr('disabled', true); });
+    if (data.enable)
+	$.each(data.enable, function (i,e) { if ($('#'+e)) $('#'+e).attr('disabled', false); });
 
     if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
 	$('#'+data.request.ga_loader_id).hide();

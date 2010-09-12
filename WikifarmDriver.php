@@ -259,7 +259,16 @@ class WikifarmDriver {
 	}
 
 	function getInvitedUsers ($wikiid) {
-		$u = $this->query ("SELECT userid_or_groupname userid, autologin.mwusername, autologin.sysop FROM wikipermission LEFT JOIN usergroups ON userid_or_groupname=groupname LEFT JOIN autologin ON autologin.wikiid='$wikiid' AND autologin.userid=userid_or_groupname WHERE wikipermission.wikiid='$wikiid' AND usergroups.groupname IS NULL");
+		$u = $this->query ("
+SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN usergroups.groupname ELSE NULL END AS read_via_group, autologin.mwusername, autologin.sysop
+ FROM wikis
+ LEFT JOIN users
+ LEFT JOIN usergroups ON users.userid = usergroups.userid
+ LEFT JOIN wikipermission ON wikipermission.wikiid=wikis.id AND (usergroups.groupname=userid_or_groupname OR users.userid=userid_or_groupname)
+ LEFT JOIN autologin ON autologin.wikiid=wikis.id AND autologin.userid=users.userid
+ WHERE wikis.id='$wikiid'
+ AND wikipermission.wikiid IS NOT NULL
+ AND usergroups.groupname IS NOT NULL");
 		return $u;
 	}
 
@@ -522,7 +531,7 @@ class WikifarmDriver {
 	
 	function inviteUser ($wikiid, $userid, $mwusername=false) {
 		$q_userid = SQLite3::escapeString ($userid);
-		if (!ereg ('^[0-9]+$', $wikiid)) {
+		if (!preg_match ('{^\d+$}', $wikiid)) {
 			error_log ("inviteUser: invalid wikiid $wikiid");
 			$this->_error = "No such wiki";
 			return false;
