@@ -32,7 +32,8 @@ if (!$db->exec ('CREATE TABLE users (
  cryptpw varchar(128),
  email varchar(255),
  realname varchar(255),
- mwusername varchar(255)
+ mwusername varchar(255),
+ wikiquota integer default 5
  )'))
     die ($db->lastErrorMsg());
 

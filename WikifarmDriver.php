@@ -18,7 +18,6 @@ class WikifarmDriver {
 		}
 		if (!$this->DB) die("Fatal: The wikifarm database was unavailable.\n\n");
 		$this->Focus();  // $_SERVER["REMOTE_USER"] by default, the user in focus is the currently signed-in one.
-		$this->cacheClear();
 	}
 
 	function __destruct () { $this->DB->close(); }  // !!! We should change this if we want to keep the handle later
@@ -47,8 +46,13 @@ class WikifarmDriver {
 		$this->openid = $openid;
 		$this->q_openid = SQLite3::escapeString ($openid);
 		$this->cacheClear();
+		foreach ($this->query ("SELECT * FROM users WHERE userid='".$this->q_openid."' LIMIT 1") as $u)
+			$this->_cache["user"] = $u;
+		if (!isset($this->_cache["user"]))
+			foreach ($this->query ("SELECT users.* FROM wikis LEFT JOIN users ON 1=2 LIMIT 1") as $u)
+				$this->_cache["user"] = $u;
 	}
-	
+
 	// sanity functions
 	// NOTE: These are not for sanitizing text input, and do not. They merely verify table data.
 	// Never mind, it appears now as though they do
@@ -208,8 +212,15 @@ class WikifarmDriver {
 		return array("wikiname" => array("recent1","recent2"), "realname" => array('recent array 1', 'recent array 2'));
 	}
 
+	function getWikiQuota() {
+		if (!$this->isActivated()) return 0;
+		$quota = $this->_cache["user"]["wikiquota"];
+		if (!isset($quota)) $quota = 5;
+		return $quota;
+	}
+
 	function canCreateWikis() {
-		return 1;
+		return (count($this->getMyWikis()) < $this->getWikiQuota());
 	}
 
 	function isWikiNameAvailable($wikiname) {
@@ -248,7 +259,16 @@ class WikifarmDriver {
 	}
 
 	function getInvitedUsers ($wikiid) {
-		$u = $this->query ("SELECT userid_or_groupname userid, autologin.mwusername, autologin.sysop FROM wikipermission LEFT JOIN usergroups ON userid_or_groupname=groupname LEFT JOIN autologin ON autologin.wikiid='$wikiid' AND autologin.userid=userid_or_groupname WHERE wikipermission.wikiid='$wikiid' AND usergroups.groupname IS NULL");
+		$u = $this->query ("
+SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN usergroups.groupname ELSE NULL END AS read_via_group, autologin.mwusername, autologin.sysop
+ FROM wikis
+ LEFT JOIN users
+ LEFT JOIN usergroups ON users.userid = usergroups.userid
+ LEFT JOIN wikipermission ON wikipermission.wikiid=wikis.id AND (usergroups.groupname=userid_or_groupname OR users.userid=userid_or_groupname)
+ LEFT JOIN autologin ON autologin.wikiid=wikis.id AND autologin.userid=users.userid
+ WHERE wikis.id='$wikiid'
+ AND wikipermission.wikiid IS NOT NULL
+ AND usergroups.groupname IS NOT NULL");
 		return $u;
 	}
 
@@ -511,7 +531,7 @@ class WikifarmDriver {
 	
 	function inviteUser ($wikiid, $userid, $mwusername=false) {
 		$q_userid = SQLite3::escapeString ($userid);
-		if (!ereg ('^[0-9]+$', $wikiid)) {
+		if (!preg_match ('{^\d+$}', $wikiid)) {
 			error_log ("inviteUser: invalid wikiid $wikiid");
 			$this->_error = "No such wiki";
 			return false;
@@ -543,7 +563,7 @@ class WikifarmDriver {
 			error_log ("getAllActivatedUsers: called by non-activated user");
 			return false;
 		}
-		return $this->query ("SELECT usergroups.userid userid, email, realname, mwusername FROM usergroups LEFT JOIN users ON users.userid = usergroups.userid GROUP BY usergroups.userid");
+		return $this->query ("SELECT usergroups.userid userid, email, realname, mwusername FROM usergroups LEFT JOIN users ON users.userid = usergroups.userid WHERE usergroups.userid LIKE '%://%' GROUP BY usergroups.userid");
 	}
 
 }  // WikifarmDriver class ends

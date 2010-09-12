@@ -1,5 +1,10 @@
 /* original tab code */
 
+function wf_tab_select (tabset, selecttab)
+{
+    $('#'+tabset+'>ul>li>a').each(function(i,e){ if($(e).attr('tab_id')==selecttab) $('#tabs').tabs('select', i); });
+}
+
 function generic_ajax_success(data, textStatus, req, button)
 {
     button.disabled = false;
@@ -8,6 +13,10 @@ function generic_ajax_success(data, textStatus, req, button)
 	$.each(data.check, function (i,e) { if ($('#'+e)) $('#'+e).attr('checked', true); });
     if (data.uncheck)
 	$.each(data.uncheck, function (i,e) { if ($('#'+e)) $('#'+e).attr('checked', false); });
+    if (data.disable)
+	$.each(data.disable, function (i,e) { if ($('#'+e)) $('#'+e).attr('disabled', true); });
+    if (data.enable)
+	$.each(data.enable, function (i,e) { if ($('#'+e)) $('#'+e).attr('disabled', false); });
 
     if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
 	$('#'+data.request.ga_loader_id).hide();
@@ -21,15 +30,19 @@ function generic_ajax_success(data, textStatus, req, button)
 	else html += 'ui-icon-alert';
 	html += '" />'+data.message+'</P>';
 	msg.html(html).show();
+	if (data.alert && (data.redirect || data.refreshtab || data.selecttab))
+	    alert (data.alert);
     }
-    if (data.alert)
+    else if (data.alert)
 	alert (data.alert);
+    else if (data.message)
+	alert (data.message);
     if (data.redirect)
 	window.location = data.redirect;
     if (data.refreshtab)
 	$('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
     if (data.selecttab)
-	$('#tabs>ul>li>a').each(function(i,e){ if($(e).attr('tab_id')==data.selecttab) $('#tabs').tabs('select', i); });
+	wf_tab_select('tabs', data.selecttab);
 }
 
 function generic_ajax_error(req, textStatus, errorThrown, button)

@@ -48,17 +48,16 @@ if (!$wf->isAdmin()) {
 	unset ( $tabTitles['settings'] );
 }
 
-if ($wf->isActivated())
+if (!$wf->getUserRealname() || !$wf->getUserEmail()) {
+	$tabActive = "myaccount";
+	$tabTitles = array ($tabActive => $tabTitles[$tabActive]);
+}
+else if ($wf->isActivated())
 	$tabActive = "wikis";
 else {
-	if ($wf->getUserRealname() && $wf->getUserEmail()) {
-		$tabActive = "groups";
-		$tabTitles = array ($tabActive => $tabTitles[$tabActive],
-				    'myaccount' => $tabTitles['myaccount']);
-	} else {
-		$tabActive = "myaccount";
-		$tabTitles = array ($tabActive => $tabTitles[$tabActive]);
-	}
+	$tabActive = "groups";
+	$tabTitles = array ($tabActive => $tabTitles[$tabActive],
+			    'myaccount' => $tabTitles['myaccount']);
 }
 if (0 == count($wf->getAllRequests()))
 	unset ($tabTitles['requests']);
