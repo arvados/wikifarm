@@ -358,6 +358,11 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		}
 	}
 
+	function setAutologin($wikiid, $mwusername) {
+		$this->DB->exec ("UPDATE autologin SET lastlogintime=strftime('%s','now') WHERE wikiid=".($wikiid+0)." AND userid='".$this->q_openid."'");
+		return $this->DB->changes() > 0;
+	}
+
 	function getUserByEmail($email) {		
 		$email = SQLite3::escapeString (filter_var($email, FILTER_VALIDATE_EMAIL));
 		return $this->querySingle("SELECT userid FROM users WHERE email='$email';" );

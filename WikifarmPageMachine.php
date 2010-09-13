@@ -180,7 +180,7 @@ BLOCK;
 //				"\t\t$('.requestedbutton').click(function(){ wf_tab_select('tabs', 'allwikis'); });\n".  // todo or remove
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
 // TODO: make this change the mwuser and log go to a wiki. .val() could be a wikinick or "0" for a manual sign-in.
-				"\t\t$('.loginselect').change( function() { if ($(this).val()!='') alert ( $(this).val() + ', ' + $(this).attr('wikiid') ); } ); " .
+				"\t\t$('.loginselect').change( function() { if ($(this).val()!='') $(this).click(); $(this).val(''); } ); " .
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
 				"#allwikis td { padding-right: 20px; }\n".
 				"#allwikis td.wikiidcol { width: 25px; text-align: right; padding-right: 10px; }\n".
@@ -196,6 +196,7 @@ BLOCK;
 				"\t<input type='radio' id='viewreadableselected' name='viewallradio' /><label for='viewreadableselected'>View Readable</label>\n".
 				"\t<input type='radio' id='viewwritableselected' name='viewallradio' /><label for='viewwritableselected'>View Writable</label>\n".				
 			"</div></td></tr></table>\n".
+			"<form id='allwikisform'>\n" .
 			"<table id='allwikis' class='ui-widget' >\n" .
 			"<thead><tr>\n".
 				"<th class='wikiidcol'>#</th>".
@@ -225,7 +226,7 @@ BLOCK;
 			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
 			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
 
-			$output .= "<select id='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login'><option value=''>Login as...</option>";
+			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login generic_ajax' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
 				"<input type=button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/' value=\"View Wiki\">" .
@@ -234,7 +235,7 @@ BLOCK;
 				"<input type=button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle='$realname' value='Request Access'>" .
 				"</td></tr>\n";
 		}
-		$output .= "</tbody></table>\n";
+		$output .= "</tbody></table></form>\n";
 		$output .= $this->uglydumpling ($this->getAllWikis());
 		return $output;
 	}
@@ -873,6 +874,18 @@ EOT;
 	function ajax_reject_request ($post) {
 		$this->rejectRequestId ($post["requestid"]+0);
 		return $this->success();
+	}
+
+	function ajax_loginas ($post) {
+		if (!preg_match ('{^loginselect-(\d+)$}', $post["ga_button_id"], $matches))
+			return $this->fail ("Invalid request: no ga_button_id");
+		$uri = "/";
+		if ($post[$matches[0]] == "0")
+			$uri = "/Special:Userlogin";
+		else if (!$this->setAutologin ($matches[1], $post[$matches[0]]))
+			return $this->fail ("Invalid request: no matching autologin");
+		$w = $this->getWiki ($matches[1]);
+		return $this->success (array ("redirect" => "/".$w["wikiname"].$uri));
 	}
 
 	function validate_wikiname ($x) {
