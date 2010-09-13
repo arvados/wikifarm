@@ -89,15 +89,21 @@ if (isset ($_GET["tabActive"]))
 	$(function() {
 		$("#tabs").tabs({selected: <?=$tabActiveId?>});
 		$(".needhelp").css('font-size', '.8em');
-		$("#logoutbutton,#helpbutton").button().removeClass('ui-corner-all').css('padding', '0px');
+		$("#logoutbutton,#helpbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');
 	});
 </script>
+<style type="text/css">
+	#pageheader { width: 100%; height: 45; position: relative; }
+	#pageheader div { position: absolute; bottom: 0; right: 0; }
+	#pageheader img { position: absolute; bottom: 0; left: 0; }
+	#tabs { clear: both; }
+</style>
 </head>
 <body>
 
-<img width="48" height="44" src="/favicon.png" style="float: left;" />
-<table width="100%">
-<tr><td align="right"><font size=-2><a href="/docs/Wiki_Tutorial" id="helpbutton" class="ui-corner-tl ui-corner-tr">Help</a><a href="logout.php" id="logoutbutton" class="ui-corner-tl ui-corner-tr">Log out</a></font></td></table>
+<div id="pageheader"><img width="48" height="44" src="/favicon.png" />
+<div><a href="/docs/Wiki_Tutorial" id="helpbutton">Help</a><a href="logout.php" id="logoutbutton">Log out</a></div>
+</div>
 
 <?php  // Begin tabs and stuff
 

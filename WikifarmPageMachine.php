@@ -166,10 +166,11 @@ BLOCK;
 				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
 				"\t\t$('.requestedbutton').click(function(){ wf_tab_select('tabs', 'allwikis'); });\n".  // todo
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
+				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
 				"#allwikis td { padding-right: 20px; }\n".
-				"#allwikis td.wikiid { width: 25px; text-align: right; padding-right: 10px; }\n".
-				"#allwikis td.controls { padding-right: 0px; }\n".
+				"#allwikis td.wikiidcol { width: 25px; text-align: right; padding-right: 10px; }\n".
+				"#allwikis td.controlscol { padding-right: 0px; }\n".
 				".controls a { padding: 0px; margin: 0px; }\n".
 			"</style>\n";
 			$output .= $this->textRequestAccess();
@@ -181,25 +182,25 @@ BLOCK;
 			"</div></td></tr></table>\n".
 			"<table id='allwikis' class='ui-widget' >\n" .
 			"<thead><tr>\n".
-				"<th class='wikiid'>#</th>".
+				"<th class='wikiidcol'>#</th>".
 				"<th>Wiki</tdh".
 				"<th>Owner</th>".
 				"<th>Group(s)</th>".
-				"<th>Actions</th>".
+				"<th class='controlscol'>Actions</th>".
 			"</tr></thead>\n<tbody>\n";
 /* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			$requested_writable = 0; //hack TODO
-			if ($id == 42) { $autologin = array(); $readable = 0; $requested_readable = 0; $requested_writable = 0; }; //hack
+			if ($id == 42) { $autologin = array(''); $readable = 0; $requested_readable = 0; $requested_writable = 0; }; //hack
 			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
 			$output .= "\t<tr" . (!$readable ? " class='nonreadable'" : "") . ">".
-				"<td class=\"wikiid\">$wikiid</td>".
+				"<td class=\"wikiidcol\">$wikiid</td>".
 				"<td>".($readable ? "<a href=\"/$wikiname/\">$realname</a>" : $realname)."</td>".
 				"<td>$owner_realname</td>".
 				"<td>&nbsp;".(implode(", ", $groups))."</td>".
-				"<td class=\"controls\">";
-/* --- The Increasingly-Complicated Button Bar */
+				"<td class=\"controlscol\">";
+	/* --- The Increasingly-Complicated Button Bar --- */
 			// these are prepared in a way that we can use as little or as much Ajax as we like.
 			$show_login = ($autologin[0] ? '' : 'ui-helper-hidden');
 			$show_view = (!$autologin[0] && $readable ? '' : 'ui-helper-hidden');
