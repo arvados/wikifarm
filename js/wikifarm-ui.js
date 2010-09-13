@@ -31,7 +31,7 @@ function generic_ajax_success(data, textStatus, req, button)
 	msg.removeClass('ui-state-error ui-state-highlight');
 	msg.addClass(data.success ? 'ui-state-highlight' : 'ui-state-error');
 	var html = '<P><SPAN class="ui-icon wf-message-icon ';
-	if (data.success) html += 'ui-icon-info';
+	if (data.success) html += 'ui-icon-circle-check';
 	else html += 'ui-icon-alert';
 	html += '" />'+data.message+'</P>';
 	msg.html(html).show();
