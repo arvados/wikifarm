@@ -162,16 +162,18 @@ BLOCK;
 			"\t$(function() {\n".
 				"\t\t$('.controls a').button();\n".
 				"\t\t$('#viewallradio').buttonset();\n".
-				"\t\tvar oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 50 });\n".
+				"\t\tvar oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100 });\n".
 				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
-				"\t\t$('.requestedbutton').click(function(){ wf_tab_select('tabs', 'allwikis'); });\n".  // todo
+//				"\t\t$('.requestedbutton').click(function(){ wf_tab_select('tabs', 'allwikis'); });\n".  // todo or remove
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
-				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
+// TODO: make this change the mwuser and log go to a wiki. .val() could be a wikinick or "0" for a manual sign-in.
+				"\t\t$('.loginselect').change( function() { if ($(this).val()!='') alert ( $(this).val() + ', ' + $(this).attr('wikiid') ); } ); " .
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
 				"#allwikis td { padding-right: 20px; }\n".
 				"#allwikis td.wikiidcol { width: 25px; text-align: right; padding-right: 10px; }\n".
 				"#allwikis td.controlscol { padding-right: 0px; }\n".
-				".controls a { padding: 0px; margin: 0px; }\n".
+				".controlscol a { padding: 0px; margin: 0px; }\n".
+				".controlscol select { height: 19px; font-size: 11px; padding: 0px 6px; }\n".
 			"</style>\n";
 			$output .= $this->textRequestAccess();
 /* --- Page Heading --- */		
@@ -208,9 +210,9 @@ BLOCK;
 			$show_requestwrite = (!$autologin[0] && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
 			$show_request =  (!$autologin[0] && !$readable ? '' : 'ui-helper-hidden');
 
-			$output .= "<select id='loginbox-$wikiid' class='$show_login'>";
-			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option>$alogin</option>"; }
-			$output .= "<option>Manual sign-in</option></select>" .
+			$output .= "<select id='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login'><option value=''>Login as...</option>";
+			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
+			$output .= "<option value='0'>Manual sign-in</option></select>" .
 				"<input type=button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/' value=\"View Wiki\">" .
 				"<input type=button id='button-requestpending-$wikiid' class='linkbutton $show_requestpending' link='#' disabled='disabled' value='Request pending'>" .
 				"<input type=button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle='$realname' writeonly='true' value='Request Write Access'>" .
