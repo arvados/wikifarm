@@ -124,6 +124,14 @@ BLOCK;
 			$icon = "circle-arrow-e";
 			$activation_status = "If the information on this page is correct, please <a href=\"/?tabActive=groups\">select your group affiliations and request account activation</a>.";
 		}
+		$preferences = "";
+		foreach ($this->getUserPrefs() as $p) {
+			if ($preferences) $preferences .= "<br />";
+			extract ($p);
+			$checked = $value ? "checked" : "";
+			if ($type == "checkbox")
+				$preferences .= "<input type=\"checkbox\" name=\"pref_$prefid\" value=\"1\" $checked /> $description";
+		}
 		return <<<BLOCK
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-$icon" />$activation_status</p></div>
 <div class="clear1em" />
@@ -140,6 +148,8 @@ BLOCK;
 <td class="minwidth formlabelleft">Real&nbsp;name</td><td><input type="text" name="realname" value="$q_realname" /></td>
 </tr><tr>
 <td class="minwidth formlabelleft">Preferred&nbsp;MediaWiki&nbsp;username</td><td><input type="text" name="mwusername" value="$q_mwusername" /></td>
+</tr><tr>
+<td class="minwidth formlabelleft">Preferences</td><td>$preferences</td>
 </tr><tr>
 <td class="minwidth formlabelleft"></td><td><button class="generic_ajax" ga_form_id="myaccountform" ga_action="myaccount_save" ga_message_id="myaccount_message" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader" class="ui-helper-hidden"></span></td>
 </tr></tbody></table>
@@ -836,6 +846,14 @@ EOT;
 		$this->setUserEmail ($post["email"]);
 		$this->setMWUsername ($post["mwusername"]);
 		$this->setUserRealname ($post["realname"]);
+
+		$prefs = array();
+		foreach ($post as $k => $v)
+			if (substr($k, 0, 5) == "pref_")
+				$prefs[] = array ("prefid" => substr ($k, 5),
+						  "value" => $v);
+		$this->setUserPrefs ($prefs);
+
 		if ($did_not_have_basics && $this->getUserEmail() && $this->getUserRealname())
 			return array ("success" => true,
 				      "redirect" => "/");

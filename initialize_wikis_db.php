@@ -3,6 +3,20 @@
 $home = getenv("INSTALLDIR");
 $db = new SQLite3 ("$home/db/wikis.db");
 
+if (!$db->exec ('CREATE TABLE userpref (
+ userid varchar(255),
+ prefid varchar(64),
+ value varchar(255))'))
+    die ($db->lastErrorMsg());
+if (!$db->exec ('CREATE UNIQUE INDEX up ON userpref (userid,prefid)'))
+    die ($db->lastErrorMsg());
+if (!$db->exec ('CREATE TABLE pref (
+ prefid varchar(64) primary key,
+ type varchar(64),
+ description varchar(255))'))
+    die ($db->lastErrorMsg());
+$db->exec ('INSERT INTO pref (prefid,type,description) VALUES ("notify_requests", "checkbox", "Notify me by email about requests from other users")');
+
 if (!$db->exec ('CREATE TABLE request (
  requestid integer primary key autoincrement,
  userid varchar(255),

@@ -347,13 +347,15 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	}
 
 	function getUserPrefs() {
-		return array ("email_requests" => true);
+		return $this->query ("SELECT pref.prefid, type, description, value FROM pref LEFT JOIN userpref ON pref.prefid=userpref.prefid");
 	}
 
-	function setUserPrefs() {
+	function setUserPrefs($prefs) {
 		$id = $this->q_openid;
 		$this->DB->exec ("INSERT OR IGNORE INTO users (userid) VALUES ('$id')");
-		// TODO
+		foreach ($prefs as $p) {
+			$this->DB->exec ("INSERT OR IGNORE INTO userpref (userid,prefid,value) VALUES ('".$this->q_openid."', '".SQLite3::escapeString($p["prefid"])."', '".SQLite3::escapeString($p["value"])."')");
+		}
 	}
 
 	function getUserByEmail($email) {		
