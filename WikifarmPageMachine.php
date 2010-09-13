@@ -158,67 +158,73 @@ BLOCK;
 		$wikiArray = $this->getAllWikis();
 /* --- Javascript and CSS --- */		
 		$output = "<script type='text/javascript'>\n".
-			"\t$.fn.dataTableExt.afnFiltering.push( function(oSettings,aData,iDataIndex) { var nTr = oSettings.aoData[iDataIndex].nTr; if (nTr.className.match(/nonreadable/) && $('#viewallno').attr('checked')) { return false; }; return true; });".
+			"\t$.fn.dataTableExt.afnFiltering.push( function(oSettings,aData,iDataIndex) { var nTr = oSettings.aoData[iDataIndex].nTr; ".
+				"if (nTr.className.match(/nonreadable/) && $('#viewreadableselected').attr('checked')) { return false; }; " .
+				"if (nTr.className.match(/nonwritable/) && $('#viewwritableselected').attr('checked')) { return false; }; " .
+				"return true; });\n".
 			"\t$(function() {\n".
 				"\t\t$('.controls a').button();\n".
 				"\t\t$('#viewallradio').buttonset();\n".
-//				"\t\t$('#viewallradio input').change( function(){ if ($('#viewallyes').attr('checked')) { $('.nonreadable').show(); } else { $('.nonreadable').hide(); } });\n" .
 				"\t\tvar oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100 });\n".
 				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
-				"\t\t$('.requestedbutton').click(function(){ $('#tabs').tabs('select', 0); });\n".
+//				"\t\t$('.requestedbutton').click(function(){ wf_tab_select('tabs', 'allwikis'); });\n".  // todo or remove
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
+// TODO: make this change the mwuser and log go to a wiki. .val() could be a wikinick or "0" for a manual sign-in.
+				"\t\t$('.loginselect').change( function() { if ($(this).val()!='') alert ( $(this).val() + ', ' + $(this).attr('wikiid') ); } ); " .
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
 				"#allwikis td { padding-right: 20px; }\n".
-				"#allwikis td.wikiid { width: 25px; text-align: right; padding-right: 10px; }\n".
-				"#allwikis td.controls { padding-right: 0px; }\n".
-				".controls a { padding: 0px; margin: 0px; }\n".
+				"#allwikis td.wikiidcol { width: 25px; text-align: right; padding-right: 10px; }\n".
+				"#allwikis td.controlscol { padding-right: 0px; }\n".
+				".controlscol a { padding: 0px; margin: 0px; }\n".
+				".controlscol select { height: 19px; font-size: 11px; padding: 0px 6px; }\n".
 			"</style>\n";
 			$output .= $this->textRequestAccess();
 /* --- Page Heading --- */		
-		$output .= "<table><tr><td><h2>All Wikis</h2></td>\n".
+		$output .= "<table><tr><td><div class=\"ui-widget ui-state-highlight ui-corner-all wf-message-box\"><p><span class=\"ui-icon wf-message-icon ui-icon-folder-collapsed\" /><strong>All Wikis:</strong> browse a list of all wikis on this site, or request access to specific wikis.</p></div><div class=\"clear1em\" /></td>\n".
 			"<td><div align=right id='viewallradio'>\n".
-				"\t<input type='radio' id='viewallyes' name='viewallradio' checked='checked' /><label for='viewallyes'>View All</label>\n".
-				"\t<input type='radio' id='viewallno' name='viewallradio' /><label for='viewallno'>View Readable</label>\n".
+				"\t<input type='radio' id='viewallselected' name='viewallradio' checked='checked' /><label for='viewallselected'>View All</label>\n".
+				"\t<input type='radio' id='viewreadableselected' name='viewallradio' /><label for='viewreadableselected'>View Readable</label>\n".
+				"\t<input type='radio' id='viewwritableselected' name='viewallradio' /><label for='viewwritableselected'>View Writable</label>\n".				
 			"</div></td></tr></table>\n".
 			"<table id='allwikis' class='ui-widget' >\n" .
 			"<thead><tr>\n".
-				"<th class='wikiid'>#</th>".
+				"<th class='wikiidcol'>#</th>".
 				"<th>Wiki</tdh".
 				"<th>Owner</th>".
 				"<th>Group(s)</th>".
-				"<th>Actions</th>".
+				"<th class='controlscol'>Actions</th>".
 			"</tr></thead>\n<tbody>\n";
 /* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
 			extract ($row);
-			if ($id < 5) { $readable = 0; $requested_readable = 0; };
+			$requested_writable = 0; //hack TODO
+			if ($id == 42) { $autologin = array(''); $readable = 0; $requested_readable = 0; $requested_writable = 0; }; //hack
+			$writable = ($autologin[0] ? 1 : 0);
 			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
-			$output .= "\t<tr" . (!$readable ? " class='nonreadable'" : "") . ">".
-				"<td class=\"wikiid\">$wikiid</td>".
+			$output .= "\t<tr class='" . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
+				"<td class=\"wikiidcol\">$wikiid</td>".
 				"<td>".($readable ? "<a href=\"/$wikiname/\">$realname</a>" : $realname)."</td>".
 				"<td>$owner_realname</td>".
 				"<td>&nbsp;".(implode(", ", $groups))."</td>".
-				"<td class=\"controls\">";
-			if ($autologin[0]) {				
-				$output .= "<select id=\"loginselect$wikiid\">";				
-				foreach ($autologin as $alogin) {
-					$output .= "<option>$alogin</option>";
-				}
-				$output .= "<option>Manual sign-in</option>" .
-					"</select>";
-				if (!$readable) $output .= "<input type=button class='requestbutton' value='Request Write Access'>";
-			} elseif ($readable) {
-				$output .= "<input type=button class='linkbutton' link='/$wikiname/' name='wiki $wikiid' value=\"Manual sign-in\">\n";
-			} elseif ($requested_readable) {
-				$output .= "<input type=button class='requestedbutton' value='View Request Status'>\n";
-			} else { 
-				$output .= "<input type=button class='requestbutton' wikiid='$wikiid' wikititle='$realname' value='Request Access'>";
-			}
-			$output .= "</td></tr>\n";
-				
+				"<td class=\"controlscol\">";
+	/* --- The Increasingly-Complicated Button Bar --- */
+			// these are prepared in a way that we can use as little or as much Ajax as we like.
+			$show_login = ($autologin[0] ? '' : 'ui-helper-hidden');
+			$show_view = (!$writable && $readable ? '' : 'ui-helper-hidden');
+			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
+			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
+			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
+
+			$output .= "<select id='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login'><option value=''>Login as...</option>";
+			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
+			$output .= "<option value='0'>Manual sign-in</option></select>" .
+				"<input type=button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/' value=\"View Wiki\">" .
+				"<input type=button id='button-requestpending-$wikiid' class='linkbutton $show_requestpending' link='#' disabled='disabled' value='Request pending'>" .
+				"<input type=button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle='$realname' writeonly='true' value='Request Write Access'>" .
+				"<input type=button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle='$realname' value='Request Access'>" .
+				"</td></tr>\n";
 		}
 		$output .= "</tbody></table>\n";
-		// $output .= "<div class='ui-helper-hidden'><form name='hiddenform' method='post' action='index.php'></form></div>\n";
 		$output .= $this->uglydumpling ($this->getAllWikis());
 		return $output;
 	}
@@ -366,7 +372,7 @@ BLOCK;
 </form>
 
 <script language="JavaScript">
-$("#grouplist").dataTable({"bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
+$("#grouplist").dataTable({'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
 group_request_enable();
 </script>
 <br clear />
@@ -404,7 +410,7 @@ BLOCK;
 </table>
 
 <script language="JavaScript">
-$("#userlist").dataTable({"iDisplayLength": 25, "bLengthChange": false});
+$("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25, "bLengthChange": false});
 </script>
 BLOCK;
 		return $html;
@@ -465,7 +471,7 @@ BLOCK;
 		$html .= <<<BLOCK
 </tbody></table>
 <script language="JavaScript">
-$("#myreqs").dataTable({"bInfo": false, "bPaginate": false, "aaSorting": [[5,"asc"],[2,"asc"]]});
+$("#myreqs").dataTable({'bJQueryUI': true, "bInfo": false, "bPaginate": false, "aaSorting": [[5,"asc"],[2,"asc"]]});
 </script>
 <br clear />
 BLOCK;
@@ -542,8 +548,8 @@ BLOCK;
 
 		$html .= "</form>";
 		$html .= "<script language=\"JavaScript\">
-\$(\"#mwg$wikiid\").dataTable({\"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bFilter\": false, \"bLengthChange\": false, \"bPaginate\": false});
-\$(\"#mwu$wikiid\").dataTable({\"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
+\$(\"#mwg$wikiid\").dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bFilter\": false, \"bLengthChange\": false, \"bPaginate\": false});
+\$(\"#mwu$wikiid\").dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
 </script>\n";
 		return $html;
 	}
@@ -575,9 +581,13 @@ BLOCK;
 		} });
 		$('.requestbutton').click(function(){	
 			$('#reqwikiname').html('<strong>'+$(this).attr('wikititle')+'</strong>');
-			$('#reqwriteaccess').attr('checked',true);
-			$('#reqmwusername').val('$q_defaultmwusername');
+			$('#reqwriteaccess').attr('checked',true).removeAttr('disabled');
+			$('#reqmwusername').val('$q_defaultmwusername').removeAttr('disabled');
 			$('#reqwikiid').val($(this).attr('wikiid'));
+			if ($(this).attr('writeonly')) {
+				$('#reqwriteaccess').attr('disabled','disabled');
+				$('#reqmwusername').attr('disabled','disabled');
+			}
 			$('#getaccessdialog').dialog('open');
 			return false;
 		});
