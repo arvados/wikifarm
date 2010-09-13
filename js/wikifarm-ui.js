@@ -7,7 +7,8 @@ function wf_tab_select (tabset, selecttab)
 
 function generic_ajax_success(data, textStatus, req, button)
 {
-    button.disabled = false;
+    if (button.disabled)
+	button.disabled = false;
 
     if (data.check)
 	$.each(data.check, function (i,e) { if ($('#'+e)) $('#'+e).attr('checked', true); });
@@ -17,6 +18,10 @@ function generic_ajax_success(data, textStatus, req, button)
 	$.each(data.disable, function (i,e) { if ($('#'+e)) $('#'+e).attr('disabled', true); });
     if (data.enable)
 	$.each(data.enable, function (i,e) { if ($('#'+e)) $('#'+e).attr('disabled', false); });
+    if (data.hide)
+	$.each(data.hide, function (i,e) { if ($('#'+e)) $('#'+e).hide(); });
+    if (data.show)
+	$.each(data.show, function (i,e) { if ($('#'+e)) $('#'+e).show(); });
 
     if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
 	$('#'+data.request.ga_loader_id).hide();
@@ -47,7 +52,8 @@ function generic_ajax_success(data, textStatus, req, button)
 
 function generic_ajax_error(req, textStatus, errorThrown, button)
 {
-    button.disabled = false;
+    if (button.disabled)
+	button.disabled = false;
     var loader_id = $(button).attr('ga_loader_id');
     if (loader_id && $('#'+loader_id))
 	$('#'+loader_id).hide();
@@ -99,10 +105,12 @@ function dialog_submit(dialog, form)
 		{
 		    if (d && d.success)
 			$(dialog).dialog("close");
-		    else if (d.alert) alert(d.alert);
-		    else if (d.message) alert(d.message);
+		    generic_ajax_success (d,t,r,dialog);
 		},
-		error: function(r,t,e) { alert (e); },
+		error: function(r,t,e)
+		{
+		    generic_ajax_error (r,t,e,this);
+		},
 		cache: false
 		});
     return false;

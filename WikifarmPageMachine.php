@@ -596,7 +596,6 @@ BLOCK;
 			$('#reqwikiid').val($(this).attr('wikiid'));
 			if ($(this).attr('writeonly')) {
 				$('#reqwriteaccess').attr('disabled','disabled');
-				$('#reqmwusername').attr('disabled','disabled');
 			}
 			$('#getaccessdialog').dialog('open');
 			return false;
@@ -830,12 +829,16 @@ EOT;
 
 	function ajax_requestwiki ($post) {
 		$this->validate_activated();
-		if (isset($post["writeaccess"]) && $post["writeaccess"]) {
+		$wikiid = $post["wikiid"]+0;
+		$hideus = array("button-request-$wikiid");
+		if (isset ($post["mwusername"]) || isset($post["writeaccess"]) && $post["writeaccess"]) {
 			$this->validate_mwusername ($post["mwusername"]);
 			$this->requestWiki ($post["wikiid"]+0, $post["mwusername"]);
+			$hideus[] = "button-requestwrite-$wikiid";
 		} else
 			$this->requestWiki ($post["wikiid"]+0);
-		return $this->success();
+		return $this->success (array ("hide" => $hideus,
+					      "show" => array ("button-requestpending-$wikiid")));
 	}
 
 	function ajax_myaccount_save ($post) {
@@ -898,6 +901,8 @@ EOT;
 			      "alert" => $message);
 	}
 	function success($message="OK") {
+		if (is_array ($message))
+			return array_merge (array ("success" => true), $message);
 		return array ("success" => true,
 			      "message" => $message);
 	}
