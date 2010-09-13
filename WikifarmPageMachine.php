@@ -207,10 +207,10 @@ BLOCK;
 /* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
 			extract ($row);
-			$requested_writable = 0; //hack TODO
-			if ($id == 42) { $autologin = array(''); $readable = 0; $requested_readable = 0; $requested_writable = 0; }; //hack
-			$writable = ($autologin[0] ? 1 : 0);
-			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
+			$requested_writable = $requested_autologin;
+			$writable = !!($autologin && $autologin[0]);
+			if ($realname == '')
+				$realname = $wikiname;
 			$output .= "\t<tr class='" . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
 				"<td class=\"wikiidcol\">$wikiid</td>".
 				"<td>".($readable ? "<a href=\"/$wikiname/\">$realname</a>" : $realname)."</td>".
@@ -830,7 +830,7 @@ EOT;
 
 	function ajax_requestwiki ($post) {
 		$this->validate_activated();
-		if ($post["writeaccess"]) {
+		if (isset($post["writeaccess"]) && $post["writeaccess"]) {
 			$this->validate_mwusername ($post["mwusername"]);
 			$this->requestWiki ($post["wikiid"]+0, $post["mwusername"]);
 		} else
