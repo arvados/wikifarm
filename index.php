@@ -101,7 +101,7 @@ if (isset ($_GET["tabActive"]))
 </head>
 <body>
 
-<div id="pageheader"><img width="48" height="44" src="/favicon.png" />
+<div id="pageheader"><div id="logo"></div>
 <div><a href="/docs/Wiki_Tutorial" id="helpbutton">Help</a><a href="logout.php" id="logoutbutton">Log out</a></div>
 </div>
 

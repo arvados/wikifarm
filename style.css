@@ -12,6 +12,8 @@ td.formlabelleft { height: 3em; text-align: right; padding-right: 1em; }
 .wf-message-icon { float: left; margin-right: 1em; }
 .wf-message-box { padding: 0 1em; }
 .clear1em { min-height: 1em; clear: both; }
+#pageheader { position: absolute; }
+#pageheader #logo { height: 44px; width: 48px; background-image: url(/favicon.png); position:relative; left:0; }
 /*
  a {text-decoration:none; color:#0000ff;}
  a:visited {text-decoration:none; color:#0000ff;}
