@@ -851,11 +851,13 @@ EOT;
 		$this->setMWUsername ($post["mwusername"]);
 		$this->setUserRealname ($post["realname"]);
 
-		$prefs = array();
-		foreach ($post as $k => $v)
-			if (substr($k, 0, 5) == "pref_")
-				$prefs[] = array ("prefid" => substr ($k, 5),
-						  "value" => $v);
+		$prefs = $this->getUserPrefs ();
+		foreach ($prefs as &$p)
+			if (isset($post["pref_".$p["prefid"]]))
+				$p["value"] = $post["pref_".$p["prefid"]];
+			else
+				$p["value"] = null;
+		error_log(print_r($prefs,true));
 		$this->setUserPrefs ($prefs);
 
 		if ($did_not_have_basics && $this->getUserEmail() && $this->getUserRealname())

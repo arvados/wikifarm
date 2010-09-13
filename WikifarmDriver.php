@@ -355,7 +355,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		$id = $this->q_openid;
 		$this->DB->exec ("INSERT OR IGNORE INTO users (userid) VALUES ('$id')");
 		foreach ($prefs as $p) {
-			$this->DB->exec ("INSERT OR IGNORE INTO userpref (userid,prefid,value) VALUES ('".$this->q_openid."', '".SQLite3::escapeString($p["prefid"])."', '".SQLite3::escapeString($p["value"])."')");
+			$this->DB->exec ("INSERT OR REPLACE INTO userpref (userid,prefid,value) VALUES ('".$this->q_openid."', '".SQLite3::escapeString($p["prefid"])."', '".SQLite3::escapeString($p["value"])."')");
 		}
 	}
 
