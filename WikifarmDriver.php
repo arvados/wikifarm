@@ -259,6 +259,7 @@ class WikifarmDriver {
 	}
 
 	function getInvitedUsers ($wikiid) {
+		$this->DB->exec ("INSERT OR IGNORE INTO users (userid) SELECT DISTINCT userid FROM usergroups");
 		$u = $this->query ("
 SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN usergroups.groupname ELSE NULL END AS read_via_group, autologin.mwusername, autologin.sysop
  FROM wikis
