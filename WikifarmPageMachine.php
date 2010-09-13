@@ -158,7 +158,10 @@ BLOCK;
 		$wikiArray = $this->getAllWikis();
 /* --- Javascript and CSS --- */		
 		$output = "<script type='text/javascript'>\n".
-			"\t$.fn.dataTableExt.afnFiltering.push( function(oSettings,aData,iDataIndex) { var nTr = oSettings.aoData[iDataIndex].nTr; if (nTr.className.match(/nonreadable/) && $('#viewallno').attr('checked')) { return false; }; return true; });".
+			"\t$.fn.dataTableExt.afnFiltering.push( function(oSettings,aData,iDataIndex) { var nTr = oSettings.aoData[iDataIndex].nTr; ".
+				"if (nTr.className.match(/nonreadable/) && $('#viewreadableselected').attr('checked')) { return false; }; " .
+				"if (nTr.className.match(/nonwritable/) && $('#viewwritableselected').attr('checked')) { return false; }; " .
+				"return true; });\n".
 			"\t$(function() {\n".
 				"\t\t$('.controls a').button();\n".
 				"\t\t$('#viewallradio').buttonset();\n".
@@ -179,8 +182,9 @@ BLOCK;
 /* --- Page Heading --- */		
 		$output .= "<table><tr><td><div class=\"ui-widget ui-state-highlight ui-corner-all wf-message-box\"><p><span class=\"ui-icon wf-message-icon ui-icon-folder-collapsed\" /><strong>All Wikis:</strong> browse a list of all wikis on this site, or request access to specific wikis.</p></div><div class=\"clear1em\" /></td>\n".
 			"<td><div align=right id='viewallradio'>\n".
-				"\t<input type='radio' id='viewallyes' name='viewallradio' checked='checked' /><label for='viewallyes'>View All</label>\n".
-				"\t<input type='radio' id='viewallno' name='viewallradio' /><label for='viewallno'>View Readable</label>\n".
+				"\t<input type='radio' id='viewallselected' name='viewallradio' checked='checked' /><label for='viewallselected'>View All</label>\n".
+				"\t<input type='radio' id='viewreadableselected' name='viewallradio' /><label for='viewreadableselected'>View Readable</label>\n".
+				"\t<input type='radio' id='viewwritableselected' name='viewallradio' /><label for='viewwritableselected'>View Writable</label>\n".				
 			"</div></td></tr></table>\n".
 			"<table id='allwikis' class='ui-widget' >\n" .
 			"<thead><tr>\n".
@@ -195,8 +199,9 @@ BLOCK;
 			extract ($row);
 			$requested_writable = 0; //hack TODO
 			if ($id == 42) { $autologin = array(''); $readable = 0; $requested_readable = 0; $requested_writable = 0; }; //hack
+			$writable = ($autologin[0] ? 1 : 0);
 			if ($realname == '') $realname = $wikiname;	//hack?  fix the database.
-			$output .= "\t<tr" . (!$readable ? " class='nonreadable'" : "") . ">".
+			$output .= "\t<tr class='" . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
 				"<td class=\"wikiidcol\">$wikiid</td>".
 				"<td>".($readable ? "<a href=\"/$wikiname/\">$realname</a>" : $realname)."</td>".
 				"<td>$owner_realname</td>".
@@ -205,10 +210,10 @@ BLOCK;
 	/* --- The Increasingly-Complicated Button Bar --- */
 			// these are prepared in a way that we can use as little or as much Ajax as we like.
 			$show_login = ($autologin[0] ? '' : 'ui-helper-hidden');
-			$show_view = (!$autologin[0] && $readable ? '' : 'ui-helper-hidden');
+			$show_view = (!$writable && $readable ? '' : 'ui-helper-hidden');
 			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
-			$show_requestwrite = (!$autologin[0] && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
-			$show_request =  (!$autologin[0] && !$readable ? '' : 'ui-helper-hidden');
+			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
+			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
 
 			$output .= "<select id='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
