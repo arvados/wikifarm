@@ -182,8 +182,8 @@ class WikifarmAuthPlugin extends AuthPlugin {
 	// wiki or is a site admin
 
 	public function UserGetRights ( $user, &$rights ) {
-		if ($this->userid_is_owner || $this->userid_is_admin)
-			$rights = array_merge ( $rights, User::getGroupPermissions (array ("sysop")) );
+		if ($this->mwusername && ($this->userid_is_owner || $this->userid_is_admin))
+			$rights = array_merge ( $rights, User::getGroupPermissions (array ("sysop", "user")) );
 		return true;
 	}
 
