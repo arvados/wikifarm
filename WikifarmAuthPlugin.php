@@ -216,4 +216,5 @@ if (getenv("WIKIID") && getenv("REMOTE_USER") != "") {
 	$wgAuth->setWikiTitle();
 	global $wgDisableCookieCheck;
 	$wgDisableCookieCheck = true;
+	$wgGroupPermissions['*']['createaccount'] = false;
 }
