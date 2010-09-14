@@ -546,9 +546,9 @@ BLOCK;
 			$checked = isset ($invited_userid[$u["userid"]]) ? "checked" : "";
 			$disabled = isset ($invited_userid_via_group[$u["userid"]]) ? "disabled" : "";
 			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki_users\" id=\"mw${wikiid}_userview_".md5($u["userid"])."\" name=\"mw${wikiid}_userview_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked $disabled />view</td>";
-			$checked = isset ($invited_userid_w[$u["userid"]]) ? "checked" : "";
 
-			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" $checked />edit&nbsp;</td>";
+			$checked = isset ($invited_userid_w[$u["userid"]]) ? "checked" : "";
+			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki_users\" id=\"mw${wikiid}_useredit_".md5($u["userid"])."\" name=\"mw${wikiid}_useredit_".md5($u["userid"])."\" value=\"1\" $checked />edit&nbsp;</td>";
 			$comma_email = $u["email"] ? ", ".$u["email"] : "";
 			$html .= "<td>".htmlspecialchars($u["realname"].$comma_email." (".$u["userid"].")")."</td>";
 			$html .= "</tr>";
@@ -602,7 +602,7 @@ BLOCK;
 			return false;
 		});
 	});
-\$('#reqwriteaccess').live('click', function(){ \$('#reqmwusername').attr('disabled',!\$('#reqwriteaccess').attr('checked')); });
+$('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
 <div id="getaccessdialog" title="Request Access To A Wiki">
@@ -707,6 +707,8 @@ EOT;
 
 		$checkus = array();
 		$uncheckus = array();
+		$enableus = array();
+		$disableus = array();
 
 		// Note which users can view the wiki before we make changes
 		$read_via_group_before = array();
@@ -832,7 +834,8 @@ EOT;
 		$this->validate_activated();
 		$wikiid = $post["wikiid"]+0;
 		$hideus = array("button-request-$wikiid");
-		if (isset ($post["mwusername"]) || isset($post["writeaccess"]) && $post["writeaccess"]) {
+		if (isset ($post["mwusername"]) ||
+		    (isset ($post["writeaccess"]) && $post["writeaccess"])) {
 			$this->validate_mwusername ($post["mwusername"]);
 			$this->requestWiki ($post["wikiid"]+0, $post["mwusername"]);
 			$hideus[] = "button-requestwrite-$wikiid";
