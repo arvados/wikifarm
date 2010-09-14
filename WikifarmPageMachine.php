@@ -173,20 +173,27 @@ BLOCK;
 				"if (nTr.className.match(/nonwritable/) && $('#viewwritableselected').attr('checked')) { return false; }; " .
 				"return true; });\n".
 			"\t$(function() {\n".
-				"\t\t$('.controls a').button();\n".
 				"\t\t$('#viewallradio').buttonset();\n".
 				"\t\tvar oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100 });\n".
 				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
-//				"\t\t$('.requestedbutton').click(function(){ wf_tab_select('tabs', 'allwikis'); });\n".  // todo or remove
+				"\t\t$('.editbutton').click(function(){ mywikisLoadTabOnce = $(this).attr('wikiname'); wf_tab_select('tabs', 'mywikis'); });\n".
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
-// TODO: make this change the mwuser and log go to a wiki. .val() could be a wikinick or "0" for a manual sign-in.
 				"\t\t$('.loginselect').change( function() { if ($(this).val()!='') $(this).click(); $(this).val(''); } ); " .
 			"\t});\n</script>\n<style type=\"text/css\">\n" .
-				"#allwikis td { padding-right: 20px; }\n".
-				"#allwikis td.wikiidcol { width: 25px; text-align: right; padding-right: 10px; }\n".
-				"#allwikis td.controlscol { padding-right: 0px; }\n".
-				".controlscol a { padding: 0px; margin: 0px; }\n".
-				".controlscol select { height: 19px; font-size: 11px; padding: 0px 6px; }\n".
+				"#allwikis tr { height: 19px; }\n".
+				"td { padding: 0px 5px; }\n".
+				"td.wikiidcol { width: 30px; text-align: right; }\n".
+				"td.minicol { width: 26px; }\n".
+				"td.accesscol { padding-right: 0px; width: 110; }\n".
+				"td.actionscol { padding-right: 0px; width: 150; }\n".
+				"td.accesscol button, td.accesscol select { position: relative; height: 17px; line-height: 17px; vertical-align: middle; font-size: 11px; padding: 0px 6px; width: 110px; }\n".
+				"td.actionscol button { position: relative; height: 17px; line-height: 17px; vertical-align: middle; font-size: 11px; padding: 0px 6px; width: 150px; }\n".
+				"option.accesscol { font-size: 11px; padding: 0px 6px; }\n".				
+				"span.ui-icon { float: left; line-height: 20px; vertical-align: middle; }\n".
+				"span.button-text { position: relative; bottom: 2px; left: 0px; height: 17px; }\n".
+				"span.ui-icon { position: relative; bottom: 2px; left: 0px; width: 16px; }\n".
+				"select.loginselect option { height: 16px; font-size: 16px; padding: 0px 6px; width: 110px; }\n".   //TODO maybe later: background-repeat: no-repeat; background-position: middle left; padding-left: 30px; background-image:url(' }\n".
+				".mine td { font-weight: bold; }\n".
 			"</style>\n";
 			$output .= $this->textRequestAccess();
 /* --- Page Heading --- */		
@@ -200,10 +207,14 @@ BLOCK;
 			"<table id='allwikis' class='ui-widget' >\n" .
 			"<thead><tr>\n".
 				"<th class='wikiidcol'>#</th>".
-				"<th>Wiki</tdh".
+				"<th class='minicol'>&nbsp;</th>".
+				"<th>Wiki</th>".
+				"<th>Abbr.</th>".
 				"<th>Owner</th>".
 				"<th>Group(s)</th>".
-				"<th class='controlscol'>Actions</th>".
+				"<th class='accesscol'>Access</th>".
+				"<th class='accesscol'>Configure</th>".
+				"<th class='actionscol'>Actions</th>".
 			"</tr></thead>\n<tbody>\n";
 /* --- Each Wiki Listing --- */		
 		foreach ($wikiArray as $row) {
@@ -212,27 +223,32 @@ BLOCK;
 			$writable = !!($autologin && $autologin[0]);
 			if ($realname == '')
 				$realname = $wikiname;
-			$output .= "\t<tr class='" . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
-				"<td class=\"wikiidcol\">$wikiid</td>".
+			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
+				"<td class='wikiidcol'>$wikiid</td>".
+				"<td class='minicol'>".($writable ? "<span class='ui-icon ui-icon-pencil'></span>" : "&nbsp;" )."</td>" .
 				"<td>".($readable ? "<a href=\"/$wikiname/\">$realname</a>" : $realname)."</td>".
-				"<td>$owner_realname</td>".
-				"<td>&nbsp;".(implode(", ", $groups))."</td>".
-				"<td class=\"controlscol\">";
+				"<td>".($readable ? "<a href=\"/$wikiname/\">$wikiname</a>" : $wikiname)."</td>".				
+				"<td>$owner_realname</td>".  // haha ($this->openid == $owner_userid ? " <span class='ui-icon ui-icon-person'></span>" : "")."</td>".
+				"<td>&nbsp;".(implode(", ", $groups))."</td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
+			$output .= "<td class='accesscol'>";
 			// these are prepared in a way that we can use as little or as much Ajax as we like.
 			$show_login = ($autologin[0] ? '' : 'ui-helper-hidden');
 			$show_view = (!$writable && $readable ? '' : 'ui-helper-hidden');
 			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
 			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
 			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
-
 			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login generic_ajax' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
+			$show_edit = ($this->openid == $owner_userid ? '' : 'ui-helper-hidden');
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
-				"<input type=button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/' value=\"View Wiki\">" .
-				"<input type=button id='button-requestpending-$wikiid' class='linkbutton $show_requestpending' link='#' disabled='disabled' value='Request pending'>" .
-				"<input type=button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle='$realname' writeonly='true' value='Request Write Access'>" .
-				"<input type=button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle='$realname' value='Request Access'>" .
+				"<button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play'></span><span class='button-text'>View Wiki</span></button>" .
+				"</td><td class='accesscol'>" .
+				"<button id='button-edit-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle='$realname'><span class='ui-icon ui-icon-gear'></span><span class='button-text'>Wiki Settings</span></button>" .
+				"</td><td class='actionscol'>" .
+				"<button id='button-requestpending-$wikiid' class='linkbutton $show_requestpending' link='#' disabled='disabled'><span class='ui-icon ui-icon-clock'></span><span class='button-text'>Request pending</span></button>" .
+				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle='$realname' writeonly='true'><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request Write Access</span></button>" .
+				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle='$realname'><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request Access</span></button>" .
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
@@ -246,25 +262,13 @@ BLOCK;
 			return false;
 		}
 		$wikiArray = $this->getMyWikis();
-		$element = "mywikistabs";
-		$output = <<<BLOCK
-<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
-<script language="JavaScript">
-$(function() {
-	$("#$element").tabs();
-});
-</script>
-<div id="$element">
-<ul>
-BLOCK;
 		$content = "";
+		$tabs = "";
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			$visible_to = implode(", ", $groups);
-			$output .= "\t\t<li><a href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $realname</a></li>\n";
-			$content .= "<div id=\"tab_$wikiname\">";
-			$content .= $this->frag_managewiki ($row);
-			$content .= "</div>\n";
+			$tabs .= "\t\t<li><a tab_id='tab_$wikiname' href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $realname</a></li>\n";
+			$content .= "<div id=\"tab_$wikiname\">" .	$this->frag_managewiki ($row) .	"</div>\n";
 		}
 		$groups_options = "";
 		foreach ($this->getAllGroups() as $g) {
@@ -278,9 +282,27 @@ BLOCK;
 			$groups_options .= "<option value=\"$groupid\">$groupname</option>";
 		}
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
-		$output .= <<<BLOCK
-<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a New Wiki</a></li>
-</ul>$content
+		$grantedit = $this->textGrantEdit();
+		return <<<BLOCK
+<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
+<script language="JavaScript">
+function selectTabByName(tabs, tab) {
+	$(tabs).tabs('select', $("a[tab_id='"+tab+"']").parent().index() );
+}
+$(function() {
+	$('#mywikistabs').tabs( { show: function(event, ui) { window.location.hash = ui.tab.hash; } });
+	if (mywikisLoadTabOnce != '') {
+		selectTabByName ('#mywikistabs','tab_'+mywikisLoadTabOnce);
+		mywikisLoadTabOnce = '';
+	}		
+});
+</script>
+<div id="mywikistabs">
+	<ul>
+{$tabs}
+		<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a New Wiki</a></li>
+	</ul>
+{$content}
 <div id="newwikitab">
 <form id="createwikiform" action="#">
 <table>
@@ -292,11 +314,11 @@ BLOCK;
 
 <tr><td>Wiki name: </td>
 <td><input type=text name=wikiname size=32 maxlength=12></td>
-<td>3 to 12 lower case letters. url of wiki will be http://$_SERVER[HTTP_HOST]/name</td>
+<td>3 to 12 lower case letters. url of wiki will be http://{$_SERVER['HTTP_HOST']}/name</td>
 </tr>
 
 <tr><td>Your username in the new wiki: </td>
-<td><input type=text name=mwusername size=32 value="$q_mwusername"></td>
+<td><input type=text name=mwusername size=32 value="{$q_mwusername}"></td>
 <td>letters and digits only.  start with an upper case letter.
 </tr>
 
@@ -316,9 +338,8 @@ BLOCK;
 </form>
 </div>
 </div>
+{$grantedit}
 BLOCK;
-		$output .= $this->textGrantEdit();
-		return $output;
 	}
 	
 	// some default landing page
