@@ -25,8 +25,12 @@ function generic_ajax_success(data, textStatus, req, button)
 
     if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
 	$('#'+data.request.ga_loader_id).hide();
-    if (data.message && data.request && data.request.ga_message_id) {
-	var msg = $('#'+data.request.ga_message_id);
+    var msg = false;
+    if (data.message && data.request && data.request.ga_message_id)
+	msg = $('#'+data.request.ga_message_id);
+    else if ($(button).attr('ga_message_id'))
+	msg = $('#'+$(button).attr('ga_message_id'));
+    if (msg) {
 	msg.addClass('ui-widget ui-state-highlight ui-corner-all wf-message-box');
 	msg.removeClass('ui-state-error ui-state-highlight');
 	msg.addClass(data.success ? 'ui-state-highlight' : 'ui-state-error');
@@ -109,7 +113,7 @@ function dialog_submit(dialog, form)
 		},
 		error: function(r,t,e)
 		{
-		    generic_ajax_error (r,t,e,this);
+		    generic_ajax_error (r,t,e,dialog);
 		},
 		cache: false
 		});

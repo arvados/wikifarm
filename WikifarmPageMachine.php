@@ -317,6 +317,7 @@ BLOCK;
 </div>
 </div>
 BLOCK;
+		$output .= $this->textGrantEdit();
 		return $output;
 	}
 	
@@ -548,7 +549,15 @@ BLOCK;
 			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki_users\" id=\"mw${wikiid}_userview_".md5($u["userid"])."\" name=\"mw${wikiid}_userview_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked $disabled />view</td>";
 
 			$checked = isset ($invited_userid_w[$u["userid"]]) ? "checked" : "";
-			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki_users\" id=\"mw${wikiid}_useredit_".md5($u["userid"])."\" name=\"mw${wikiid}_useredit_".md5($u["userid"])."\" value=\"1\" $checked />edit&nbsp;</td>";
+			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"granteditbutton\" wikiid=\"".$wikiid
+				."\" wikiname=\"".htmlspecialchars($wikiname)
+				."\" wikititle=\"".htmlspecialchars($realname)
+				."\" realname=\"".htmlspecialchars($u["realname"])
+				."\" email=\"".htmlspecialchars($u["email"])
+				."\" userid=\"".htmlspecialchars($u["userid"])
+				."\" mwusername=\"".htmlspecialchars($u["mwusername"])
+				."\" id=\"mw${wikiid}_useredit_".md5($u["userid"])
+				."\" value=\"1\" $checked />edit&nbsp;</td>";
 			$comma_email = $u["email"] ? ", ".$u["email"] : "";
 			$html .= "<td>".htmlspecialchars($u["realname"].$comma_email." (".$u["userid"].")")."</td>";
 			$html .= "</tr>";
@@ -611,15 +620,68 @@ $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('di
 	<tr><td align=right>Write access wanted?</td><td><input type=checkbox id="reqwriteaccess" name="writeaccess" value="true" checked="checked">&nbsp;</td></tr>
 	<tr><td align=right>Username you want:</td><td><input type="text" id="reqmwusername" name="mwusername" value="$q_defaultmwusername"></td></tr>
 	</table>
-	<input type="hidden" name="wikiid" id="reqwikiid" value="">
+	<input type="hidden" name="wikiid" id="reqwikiid" value=" ">
 	<input type="hidden" name="ga_action" value="requestwiki"></form>
 	{$footnote}
 </div>
 EOT;
 	return $output;
 	}
-	
-// Claim an old account, served in a dialog box.
+
+	// Grant access to a wiki, served in a popup.
+	function textGrantEdit() {
+		return <<<EOT
+<script type="text/javascript">
+$(function() {
+	$('#granteditdialog').dialog
+	({ modal: true,
+	   autoOpen: false,
+	   width: 400,
+	   buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
+		      "Cancel": function() { $(this).dialog("close"); } }
+	});
+	$('.granteditbutton').click(function(){
+			$('#grantmessage').hide();
+			$('#grantwikiname').html($(this).attr('wikiname'));
+			$('#grantwikititle').html($(this).attr('wikititle'));
+			$('#grantrealname').html($(this).attr('realname'));
+			$('#grantemail').html($(this).attr('email'));
+			$('#grantuserid').val($(this).attr('userid'));
+			$('#grantmwusername').val($(this).attr('mwusername'));
+			$('#grantwikiid').val($(this).attr('wikiid'));
+			$('#grantflag').val($(this).attr('checked') ? 1 : 0);
+			if (!$(this).attr('checked')) {
+				if (confirm("Do you really want to remove "+($(this).attr('realname') ? $(this).attr('realname') : "this user")+"'s write access to the \""+$(this).attr('wikiname')+"\" wiki?"))
+					dialog_submit(this, "#granteditform");
+			} else
+				$('#granteditdialog').dialog('open');
+			return false;
+		});
+});
+</script>
+
+<div id="granteditdialog" title="Invite user to edit your wiki" ga_message_id="grantmessage">
+	<form id="granteditform">
+	<table>
+	<tr><td class="formlabelleft">Wiki:</td><td><span id="grantwikiname" /> (<span id="grantwikititle" />)</td></tr>
+	<tr><td class="formlabelleft">User to invite:</td><td><span id="grantrealname" /> (<span id="grantemail" />)</td></tr>
+	<tr><td class="formlabelleft">Username on your wiki:</td><td><input type="text" id="grantmwusername" name="mwusername" value=" " /></td></tr>
+	</table>
+	<input type="hidden" name="wikiid" id="grantwikiid" value=" " />
+	<input type="hidden" name="userid" id="grantuserid" value=" " />
+	<input type="hidden" name="grantflag" id="grantflag" value="1" />
+	<input type="hidden" name="ga_action" value="managewiki_editor" />
+	</form>
+
+	<div class="ui-widget" id="grantmessage">
+	<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden">
+	</div>
+	</div>
+</div>
+EOT;
+	}
+
+	// Claim an old account, served in a dialog box.
 	function textClaimAccount() {
 		return <<<EOT
 <script type="text/javascript">
@@ -652,8 +714,7 @@ EOT;
 
 	function dispatch_ajax ($post) {
 		if (!method_exists ($this, "ajax_" . $post["ga_action"]))
-			return array ("success" => false,
-				      "alert" => "Invalid request (action=".$post["ga_action"].")");
+			return $this->fail ("Invalid request (action=".$post["ga_action"].")");
 		try {
 			return call_user_func (array ($this, "ajax_" . $post["ga_action"]), $post);
 		} catch (Exception $e) {
@@ -743,8 +804,10 @@ EOT;
 
 		foreach ($read_via_group_before as $userid => $x)
 			if (!isset($read_via_group_after[$userid])) {
-				if (!$read_anyway_after[$userid])
+				if (!$read_anyway_after[$userid]) {
 					$uncheckus[] = "mw${wikiid}_userview_".md5($userid);
+					$uncheckus[] = "mw${wikiid}_useredit_".md5($userid);
+				}
 				$enableus[] = "mw${wikiid}_userview_".md5($userid);
 			}
 		
@@ -770,13 +833,17 @@ EOT;
 		$checkus = array();
 		$uncheckus = array();
 
-		// Don't bother uninviting (and telling the webgui to
-		// uncheck) users who can view the wiki anyway by
+		// Don't bother [dis]inviting (and telling the webgui
+		// to [un]check) users who can view the wiki anyway by
 		// virtue of being in a group.
 		$read_via_group = array();
-		foreach ($this->getInvitedUsers ($wikiid) as $u)
+		$writeable = array();
+		foreach ($this->getInvitedUsers ($wikiid) as $u) {
 			if ($u["read_via_group"])
 				$read_via_group[$u["userid"]] = true;
+			if ($u["mwusername"])
+				$writeable[$u["userid"]] = true;
+		}
 
 		foreach ($this->getAllActivatedUsers() as $u) {
 			if (isset ($read_via_group[$u["userid"]]))
@@ -785,6 +852,7 @@ EOT;
 			if (!(isset($post[$userview_param]) && $post[$userview_param])) {
 				$this->disinviteUser ($wikiid, $u["userid"]);
 				$uncheckus[] = $userview_param;
+				$uncheckus[] = "mw${wikiid}_useredit_".md5($u["userid"]);
 			}
 			else {
 				$this->inviteUser ($wikiid, $u["userid"]);
@@ -792,9 +860,36 @@ EOT;
 			}
 		}
 
+		// Turn on the "edit" checkbox if a user has just
+		// regained "view" privileges and still has autologin
+		// (presumably obtained when having read access in the
+		// past)
+		foreach ($this->getInvitedUsers ($wikiid) as $u)
+			if ($u["mwusername"])
+				if (!isset ($writeable[$u["userid"]])) {
+					$writeable[$u["userid"]] = true;
+					$checkus[] = "mw${wikiid}_useredit_".md5($u["userid"]);
+				}
+
 		return array ("success" => true,
 			      "check" => $checkus,
 			      "uncheck" => $uncheckus);
+	}
+
+	function ajax_managewiki_editor ($post) {
+		$checkus = array();
+		if ($post["grantflag"]) {
+			$this->validate_mwusername ($post["mwusername"]);
+			$this->inviteUser ($post["wikiid"], $post["userid"], $post["mwusername"]);
+			$check = "check";
+			$checkus[] = "mw".$post["wikiid"]."_userview_".md5($post["userid"]);
+		}
+		else {
+			$this->disinviteEditor ($post["wikiid"], $post["userid"]);
+			$check = "uncheck";
+		}
+		$checkus[] = "mw".$post["wikiid"]."_useredit_".md5($post["userid"]);
+		return $this->success(array ($check => $checkus));
 	}
 
 	function ajax_createwiki ($post) {

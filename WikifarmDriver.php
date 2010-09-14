@@ -568,6 +568,10 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid='$wikiid' AND userid_or_groupname='".SQLite3::escapeString($userid)."'");
 	}
 
+	function disinviteEditor ($wikiid, $userid) {
+		$this->DB->exec ("DELETE FROM autologin WHERE wikiid='$wikiid' AND userid='".SQLite3::escapeString($userid)."'");
+	}
+
 	function getAllActivatedUsers() {
 		if (!$this->isActivated()) {
 			error_log ("getAllActivatedUsers: called by non-activated user");
