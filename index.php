@@ -8,7 +8,10 @@ require_once('WikifarmPageMachine.php');
 
 $wf = new WikifarmPageMachine();
 
-if (isset($_GET["modauthopenid_referrer"]) && $wf->isActivated()) {   //TODO is "activated" still really what we're testing?
+if (isset($_GET["modauthopenid_referrer"]) &&
+    $wf->isActivated() &&
+    !preg_match ('{modauthopenid_referrer}', $_GET["modauthopenid_referrer"])) {
+	error_log ("redirecting to ".$_GET["modauthopenid_referrer"]);
 	header ("location: ".$_GET["modauthopenid_referrer"]);
 	exit;
 }
