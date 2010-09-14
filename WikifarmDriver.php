@@ -384,7 +384,13 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 			return $this->DB->changes() == 1;
 		}
 	}
-	
+
+	function selfActivate() {
+		// Warning to caller: I assume you have a good reason to think you're allowed.
+		$this->DB->exec("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES ('{$this->q_openid}', 'users')");
+		return $this->DB->changes();
+	}
+
 	function requestGroup($groups) {
 		if (!is_array($groups))
 			$groups = array($groups);
@@ -504,34 +510,31 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		$check = `perl -e 'use Apache::Htpasswd; \$h = new Apache::Htpasswd("/dev/null"); print \$h->CryptPasswd (\$ENV{PW}, \$ENV{SALT})'`;
 		if (!$userid ||
 		    strlen($cryptpw) < 6 ||
-		    trim($check) != trim($cryptpw)) {
-			$this->_error = array ("code" => "401",
-					       "message" => "Authentication failed: username or password incorrect.");
-			return false;
-		}
+		    trim($check) != trim($cryptpw))
+			throw new Exception ("Authentication failed: username or password incorrect.");
 
-		$db->exec ("update wikis set userid='$q_userid' where userid='$q_old_username'");
-		$wikis_claimed = $db->changes();
+		$this->DB->exec ("update wikis set userid='$q_userid' where userid='$q_old_username'");
+		$wikis_claimed = $this->DB->changes();
 
-		$db->exec ("update or ignore usergroups set userid='$q_userid' where userid='$q_old_username'");
-		$groups_claimed = $db->changes();
+		$this->DB->exec ("update or ignore usergroups set userid='$q_userid' where userid='$q_old_username'");
+		$groups_claimed = $this->DB->changes();
 
-		$db->exec ("update or ignore wikipermission set userid_or_groupname='$q_userid' where userid_or_groupname='$q_old_username'");
-		$access_claimed = $db->changes();
+		$this->DB->exec ("update or ignore wikipermission set userid_or_groupname='$q_userid' where userid_or_groupname='$q_old_username'");
+		$access_claimed = $this->DB->changes();
 
-		$db->exec ("INSERT OR IGNORE INTO users (userid, realname, email)
-	    	      SELECT '$q_userid',
+		$this->DB->exec ("INSERT OR IGNORE INTO users (userid, realname, email)
+			SELECT '$q_userid',
 
-		      CASE WHEN realname IS NULL AND userid NOT LIKE '%@%' THEN userid
-		      ELSE realname END,
+			CASE WHEN realname IS NULL AND userid NOT LIKE '%@%' THEN userid
+			ELSE realname END,
 
-		      CASE WHEN email IS NULL AND userid LIKE '%@%' THEN userid
-		      ELSE email END
+			CASE WHEN email IS NULL AND userid LIKE '%@%' THEN userid
+			ELSE email END
 
-		      FROM users WHERE userid='$q_old_username'");
-		return array ("wikis_claimed" => $wikis_claimed,
-			      "groups_claimed" => $groups_claimed,
-			      "access_claimed" => $access_claimed);
+			FROM users WHERE userid='$q_old_username'");
+		return array ("wikis" => $wikis_claimed,
+			      "groups" => $groups_claimed,
+			      "access" => $access_claimed);
 	}
 	
 	function createInvitation ($group, $wiki, $email) {

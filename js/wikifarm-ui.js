@@ -82,7 +82,7 @@ function generic_ajax_submit()
 	    $('#'+$(this).attr('ga_loader_id')).html('<img src="/js/ajax-loader.gif" width="16" height="16" border="0" />').show();
 	}
 	var button = this;
-	button.disabled = true;
+	$(':button').each(function(){if(this==button) button.disabled=true;});
 	$.ajax({
 		url: '/',
 		    type: 'POST',

@@ -655,7 +655,7 @@ $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('di
 	{$footnote}
 </div>
 EOT;
-	return $output;
+		return $output;
 	}
 
 	// Grant access to a wiki, served in a popup.
@@ -1015,6 +1015,23 @@ EOT;
 			return $this->fail ("Invalid request: no matching autologin");
 		$w = $this->getWiki ($matches[1]);
 		return $this->success (array ("redirect" => "/".$w["wikiname"].$uri));
+	}
+
+	function ajax_claimaccount ($post) {
+		error_log(print_r($post,true));
+		$wasActivated = $this->isActivated();
+		$claimed = $this->claimInvitationByPassword ($post["username"], $post["password"]);
+		$message = sprintf ("Authentication succeeded.  Claimed %d wiki%s, %d group%s, and %d individual wiki invitation%s.",
+				    $claimed["wikis"], $claimed["wikis"]==1?"":"s",
+				    $claimed["groups"], $claimed["groups"]==1?"":"s",
+				    $claimed["access"], $claimed["access"]==1?"":"s");
+		$response = array ("message" => $message);
+		if (!$wasActivated && $claimed["groups"]) {
+			$response["redirect"] = "/";
+			$this->selfActivate();
+		} else if ($claimed["groups"])
+			$response["refreshtab"] = true;
+		return $this->success ($response);
 	}
 
 	function validate_wikiname ($x) {
