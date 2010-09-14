@@ -107,7 +107,6 @@ BLOCK;
 		$q_email = htmlspecialchars($this->getUserEmail());
 		$q_realname = htmlspecialchars($this->getUserRealname());
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
-		$claimbutton =  "<input type='button' class='claimaccountbutton' value='Claim Account' />".$this->textClaimAccount();
 		$q_uota = $this->getWikiQuota();
 		$icon = "info";
 		if (!$this->getUserEmail() || !$this->getUserRealname()) {
@@ -155,7 +154,6 @@ BLOCK;
 </tr></tbody></table>
 <div id="myaccount_message" class="ui-helper-hidden" />
 </form>
-{$claimbutton}
 BLOCK;
 	}
 
@@ -348,15 +346,22 @@ BLOCK;
 
 	function page_groups() {
 		$need_activation_request = !$this->isActivated() && !$this->isActivationRequested();
-		$html = "<form id=\"group_request\">\n";
-		if ($need_activation_request)
+		$claimbox = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>") . "<div class=\"clear1em\" />";
+		$html = $this->textClaimAccount();
+		$html .= "<form id=\"group_request\">\n";
+		if ($need_activation_request) {
+			$html .= $claimbox;
 			$html .= $this->textHighlight(<<<BLOCK
 <p>Please select any groups your account should belong to, then click the "submit" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>
 <input type=hidden name="group_request[]" value="users" />
 BLOCK
 );
-		else
+			$footer = "";
+		}
+		else {
 			$html .= $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator).");
+			$footer = $claimbox;
+		}
 		$html .= <<<BLOCK
 <table id="grouplist">
 <thead>
@@ -409,7 +414,7 @@ group_request_enable();
 </script>
 <br clear />
 BLOCK;
-		return $html;
+		return $html.$footer;
 	}
 
 	function page_users() {
