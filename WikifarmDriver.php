@@ -143,7 +143,9 @@ class WikifarmDriver {
 		    $row["wikiid"] = $row["id"];
 		    $row["readable"] = false;
 		    $row["requested_readable"] = false;
-		    if (array_key_exists ($row["id"], $readable))
+		    if ($row["userid"] == $this->openid)
+			$row["readable"] = true;
+		    else if (array_key_exists ($row["id"], $readable))
 			$row["readable"] = true;
 		    else if (array_key_exists ($row["id"], $this->_cache["requested_readable"]))
 			$row["requested_readable"] = true;
