@@ -178,6 +178,7 @@ BLOCK;
 				"\t\tvar oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100 });\n".
 				"\t\t$('#viewallradio input').change( function(){ oTable.fnDraw(); } );\n" .
 //				"\t\t$('.requestedbutton').click(function(){ wf_tab_select('tabs', 'allwikis'); });\n".  // todo or remove
+				"\t\t$('.editbutton').click(function(){ mywikisLoadTabOnce = $(this).attr('wikiname'); wf_tab_select('tabs', 'mywikis'); });\n".
 				"\t\t$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })\n".
 // TODO: make this change the mwuser and log go to a wiki. .val() could be a wikinick or "0" for a manual sign-in.
 				"\t\t$('.loginselect').change( function() { if ($(this).val()!='') alert ( $(this).val() + ', ' + $(this).attr('wikiid') ); } ); " .
@@ -224,6 +225,7 @@ BLOCK;
 			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
 			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
 			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
+			$show_edit = ($this->openid == $owner_userid ? '' : 'ui-helper-hidden');
 
 			$output .= "<select id='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
@@ -232,6 +234,7 @@ BLOCK;
 				"<input type=button id='button-requestpending-$wikiid' class='linkbutton $show_requestpending' link='#' disabled='disabled' value='Request pending'>" .
 				"<input type=button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle='$realname' writeonly='true' value='Request Write Access'>" .
 				"<input type=button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle='$realname' value='Request Access'>" .
+				"<input type=button id='button-edit-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle='$realname' value='Wiki Settings'>" .
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table>\n";
@@ -245,25 +248,13 @@ BLOCK;
 			return false;
 		}
 		$wikiArray = $this->getMyWikis();
-		$element = "mywikistabs";
-		$output = <<<BLOCK
-<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
-<script language="JavaScript">
-$(function() {
-	$("#$element").tabs();
-});
-</script>
-<div id="$element">
-<ul>
-BLOCK;
 		$content = "";
+		$tabs = "";
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			$visible_to = implode(", ", $groups);
-			$output .= "\t\t<li><a href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $realname</a></li>\n";
-			$content .= "<div id=\"tab_$wikiname\">";
-			$content .= $this->frag_managewiki ($row);
-			$content .= "</div>\n";
+			$tabs .= "\t\t<li><a tab_id='tab_$wikiname' href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $realname</a></li>\n";
+			$content .= "<div id=\"tab_$wikiname\">" .	$this->frag_managewiki ($row) .	"</div>\n";
 		}
 		$groups_options = "";
 		foreach ($this->getAllGroups() as $g) {
@@ -277,9 +268,26 @@ BLOCK;
 			$groups_options .= "<option value=\"$groupid\">$groupname</option>";
 		}
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
-		$output .= <<<BLOCK
-<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a New Wiki</a></li>
-</ul>$content
+		return <<<BLOCK
+<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
+<script language="JavaScript">
+function selectTabByName(tabs, tab) {
+	$(tabs).tabs('select', $("a[tab_id='"+tab+"']").parent().index() );
+}
+$(function() {
+	$('#mywikistabs').tabs( { show: function(event, ui) { window.location.hash = ui.tab.hash; } });
+	if (mywikisLoadTabOnce != '') {
+		selectTabByName ('#mywikistabs','tab_'+mywikisLoadTabOnce);
+		mywikisLoadTabOnce = '';
+	}		
+});
+</script>
+<div id="mywikistabs">
+	<ul>
+{$tabs}
+		<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a New Wiki</a></li>
+	</ul>
+{$content}
 <div id="newwikitab">
 <form id="createwikiform" action="#">
 <table>
@@ -291,11 +299,11 @@ BLOCK;
 
 <tr><td>Wiki name: </td>
 <td><input type=text name=wikiname size=32 maxlength=12></td>
-<td>3 to 12 lower case letters. url of wiki will be http://$_SERVER[HTTP_HOST]/name</td>
+<td>3 to 12 lower case letters. url of wiki will be http://{$_SERVER['HTTP_HOST']}/name</td>
 </tr>
 
 <tr><td>Your username in the new wiki: </td>
-<td><input type=text name=mwusername size=32 value="$q_mwusername"></td>
+<td><input type=text name=mwusername size=32 value="{$q_mwusername}"></td>
 <td>letters and digits only.  start with an upper case letter.
 </tr>
 
@@ -316,7 +324,6 @@ BLOCK;
 </div>
 </div>
 BLOCK;
-		return $output;
 	}
 	
 	// some default landing page

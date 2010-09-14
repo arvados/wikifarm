@@ -86,10 +86,12 @@ if (isset ($_GET["tabActive"]))
 <script type="text/javascript" src="js/wikifarm-ui.js" language="JavaScript"></script>
 <script type="text/javascript" src="js/DataTables/js/jquery.dataTables.js" language="JavaScript"></script>
 <script language="JavaScript">
+	var mywikisLoadTabOnce = '';
 	$(function() {
 		$("#tabs").tabs({selected: <?=$tabActiveId?>});
+		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
-		$("#logoutbutton,#helpbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');
+		$("#logoutbutton,#helpbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');	
 	});
 </script>
 <style type="text/css">
