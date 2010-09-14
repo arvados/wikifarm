@@ -62,8 +62,6 @@ function generic_ajax_error(req, textStatus, errorThrown, button)
 
 function generic_ajax_submit()
 {
-    console.log(this);
-    console.log($(this).attr('id'));
     try {
 	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
 	var ga_loader_id = $(this).attr('ga_loader_id');
@@ -148,6 +146,7 @@ function req_response_click ()
 		},
 		error: function (r,t,e) { alert(e); }
 	});
+    return false;
 }
 
 function group_request_enable ()
