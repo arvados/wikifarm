@@ -227,7 +227,7 @@ BLOCK;
 				$realname = $wikiname;
 			$show_edit = ($this->openid == $owner_userid ? '' : 'ui-helper-hidden');
 			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
-				"<td class='minwidth nowrap'>$wikiid</td>".
+				"<td class='minwidth nowrap' style='text-align:right'>$wikiid</td>".
 				"<td class='minwidth nowrap'>".($readable ? "<a href=\"/$wikiname/\">$wikiname</a>" : $wikiname)."</td>".
 				"<td class='minwidth nowrap'>".($writable ? "<span class='ui-icon ui-icon-pencil' style='float:right; vertical-align:bottom;'></span>" : "" )."</td>".
 				"<td class='minwidth nowrap'>$owner_realname".
