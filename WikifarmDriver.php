@@ -435,7 +435,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 
 	function canApproveRequest($requestid) {
 		// $requestid itself must be reasonable
-		if (!ereg ("^[0-9]+", $requestid)) return false;
+		if (!preg_match ('{^[0-9]+$}', $requestid)) return false;
 
 		// there must be exactly one request with this id
 		$req = $this->query ("select * from request where requestid=$requestid");
@@ -494,7 +494,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		$userid = $this->openid;
 		$q_userid = SQLite3::escapeString ($userid);
 		$q_old_username = SQLite3::escapeString ($username);
-		$provided_password = ereg_replace ("\n", "", $password);
+		$provided_password = str_replace ("\n", "", $password);
 
 		$cryptpw = $this->querySingle ("select cryptpw from users where userid='$q_old_username'");
 		putenv ("PW=$provided_password");
