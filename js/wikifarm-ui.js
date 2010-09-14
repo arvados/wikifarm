@@ -164,3 +164,4 @@ function group_request_enable ()
 $('.generic_ajax').live('click', generic_ajax_submit);
 $('.req_response_button').live('click', req_response_click);
 $('input[name^=group_request]').live('click', group_request_enable);
+$('form').live('submit',function(){return false;});
