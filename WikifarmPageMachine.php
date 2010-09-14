@@ -857,7 +857,6 @@ EOT;
 				$p["value"] = $post["pref_".$p["prefid"]];
 			else
 				$p["value"] = null;
-		error_log(print_r($prefs,true));
 		$this->setUserPrefs ($prefs);
 
 		if ($did_not_have_basics && $this->getUserEmail() && $this->getUserRealname())
