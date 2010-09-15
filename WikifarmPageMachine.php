@@ -185,18 +185,20 @@ $(function() {
 });
 </script>
 <style type="text/css">
-#allwikis tr { min-height: 19px; }
+#allwikis tr { min-height: 24px; }
 #allwikis td { padding: 0px 5px; }
-#allwikis button, #allwikis select {
+#allwikis button, #allwikis select  {
  position: relative;
  vertical-align: middle;
  font-size: 11px;
  padding: 0px 6px;
 }
+#allwikis select { height: 20; }
 #allwikis span.ui-icon { float: left; vertical-align: middle; }
 </style>
 BLOCK;
 		$output .= $this->textRequestAccess();
+		if ($this->isAdmin()) $output .= $this->frag_admin_managewiki();
 		/* --- Page Heading --- */
 		$output .= "<table><tr><td><div class=\"ui-widget ui-state-highlight ui-corner-all wf-message-box\"><p><span class=\"ui-icon wf-message-icon ui-icon-folder-collapsed\" /><strong>All Wikis:</strong> browse a list of all wikis on this site, or request access to specific wikis.</p></div><div class=\"clear1em\" /></td>\n".
 			"<td><div align=right id='viewallradio'>\n".
@@ -216,21 +218,25 @@ BLOCK;
 				"<th class='minwidth'>View/edit</th>".
 				"<th class='minwidth'>Request</th>".
 			"</tr></thead>\n<tbody>\n";
-/* --- Each Wiki Listing --- */		
+/* --- Each Wiki Listing --- */	
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			$requested_writable = $requested_autologin;
 			$writable = !!($autologin && $autologin[0]);
 			if ($realname == '')
 				$realname = $wikiname;
-			$show_edit = ($this->openid == $owner_userid ? '' : 'ui-helper-hidden');
+			$show_edit = ($this->openid == $owner_userid && !$this->isAdmin() ? '' : 'ui-helper-hidden');
+			$show_admin_edit = ($this->isAdmin() ? '' : 'ui-helper-hidden');
 			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
 				"<td class='minwidth nowrap' style='text-align:right'>$wikiid</td>".
 				"<td class='minwidth nowrap'>".($readable ? "<a href=\"/$wikiname/\">$wikiname</a>" : $wikiname)."</td>".
 				"<td class='minwidth nowrap'>".($writable ? "<span class='ui-icon ui-icon-pencil' style='float:right; vertical-align:bottom;'></span>" : "" )."</td>".
 				"<td class='minwidth nowrap'>$owner_realname".
 				"</td><td>".(implode(", ", $groups)).
-				"</td><td class='minwidth nowrap'><button id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle='$realname'><span class='ui-icon ui-icon-gear'></span><span class='button-text'>Manage</span></button></td>";
+				"</td><td class='minwidth nowrap'>".
+					"<button id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle='$realname'><span class='ui-icon ui-icon-gear'></span>Manage</button>" .
+					"<button class='admin-manage-button $show_admin_edit' wikiid='$wikiid'><span class='ui-icon ui-icon-gear'></span>Admin</button>".
+				"</td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
 			// these are prepared in a way that we can use as little or as much Ajax as we like.
@@ -242,11 +248,11 @@ BLOCK;
 			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
-				"<button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play'></span><span class='button-text'>View</span></button>" .
+				"<button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play'></span>View</button>" .
 				"</td><td class='minwidth nowrap'>" .
 				"<div id='button-requestpending-$wikiid' class='$show_requestpending ui-state-disabled'><span class='ui-icon ui-icon-clock'></span>Request pending</div>" .
-				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle='$realname' wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request write access</span></button>" .
-				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle='$realname'><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request access</span></button>" .
+				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle='$realname' wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span>Request write access</button>" .
+				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle='$realname'><span class='ui-icon ui-icon-key'></span>Request access</button>" .
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
@@ -284,10 +290,11 @@ BLOCK;
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
 <script language="JavaScript">
 function selectTabByName(tabs, tab) {
-	$(tabs).tabs('select', $("a[tab_id='"+tab+"']").parent().index() );
+	$(tabs).tabs('select', $("a[tab_id='"+tab+"']").parent().index() );	
 }
 $(function() {
-	$('#mywikistabs').tabs( { show: function(event, ui) { window.location.hash = ui.tab.hash; } });
+	// $('#mywikistabs').tabs( { show: function(event, ui) { window.location.hash = ui.tab.hash; } });
+	$('#mywikistabs').tabs();
 	if (mywikisLoadTabOnce != '') {
 		selectTabByName ('#mywikistabs','tab_'+mywikisLoadTabOnce);
 		mywikisLoadTabOnce = '';
@@ -597,6 +604,52 @@ BLOCK;
 \$(\"#mwu$wikiid\").dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
 </script>\n";
 		return $html;
+	}
+
+// ajax loaded dialog box content
+	function page_admin_managewiki() {
+		if (!$this->isAdmin()) {
+			error_log (__METHOD__.": requested by non-admin user");
+			return page_adminonly();
+		}
+		$wiki = $this->getWiki($_GET['wikiid'] + 0);
+		if (!is_array($wiki)) {
+			error_log (__METHOD__.": invalid wikiid in GET");
+			return "Invalid ID = " . $_GET['wikiid'];
+		}				
+		return $this->frag_managewiki($wiki);
+	}		
+
+// needs a <button class='admin-manage-button' wikiid='n'>Manage Wiki</button>
+	function frag_admin_managewiki() {   //TODO TODO 
+		return <<<BLOCK
+<script type="text/javascript">
+	$(function() { 
+			$('#amw-dialog').dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
+			"Close": function() { $(this).dialog("close"); }
+		} });
+		$('.admin-manage-button').click(function(){
+			var id = $(this).attr('wikiid');
+			$('#amw-content').load('?tab=admin_managewiki&wikiid='+id, function() {
+				$('#amw-waiting').hide();
+				$('#amw-content').show();
+			});			
+			$('#amw-content').hide();
+			$('#amw-waiting').css('line-height', $(window).height()+'px').show();
+			$('#amw-dialog').dialog('open');
+			return false;
+		});
+		$(".managebutton").button({icons:{primary:'ui-icon-zoomin'}});
+		$(".managebutton:first").button({icons:{primary:'ui-icon-suitcase'}});
+	});
+$('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
+</script>
+
+<div id="amw-dialog" title="Admin: Manage A Wiki">
+	<div id="amw-content"></div>
+	<div id="amw-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
+</div>
+BLOCK;
 	}
 
 	function textHighlight ($text, $icon="info", $id=false) {

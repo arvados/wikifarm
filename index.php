@@ -77,15 +77,15 @@ if (isset ($_GET["tabActive"]))
 ?><html>
 <head>
 <title>WikiFarm Dashboard</title>
-<link type="text/css" href="js/DataTables/css/demo_page.css" rel="Stylesheet" />
-<link type="text/css" href="js/DataTables/css/demo_table.css" rel="Stylesheet" />
-<link rel="stylesheet" type="text/css" href="style.css" />
-<link type="text/css" href="css/smoothness/jquery-ui-1.8.4.custom.css" rel="Stylesheet" />
+<link type="text/css" href="js/DataTables/css/demo_page.css" rel="Stylesheet">
+<link type="text/css" href="js/DataTables/css/demo_table.css" rel="Stylesheet">
+<link rel="stylesheet" type="text/css" href="style.css">
+<link type="text/css" href="css/smoothness/jquery-ui-1.8.4.custom.css" rel="Stylesheet">
 <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.4.custom.min.js"></script>
 <script type="text/javascript" src="js/wikifarm-ui.js" language="JavaScript"></script>
 <script type="text/javascript" src="js/DataTables/js/jquery.dataTables.js" language="JavaScript"></script>
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 	var mywikisLoadTabOnce = '';
 	$(function() {
 		$("#tabs").tabs({selected: <?=$tabActiveId?>});
