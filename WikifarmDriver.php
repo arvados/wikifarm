@@ -350,7 +350,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	}
 
 	function getUserPrefs() {
-		return $this->query ("SELECT pref.prefid, type, description, value FROM pref LEFT JOIN userpref ON pref.prefid=userpref.prefid");
+		return $this->query ("SELECT pref.prefid, type, description, value FROM pref LEFT JOIN userpref ON pref.prefid=userpref.prefid WHERE userpref.userid='{$this->q_openid}'");
 	}
 
 	function setUserPrefs($prefs) {
