@@ -240,7 +240,7 @@ class WikifarmDriver {
 		$wikiid = sprintf ("%02d", $wikiid);
 		$this->DB->exec ("INSERT INTO autologin (wikiid, userid, mwusername, lastlogintime, sysop) values ('$wikiid', '".$this->q_openid."','".SQLite3::escapeString ($mwusername)."',strftime('%s','now'),1)");
 		foreach ($this->getAllGroups() as $g)
-			if (false !== array_search ($g["groupid"], $groups))
+			if ($groups && false !== array_search ($g["groupid"], $groups))
 				$this->DB->exec ("INSERT INTO wikipermission (wikiid, userid_or_groupname) VALUES ('$wikiid', '".SQLite3::escapeString ($g["groupid"])."')");
 
 		if (false === system ("sudo -u ubuntu /home/wikifarm/etc/wikifarm-create-wiki "
@@ -350,7 +350,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	}
 
 	function getUserPrefs() {
-		return $this->query ("SELECT pref.prefid, type, description, value FROM pref LEFT JOIN userpref ON pref.prefid=userpref.prefid WHERE userpref.userid='{$this->q_openid}'");
+		return $this->query ("SELECT pref.prefid, type, description, value FROM pref LEFT JOIN userpref ON userpref.userid='{$this->q_openid}' AND pref.prefid=userpref.prefid");
 	}
 
 	function setUserPrefs($prefs) {
