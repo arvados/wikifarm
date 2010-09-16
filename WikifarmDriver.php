@@ -479,16 +479,19 @@ Administrator approval is needed for the following requests.
 No more of these notifications will be sent until all outstanding requests are cleared.
 BLOCK;
 				foreach ($this->getAdminEmails() as $e) {
-					error_log ("sending mail to $e");
-					mail ($e,
-					      $subject,
-					      $message."\n\n-- \nSent to {$e}\n",
-					      "From: <".$this->getAdminSenderAddress().">\r\n".
-					      "Return-Path: <".$this->getAdminSenderAddress().">",
-					      "-r".$this->getAdminSenderAddress());
+					$this->Mail ($e,
+						     $subject,
+						     wordwrap($message)."\n\n-- \nSent to {$e}\n");
 				}
 			}
 		}
+	}
+
+	function Mail ($to, $subject, $message) {
+		mail ($to, $subject, $message,
+		      "From: <".$this->getAdminSenderAddress().">\r\n".
+		      "Return-Path: <".$this->getAdminSenderAddress().">",
+		      "-r".$this->getAdminSenderAddress());
 	}
 
 	function getAdminSenderAddress () {
@@ -500,15 +503,56 @@ BLOCK;
 	}
 
 	function requestWiki ($wikiid, $mwusername=false) {
-		$this->DB->exec ("delete from request where userid='".$this->q_openid."' and wikiid='$wikiid'");
-		$this->DB->exec ("insert into request (userid, wikiid, mwusername) values ('".$this->q_openid."', '$wikiid', '".SQLite3::escapeString($mwusername)."')");
+		$wikiid = sprintf ("%02d", $wikiid);
+		$owner_userid = $this->querySingle ("SELECT userid FROM wikis WHERE id='$wikiid'");
+		$user_requests_before = $this->getUserRequests ($owner_userid);
+
+		// DELETE + INSERT instead of INSERT OR REPLACE to
+		// ensure that a request with a different mwusername
+		// gets a new requestid.  Otherwise the mwusername
+		// could change after the wiki owner decides to accept
+		// the requestid but before pressing the Approve
+		// button.
+		$this->DB->exec ("DELETE FROM request WHERE userid='".$this->q_openid."' AND wikiid='$wikiid'");
+		$this->DB->exec ("INSERT INTO request (userid, wikiid, mwusername) VALUES ('".$this->q_openid."', '$wikiid', '".SQLite3::escapeString($mwusername)."')");
+
+		if (count ($user_requests_before)) return true;
+		$user_requests_after = $this->getUserRequests ($owner_userid);
+		if (count ($user_requests_after) == 0) return true;
+
+		$wf = new WikifarmDriver ($this->DB);
+		$wf->Focus ($owner_userid);
+		$want_email = false;
+		foreach ($wf->getUserPrefs() as $p)
+			if ($p["prefid"] == "notify_requests" && $p["value"])
+				$want_email = true;
+		if (!$want_email) return true;
+		$e = $wf->getUserEmail();
+		if (!$e) return true;
+
+		$requestor = $this->getUserRealname() . " <" . $this->getUserEmail() . ">";
+		$wiki = $this->getWiki($wikiid);
+
+		$subject = "[Wikifarm] Requests need your approval";
+		$message = <<<BLOCK
+Hi,
+
+This is the wikifarm at {$_SERVER['HTTP_HOST']}.
+
+{$requestor} has requested access to your "{$wiki['realname']}" wiki.
+
+Please visit https://{$_SERVER['HTTP_HOST']} to approve or reject the request.
+
+No more of these notifications will be sent until all of your outstanding requests are cleared.
+BLOCK;
+		$this->Mail ($e, $subject, wordwrap($message));
 		return true;
 	}
 
 	// Responding to requests
 	function getAllRequests() {
 		if (!array_key_exists ("getAllRequests", $this->_cache)) {
-			$reqs = $this->query ("SELECT request.*, wikis.realname wikititle, wikiname, users.realname, users.email FROM request LEFT JOIN wikis ON request.wikiid=wikis.id LEFT JOIN users ON users.userid=request.userid WHERE wikiid IN (SELECT id FROM wikis WHERE userid='".$this->q_openid."')");
+			$reqs = $this->getUserRequests ($this->openid);
 			if (!$this->isAdmin()) {
 				$this->_cache['getAllRequests'] = $reqs;
 			} else {
@@ -522,7 +566,17 @@ BLOCK;
 	function getAdminRequests() {
 		return $this->query ("SELECT request.*, email, realname FROM request LEFT JOIN users ON users.userid=request.userid WHERE wikiid IS NULL ORDER BY request.userid");
 	}
-	
+
+	function getUserRequests($userid) {
+		$q_openid = SQLite3::escapeString ($userid);
+		return $this->query ("
+SELECT request.*, wikis.realname wikititle, wikiname, users.realname, users.email
+FROM request
+LEFT JOIN wikis ON request.wikiid=wikis.id
+LEFT JOIN users ON users.userid=request.userid
+WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
+	}
+
 	// Am I allowed to approve or deny this request?  If not
 	// allowed, return false.  If allowed, return assoc array with
 	// the request details

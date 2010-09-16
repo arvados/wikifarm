@@ -848,7 +848,7 @@ EOT;
 			"Cancel": function() { $(this).dialog("close"); }
 		} });
 		$('.claimaccountbutton').click(function(){	
-			$('#claimaccount').not(':hidden').val('');
+			$('#claimaccount :input').not(':hidden').val('');
 			$('#claimaccountdialog').dialog('open');
 			return false;
 		});
@@ -870,6 +870,8 @@ EOT;
 	// AJAX handlers
 
 	function dispatch_ajax ($post) {
+		if (!isset($post["ga_action"]))
+			return $this->fail ("Client side error: no action requested.");
 		if (!method_exists ($this, "ajax_" . $post["ga_action"]))
 			return $this->fail ("Invalid request (action=".$post["ga_action"].")");
 		try {
