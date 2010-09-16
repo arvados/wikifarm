@@ -197,24 +197,18 @@ $.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
     });
 $(function() {
 	$('#viewallradio').buttonset();
-	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100 });
+	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100, 'aoColumnDefs': [ { 'bSearchable': false, 'aTargets': [ 2, 5, 6, 7 ] } ] });
 	$('#viewallradio input').change( function(){ oTable.fnDraw(); } );
 	$('.editbutton').click(function(){ mywikisLoadTabOnce = $(this).attr('wikiname'); wf_tab_select('tabs', 'mywikis'); });
 	$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })
-		$('.loginselect').change( function() { if ($(this).val()!='') { $(this).addClass('generic_ajax'); $(this).click(); $(this).removeClass('generic_ajax'); } $(this).val(''); return false; } ); 
+	$('.loginselect').change( function() { if ($(this).val()!='') { $(this).addClass('generic_ajax'); $(this).click(); $(this).removeClass('generic_ajax'); } $(this).val(''); return false; } );
+	\$('#allwikis a[icon]').each(function(){\$(this).button({icons:{primary:\$(this).attr('icon')}});});
+	\$('#allwikis a.ui-helper-hidden[icon]').hide();
 });
 </script>
 <style type="text/css">
 #allwikis tr { min-height: 24px; }
 #allwikis td { padding: 0px 5px; }
-#allwikis button, #allwikis select  {
- position: relative;
- vertical-align: middle;
- font-size: 11px;
- padding: 0px 6px;
-}
-#allwikis select { height: 20; }
-#allwikis span.ui-icon { float: left; vertical-align: middle; }
 </style>
 BLOCK;
 		$output .= $this->textRequestAccess();
@@ -255,8 +249,8 @@ BLOCK;
 				"<td class='minwidth nowrap'>$owner_realname".
 				"</td><td>".(implode(", ", $groups)).
 				"</td><td class='minwidth nowrap'>".
-					"<button id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-gear'></span>Manage</button>" .
-					"<button class='admin-manage-button $show_admin_edit' wikiid='$wikiid'><span class='ui-icon ui-icon-gear'></span>Admin</button>".
+				"<a icon='ui-icon-gear' id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\">Manage</a>" .
+				"<a icon='ui-icon-gear' class='admin-manage-button $show_admin_edit' wikiid='$wikiid'>Admin</a>".
 				"</td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
@@ -266,14 +260,14 @@ BLOCK;
 			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
 			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
 			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
-			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
+			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='wf-button loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
-				"<button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play'></span>View</button>" .
+				"<a icon='ui-icon-play' id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'>View</a>" .
 				"</td><td class='minwidth nowrap'>" .
-				"<div id='button-requestpending-$wikiid' class='$show_requestpending ui-state-disabled'><span class='ui-icon ui-icon-clock'></span>Request pending</div>" .
-				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span>Request write access</button>" .
-				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-key'></span>Request access</button>" .
+				"<div id='button-requestpending-$wikiid' class='ui-widget ui-button-text-icon-primary ui-state-disabled $show_requestpending'><span class='ui-button-icon-primary ui-icon ui-icon-clock'></span><span class='ui-button-text'>Request pending</span></div>" .
+				"<a icon='ui-icon-key' id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'>Request write access</a>" .
+				"<a icon='ui-icon-key' id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\">Request access</a>" .
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
@@ -848,7 +842,7 @@ BLOCK;
 <script type="text/javascript">
 	$(function() { 
 			$('#getaccessdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
-			"Send Request": function() { dialog_submit(this, "#getaccess"); }, 
+			"Send Request": function() { dialog_submit(this, "#getaccess:visible"); }, 
 			"Cancel": function() { $(this).dialog("close"); }
 		} });
 		$('.requestbutton').click(function(){
@@ -899,7 +893,7 @@ $(function() {
 	({ modal: true,
 	   autoOpen: false,
 	   width: 400,
-	   buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
+	   buttons: { "OK": function() { dialog_submit(this, "#granteditform:visible"); },
 		      "Cancel": function() { $(this).dialog("close"); } }
 	});
 	$('.granteditbutton').click(function(){
@@ -949,7 +943,7 @@ EOT;
 <script type="text/javascript">
 	$(function() { 
 			$('#claimaccountdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
-			"Claim Account": function() { dialog_submit(this, "#claimaccount"); }, 
+			"Claim Account": function() { dialog_submit(this, "#claimaccount:visible"); }, 
 			"Cancel": function() { $(this).dialog("close"); }
 		} });
 		$('.claimaccountbutton').click(function(){	
