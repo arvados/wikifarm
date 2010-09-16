@@ -20,20 +20,20 @@ a:hover { text-decoration: underline; }
 <div style="background: #fdd; border: 1px dashed #b00">Login failed (error code: <?=$_GET["modauthopenid_error"]?>)</div>
 <? } ?>
 
-<form class="marg" action="/" method="get" target="_top">
+<form class="marg" action="/" method="get" class="openidloginform">
 <b>Identity URL:</b> <input type="text" name="openid_identifier" value="" size="30" class="loginbox" />
 <input type="submit" value="Log In" />
 <input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
 </form>
 
-<form style="display:inline" action="/" method="get" target="_top">
+<form style="display:inline" action="/" method="get" class="openidloginform">
 <b class="marg">Shortcut:</b>
 <input type="hidden" name="openid_identifier" value="https://www.google.com/accounts/o8/id" />
 <input class="marg" type="submit" value="Google Login" />
 <input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
 </form>
 
-<form style="display:inline" action="/" method="get" target="_top">
+<form style="display:inline" action="/" method="get" class="openidloginform">
 <input type="hidden" name="openid_identifier" value="http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds" />
 <input class="marg" type="submit" value="Yahoo Login" />
 <input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
