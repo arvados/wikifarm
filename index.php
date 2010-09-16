@@ -44,7 +44,7 @@ $tabTitles = array(
 			'tools'=>'Tools',
 			'users'=>'User List',
 			'debug'=>'Debug',
-			'settings'=>'Wikifarm Settings' );
+			'help'=>'Help');
 
 if (!$wf->isAdmin()) {
 	unset ( $tabTitles['debug'] );
@@ -53,14 +53,16 @@ if (!$wf->isAdmin()) {
 
 if (!$wf->getUserRealname() || !$wf->getUserEmail()) {
 	$tabActive = "myaccount";
-	$tabTitles = array ($tabActive => $tabTitles[$tabActive]);
+	$tabTitles = array ($tabActive => $tabTitles[$tabActive],
+			    'help' => $tabTitles['help']);
 }
 else if ($wf->isActivated())
 	$tabActive = "wikis";
 else {
 	$tabActive = "groups";
 	$tabTitles = array ($tabActive => $tabTitles[$tabActive],
-			    'myaccount' => $tabTitles['myaccount']);
+			    'myaccount' => $tabTitles['myaccount'],
+			    'help' => $tabTitles['help']);
 }
 if (0 == count($wf->getAllRequests()))
 	unset ($tabTitles['requests']);
@@ -91,10 +93,13 @@ if (isset ($_GET["tabActive"]))
 <script language="JavaScript">
 	var mywikisLoadTabOnce = '';
 	$(function() {
-		$("#tabs").tabs({selected: <?=$tabActiveId?>});
+		$("#tabs").tabs({
+			selected: <?=$tabActiveId?>,
+			show: function(event,ui){window.location.hash="";}
+		    });
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
-		$("#logoutbutton,#helpbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');	
+		$("#logoutbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');	
 	});
 </script>
 <style type="text/css">
@@ -107,7 +112,7 @@ if (isset ($_GET["tabActive"]))
 <body>
 
 <div id="pageheader"><div id="logo"></div>
-<div><a href="/docs/Wiki_Tutorial" id="helpbutton">Help</a><a href="logout.php" id="logoutbutton">Log out</a></div>
+<div><a href="logout.php" id="logoutbutton">Log out</a></div>
 </div>
 
 <?php  // Begin tabs and stuff

@@ -1,0 +1,119 @@
+h2. Contents
+
+# "Logging in and setting up your account":#Help,Login
+# "Identifying yourself":#Help,Identify
+# "Indicating your group affiliations":#Help,Groups
+# "Browsing wikis":#Help,Browsing
+# "Migrating your existing wiki accounts":#Help,Migrating
+# "Editing wikis":#Help,Editing
+# "Creating a wiki":#Help,Creating
+# "Inviting other users to read and edit your wiki":#Help,Inviting
+# "Responding to other users' requests to read and edit your wikis":#Help,Approving
+
+h2(#Help,Login). Logging in and setting up your account
+
+Log in using OpenID.  If you have a Gmail account, just click the "Google login" button.
+
+* If you're not already signed in to your Google account, Google will ask for your username and password.
+* If this is the first time you've logged in to this site using your Google account, you will also be asked to confirm that you want to log in.
+
+You can use any OpenID provider (google, yahoo, myopenid, your own, etc.) as long as you always use the same one.  Linking multiple OpenIDs to a single account is not yet supported.
+
+After logging in with your OpenID, you will see your wikifarm dashboard.  At first you just get a "My Account" tab.  The more exciting and useful tabs will appear when you've finished setting up your account.
+
+h2(#Help,Identify). Identifying yourself
+
+After logging in for the first time, you will be asked to enter your basic user info:
+* Your name
+* Your email address
+* Your preferred MediaWiki username (typically just your name without spaces, like "BobCarter").  This will be used as your default when you request accounts on other users' wikis, and suggested to other users when they invite you to their wikis.
+
+You can change these later if needed, but you need to provide them before you continue.
+
+!help/ss-myaccount.png!
+
+After you click "Save changes" you will be moved along to the "groups" tab where you will indicate your group affiliations.
+
+h2(#Help,Groups). Indicating your group affiliations
+
+*Option 1: Did you have an account on pub.med.harvard.edu?*
+
+If you had an account on pub.med, you don't need to wait for administrator approval.  Just click the "Claim pre-OpenID account" button, and enter your username and password in the dialog box that pops up.  Your account will be activated immediately.
+
+!help/ss-claim.png!
+
+*Option 2: Is this your first time on the wiki farm?*
+
+If you didn't already have an account before the OpenID login system came along, you need to indicate which groups you should belong to.  Check the appropriate boxes, and click the "Submit request" button.  An administrator will have to approve your selections and activate your account before you can see any wikis.
+
+!help/ss-groups.png!
+
+After your account is activated, you will be able to browse, view, and create wikis.
+
+h2(#Help,Browsing). Browsing wikis
+
+The "All Wikis" tab lists all wikis on the farm.
+
+!help/ss-wikis.png!
+
+This is primarily useful for finding wikis and logging in to them, if you don't have them bookmarked in your browser yet:
+* Click a wiki name (or the "View" button) to view the wiki.
+* Search for wikis by name, owner, group, or number by typing in the Search box at the top right.
+* Sort the list by clicking a column heading.
+
+If you do not have permission to view a particular wiki, the "View" button will be missing.  To request access, click the "Request access" button.  This brings up a dialog box asking whether you want to edit the wiki, or just read it.
+
+!help/ss-request.png!
+
+After you click "Send Request", the wiki owner will have a chance to approve or reject your request.
+
+If you have permission to _read_ a wiki, but not to _edit_ it, you can use the same procedure to request write access.
+
+h2(#Help,Migrating). Migrating your existing wiki accounts
+
+*This section is relevant only if you had a wiki account before the dashboard even existed.*
+
+Your dashboard keeps track of all your accounts on various wikis.  At first, it doesn't know that you have any accounts -- even on the wikis you own, it doesn't know what your MediaWiki username is.
+
+From now on, whenever you log in to a wiki the usual way (i.e., by viewing the wiki, clicking "Log in" at the top of a wiki page, and entering your username and password), this is picked up by the dashboard.  Next time you look at the dashboard, that wiki will be marked as writable; a "Log in as..." drop-down box will replace the "Request write access" button.  Also, whenever you visit that wiki in the future, you will automatically be logged in without having to enter your username or password.
+
+In short, if you take a minute now to log in to each wiki where you have an account, everything will happen automatically from now on.
+
+If you have lost any of your wiki account passwords, just use the "Request write access" button in the "All wikis" list.  The wiki owner -- or you, if it's your own wiki -- can approve your request.  From then on, you'll be logged in to the wiki automatically without a password.
+
+h2(#Help,Editing). Editing wikis
+
+If the "All Wikis" list indicates that a wiki is writable (showing a pencil icon and a "Login as..." drop-down box), you will always be automatically logged in to that wiki, which means you can edit the wiki contents.
+
+If you want to edit a wiki but it is not listed as writable, click the appropriate "Request write access" button in the "All Wikis" list (see "browsing wikis":#Browse above).
+
+h2(#Help,Creating). Creating a wiki
+
+You can create as many as five of your own wikis.  (If you need more, contact a site administrator to increase your quota.)
+
+On the "My Wikis" tab, click "Create a new wiki".
+
+* Choose a short name and a title for your wiki, and a MediaWiki username.
+* Optionally, select one or more groups.  All members of those groups will be able to view your wiki.
+* Nobody (except you) will be able to edit your wiki until you "invite them":#Help,Inviting or "approve their requests":#Help,Approving to do so.
+
+!help/ss-create.png!
+
+h2(#Help,Inviting). Inviting other users to read and edit your wiki
+
+Click the "My Wikis" tab and (if you have more than one wiki) choose which wiki you want to invite people to.
+
+* *Invite groups to view* your wiki by turning on checkboxes in the group list.
+* *Invite users to view* your wiki by turning on checkboxes in the user list.  You can search for users by name, email, or OpenID by typing in the Search box at the top of the user list.
+* *Invite users to edit* your wiki by turning on the "edit" checkboxes in the user list.  When you do this, a dialog will pop up asking what username the user should be given on your wiki.  By default, this will be the user's preferred MediaWiki username; you can override it if you like.
+* Of course, you can also *uninvite* users and groups from your wiki by turning off the corresponding checkboxes.
+
+These changes take effect immediately.
+
+!help/ss-invite.png!
+
+h2(#Help,Approving). Responding to other users' requests to read and edit your wikis
+
+When someone requests access to your wiki, a Requests tab appears on your dashboard.
+
+Click "Approve" or "Reject" for each request as you see fit.
