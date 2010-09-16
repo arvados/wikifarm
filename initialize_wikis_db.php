@@ -15,7 +15,8 @@ if (!$db->exec ('CREATE TABLE pref (
  type varchar(64),
  description varchar(255))'))
     die ($db->lastErrorMsg());
-$db->exec ('INSERT INTO pref (prefid,type,description) VALUES ("notify_requests", "checkbox", "Notify me by email about requests from other users")');
+$db->exec ('INSERT INTO pref (prefid,type,description) VALUES ("notify_requests", "checkbox", "Notify me by email when someone requests access to my wikis")');
+$db->exec ('INSERT INTO pref (prefid,type,description) VALUES ("admin_notify_requests", "checkbox", "Notify me by email about account activation and group membership requests")');
 
 if (!$db->exec ('CREATE TABLE request (
  requestid integer primary key autoincrement,

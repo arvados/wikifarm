@@ -755,7 +755,7 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="amw-dialog" title="Admin: Manage A Wiki">
+<div id="amw-dialog" class="wf-dialog" title="Admin: Manage A Wiki">
 	<div id="amw-content"></div>
 	<div id="amw-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
 </div>
@@ -812,7 +812,7 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="amu-dialog" title="Admin: Modify User">
+<div id="amu-dialog" class="wf-dialog" title="Admin: Modify User">
 	<div id="amu-content"></div>
 	<div id="amu-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
 </div>
@@ -842,7 +842,7 @@ BLOCK;
 <script type="text/javascript">
 	$(function() { 
 			$('#getaccessdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
-			"Send Request": function() { dialog_submit(this, "#getaccess:visible"); }, 
+			"Send Request": function() { dialog_submit(this, "#getaccess"); }, 
 			"Cancel": function() { $(this).dialog("close"); }
 		} });
 		$('.requestbutton').click(function(){
@@ -865,7 +865,7 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="getaccessdialog" title="Request Access To A Wiki" ga_message_id="requestmessage">
+<div id="getaccessdialog" class="wf-dialog" title="Request Access To A Wiki" ga_message_id="requestmessage">
 	<form id="getaccess">
 	<table>
 	<tr><td class="formlabelleft">Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
@@ -893,7 +893,7 @@ $(function() {
 	({ modal: true,
 	   autoOpen: false,
 	   width: 400,
-	   buttons: { "OK": function() { dialog_submit(this, "#granteditform:visible"); },
+	   buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
 		      "Cancel": function() { $(this).dialog("close"); } }
 	});
 	$('.granteditbutton').click(function(){
@@ -916,7 +916,7 @@ $(function() {
 });
 </script>
 
-<div id="granteditdialog" title="Invite user to edit your wiki" ga_message_id="grantmessage">
+<div id="granteditdialog" class="wf-dialog" title="Invite user to edit your wiki" ga_message_id="grantmessage">
 	<form id="granteditform">
 	<table>
 	<tr><td class="formlabelleft nowrap">Wiki:</td><td><span id="grantwikiname" /> (<span id="grantwikititle" />)</td></tr>
@@ -943,18 +943,18 @@ EOT;
 <script type="text/javascript">
 	$(function() { 
 			$('#claimaccountdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
-			"Claim Account": function() { dialog_submit(this, "#claimaccount:visible"); }, 
+			"Claim Account": function() { dialog_submit(this, "#claimaccount"); }, 
 			"Cancel": function() { $(this).dialog("close"); }
 		} });
 		$('.claimaccountbutton').click(function(){	
-			$('#claimaccount').not(':hidden').val('');
+			$('#claimaccount :input').not(':hidden').val('');
 			$('#claimaccountdialog').dialog('open');
 			return false;
 		});
 	});
 </script>
 
-<div id="claimaccountdialog" title="Claim a Pre-OpenID Account">
+<div id="claimaccountdialog" class="wf-dialog" title="Claim a Pre-OpenID Account">
 	<p>Enter the username and password that you were using before the conversion to <strong>OpenID</strong> authentication.
 	Please note that all existing user rights from your pre-OpenID account will be added to the OpenID-enabled account that you are currently using.</p>
 	<form id="claimaccount"><table>
@@ -969,6 +969,8 @@ EOT;
 	// AJAX handlers
 
 	function dispatch_ajax ($post) {
+		if (!isset($post["ga_action"]))
+			return $this->fail ("Client side error: no action requested.");
 		if (!method_exists ($this, "ajax_" . $post["ga_action"]))
 			return $this->fail ("Invalid request (action=".$post["ga_action"].")");
 		try {

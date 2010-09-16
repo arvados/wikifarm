@@ -1,8 +1,6 @@
 <?php
 
 
-//TODO Caching to reduce queries-per-run
-
 # $wdb = new WikifarmDriver ( getenv("WIKIFARM_DB_FILE") );
 class WikifarmDriver {
 	private $DB, $DBresult;
@@ -18,6 +16,14 @@ class WikifarmDriver {
 		}
 		if (!$this->DB) die("Fatal: The wikifarm database was unavailable.\n\n");
 		$this->Focus();  // $_SERVER["REMOTE_USER"] by default, the user in focus is the currently signed-in one.
+	}
+
+	function getAdminEmails() {
+		$ret = array();
+		foreach ($this->query ("SELECT email FROM usergroups LEFT JOIN users ON users.userid=usergroups.userid LEFT JOIN userpref ON users.userid=userpref.userid AND userpref.prefid='admin_notify_requests' WHERE groupname='ADMIN' AND userpref.value") as $g)
+			if (!array_search ($g["email"], $ret))
+				$ret[] = $g["email"];
+		return $ret;
 	}
 
 	function __destruct () { $this->DB->close(); }  // !!! We should change this if we want to keep the handle later
@@ -385,7 +391,8 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	}
 
 	function getUserPrefs() {
-		return $this->query ("SELECT pref.prefid, type, description, value FROM pref LEFT JOIN userpref ON userpref.userid='{$this->q_openid}' AND pref.prefid=userpref.prefid");
+		$noadmin = $this->isAdmin() ? "" : "WHERE pref.prefid NOT LIKE 'admin_%'";
+		return $this->query ("SELECT pref.prefid, type, description, value FROM pref LEFT JOIN userpref ON userpref.userid='{$this->q_openid}' AND pref.prefid=userpref.prefid $noadmin");
 	}
 
 	function setUserPrefs($prefs) {
@@ -429,6 +436,9 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	function requestGroup($groups) {
 		if (!is_array($groups))
 			$groups = array($groups);
+
+		$admin_requests_before = $this->getAdminRequests();
+
 		$allgroups =& $this->getAllGroups();
 		foreach (array_merge ($groups, array ("users")) as $group) {
 			$found = false;
@@ -450,28 +460,123 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 			if (!$found)
 				error_log ("requestGroup nonexistent group: $group");
 		}
+
+		if (count($admin_requests_before) == 0) {
+			$admin_requests_after = $this->getAdminRequests();
+			if (count($admin_requests_after) > 0) {
+				$requests_text = "";
+				foreach ($admin_requests_after as $r)
+					$requests_text .= "\n* Join '{$r['groupname']}' group - {$r['realname']} <{$r['email']}>, {$r['userid']}\n";
+				$requests_text = preg_replace ("{Join 'users' group}", "Activate account", $requests_text);
+				$subject = "[Wikifarm] Requests need administrator approval";
+				$message = <<<BLOCK
+Hi,
+
+This is the wikifarm at https://{$_SERVER['HTTP_HOST']} .
+
+Administrator approval is needed for the following requests.
+{$requests_text}
+No more of these notifications will be sent until all outstanding requests are cleared.
+BLOCK;
+				foreach ($this->getAdminEmails() as $e) {
+					$this->Mail ($e,
+						     $subject,
+						     wordwrap($message)."\n\n-- \nSent to {$e}\n");
+				}
+			}
+		}
+	}
+
+	function Mail ($to, $subject, $message) {
+		mail ($to, $subject, $message,
+		      "From: <".$this->getAdminSenderAddress().">\r\n".
+		      "Return-Path: <".$this->getAdminSenderAddress().">",
+		      "-r".$this->getAdminSenderAddress());
+	}
+
+	function getAdminSenderAddress () {
+		if (getenv ("WIKIFARM_ADMIN_EMAIL")) {
+			preg_match ('{[^\s,]+}', getenv ("WIKIFARM_ADMIN_EMAIL"), $matches);
+			return $matches[0];
+		}
+		return "postmaster@".trim(`hostname`);
 	}
 
 	function requestWiki ($wikiid, $mwusername=false) {
-		$this->DB->exec ("delete from request where userid='".$this->q_openid."' and wikiid='$wikiid'");
-		$this->DB->exec ("insert into request (userid, wikiid, mwusername) values ('".$this->q_openid."', '$wikiid', '".SQLite3::escapeString($mwusername)."')");
+		$wikiid = sprintf ("%02d", $wikiid);
+		$owner_userid = $this->querySingle ("SELECT userid FROM wikis WHERE id='$wikiid'");
+		$user_requests_before = $this->getUserRequests ($owner_userid);
+
+		// DELETE + INSERT instead of INSERT OR REPLACE to
+		// ensure that a request with a different mwusername
+		// gets a new requestid.  Otherwise the mwusername
+		// could change after the wiki owner decides to accept
+		// the requestid but before pressing the Approve
+		// button.
+		$this->DB->exec ("DELETE FROM request WHERE userid='".$this->q_openid."' AND wikiid='$wikiid'");
+		$this->DB->exec ("INSERT INTO request (userid, wikiid, mwusername) VALUES ('".$this->q_openid."', '$wikiid', '".SQLite3::escapeString($mwusername)."')");
+
+		if (count ($user_requests_before)) return true;
+		$user_requests_after = $this->getUserRequests ($owner_userid);
+		if (count ($user_requests_after) == 0) return true;
+
+		$wf = new WikifarmDriver ($this->DB);
+		$wf->Focus ($owner_userid);
+		$want_email = false;
+		foreach ($wf->getUserPrefs() as $p)
+			if ($p["prefid"] == "notify_requests" && $p["value"])
+				$want_email = true;
+		if (!$want_email) return true;
+		$e = $wf->getUserEmail();
+		if (!$e) return true;
+
+		$requestor = $this->getUserRealname() . " <" . $this->getUserEmail() . ">";
+		$wiki = $this->getWiki($wikiid);
+
+		$subject = "[Wikifarm] Requests need your approval";
+		$message = <<<BLOCK
+Hi,
+
+This is the wikifarm at {$_SERVER['HTTP_HOST']}.
+
+{$requestor} has requested access to your "{$wiki['realname']}" wiki.
+
+Please visit https://{$_SERVER['HTTP_HOST']} to approve or reject the request.
+
+No more of these notifications will be sent until all of your outstanding requests are cleared.
+BLOCK;
+		$this->Mail ($e, $subject, wordwrap($message));
 		return true;
 	}
 
-	// Responding to requests	
+	// Responding to requests
 	function getAllRequests() {
 		if (!array_key_exists ("getAllRequests", $this->_cache)) {
-			$reqs = $this->query ("SELECT request.*, wikis.realname wikititle, wikiname, users.realname, users.email FROM request LEFT JOIN wikis ON request.wikiid=wikis.id LEFT JOIN users ON users.userid=request.userid WHERE wikiid IN (SELECT id FROM wikis WHERE userid='".$this->q_openid."')");
+			$reqs = $this->getUserRequests ($this->openid);
 			if (!$this->isAdmin()) {
 				$this->_cache['getAllRequests'] = $reqs;
 			} else {
-				$group_reqs = $this->query ("SELECT request.*, email, realname FROM request LEFT JOIN users ON users.userid=request.userid WHERE wikiid IS NULL ORDER BY request.userid");
+				$group_reqs = $this->getAdminRequests();
 				$this->_cache['getAllRequests'] = array_merge ($group_reqs, $reqs);
 			}
 		}
 		return $this->_cache['getAllRequests'];
 	}
-	
+
+	function getAdminRequests() {
+		return $this->query ("SELECT request.*, email, realname FROM request LEFT JOIN users ON users.userid=request.userid WHERE wikiid IS NULL ORDER BY request.userid");
+	}
+
+	function getUserRequests($userid) {
+		$q_openid = SQLite3::escapeString ($userid);
+		return $this->query ("
+SELECT request.*, wikis.realname wikititle, wikiname, users.realname, users.email
+FROM request
+LEFT JOIN wikis ON request.wikiid=wikis.id
+LEFT JOIN users ON users.userid=request.userid
+WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
+	}
+
 	// Am I allowed to approve or deny this request?  If not
 	// allowed, return false.  If allowed, return assoc array with
 	// the request details
