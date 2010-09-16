@@ -1,4 +1,8 @@
-/* original tab code */
+// returns a number that it's never returned before
+function wf_uid()
+{
+	return (++wf_uid.n);
+}
 
 function wf_tab_select (tabset, selecttab)
 {
