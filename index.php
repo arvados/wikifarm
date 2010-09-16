@@ -98,6 +98,9 @@ if (isset ($_GET["tabActive"]))
 			selected: <?=$tabActiveId?>,
 			show: function(event,ui){window.location.hash="";}
 		    });
+		$("#tabs").bind("tabsselect", function(){
+			$(".wf-dialog,.ui-dialog").remove();
+		    });
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
 		$("#logoutbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');	
