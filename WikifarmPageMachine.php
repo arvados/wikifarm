@@ -120,8 +120,8 @@ BLOCK;
 		return $output;
 	}
 
-	function page_myaccount() {
-		$q_openid = $_SERVER["REMOTE_USER"];
+	function page_myaccount() {  //TODO ~jer make sure the context of the user persists
+		$q_openid = $this->openid;
 		$q_email = htmlspecialchars($this->getUserEmail());
 		$q_realname = htmlspecialchars($this->getUserRealname());
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
@@ -153,6 +153,7 @@ BLOCK;
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-$icon" />$activation_status</p></div>
 <div class="clear1em" />
 <form id="myaccountform">
+<input type="hidden" name="userid" value="$q_openid">
 <table>
 <thead></thead><tbody>
 <tr>
@@ -203,18 +204,20 @@ $(function() {
 });
 </script>
 <style type="text/css">
-#allwikis tr { min-height: 19px; }
+#allwikis tr { min-height: 24px; }
 #allwikis td { padding: 0px 5px; }
-#allwikis button, #allwikis select {
+#allwikis button, #allwikis select  {
  position: relative;
  vertical-align: middle;
  font-size: 11px;
  padding: 0px 6px;
 }
+#allwikis select { height: 20; }
 #allwikis span.ui-icon { float: left; vertical-align: middle; }
 </style>
 BLOCK;
 		$output .= $this->textRequestAccess();
+		if ($this->isAdmin()) $output .= $this->frag_admin_managewiki();
 		/* --- Page Heading --- */
 		$output .= "<table><tr><td><div class=\"ui-widget ui-state-highlight ui-corner-all wf-message-box\"><p><span class=\"ui-icon wf-message-icon ui-icon-folder-collapsed\" /><strong>All Wikis:</strong> browse a list of all wikis on this site, or request access to specific wikis.</p></div><div class=\"clear1em\" /></td>\n".
 			"<td><div align=right id='viewallradio'>\n".
@@ -234,7 +237,7 @@ BLOCK;
 				"<th class='minwidth'>View/edit</th>".
 				"<th class='minwidth'>Request</th>".
 			"</tr></thead>\n<tbody>\n";
-/* --- Each Wiki Listing --- */		
+/* --- Each Wiki Listing --- */	
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			$requested_writable = $requested_autologin;
@@ -242,14 +245,18 @@ BLOCK;
 			if ($realname == '')
 				$realname = $wikiname;
 			$q_realname = htmlspecialchars($realname);
-			$show_edit = ($this->openid == $owner_userid ? '' : 'ui-helper-hidden');
+			$show_edit = ($this->openid == $owner_userid && !$this->isAdmin() ? '' : 'ui-helper-hidden');
+			$show_admin_edit = ($this->isAdmin() ? '' : 'ui-helper-hidden');
 			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
 				"<td class='minwidth nowrap' style='text-align:right'>$wikiid</td>".
 				"<td class='minwidth nowrap'>".($readable ? "<a href=\"/$wikiname/\">$wikiname</a>" : $wikiname)."</td>".
 				"<td class='minwidth nowrap'>".($writable ? "<span class='ui-icon ui-icon-pencil' style='float:right; vertical-align:bottom;'></span>" : "" )."</td>".
 				"<td class='minwidth nowrap'>$owner_realname".
 				"</td><td>".(implode(", ", $groups)).
-				"</td><td class='minwidth nowrap'><button id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-gear'></span><span class='button-text'>Manage</span></button></td>";
+				"</td><td class='minwidth nowrap'>".
+					"<button id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-gear'></span>Manage</button>" .
+					"<button class='admin-manage-button $show_admin_edit' wikiid='$wikiid'><span class='ui-icon ui-icon-gear'></span>Admin</button>".
+				"</td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
 			// these are prepared in a way that we can use as little or as much Ajax as we like.
@@ -261,11 +268,11 @@ BLOCK;
 			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
-				"<button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play'></span><span class='button-text'>View</span></button>" .
+				"<button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play'></span>View</button>" .
 				"</td><td class='minwidth nowrap'>" .
 				"<div id='button-requestpending-$wikiid' class='$show_requestpending ui-state-disabled'><span class='ui-icon ui-icon-clock'></span>Request pending</div>" .
-				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request write access</span></button>" .
-				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request access</span></button>" .
+				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span>Request write access</button>" .
+				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-key'></span>Request access</button>" .
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
@@ -303,7 +310,7 @@ BLOCK;
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
 <script language="JavaScript">
 function selectTabByName(tabs, tab) {
-	$(tabs).tabs('select', $("a[tab_id='"+tab+"']").parent().index() );
+	$(tabs).tabs('select', $("a[tab_id='"+tab+"']").parent().index() );	
 }
 $(function() {
 	$('#mywikistabs').tabs({show: function(event,ui){window.location.hash="";}});
@@ -358,7 +365,7 @@ $(function() {
 BLOCK;
 	}
 	
-	function page_groups() {
+	function page_groups() { //TODO ~jer make sure the context of the user persists, and that the tables have a unique id
 		$need_activation_request = !$this->isActivated() && !$this->isActivationRequested();
 		$claimbox = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>") . "<div class=\"clear1em\" />";
 		$html = $this->textClaimAccount();
@@ -433,10 +440,11 @@ BLOCK;
 
 	function page_users() {
 		if (!$this->isActivated()) return "";
+		$adminrow = ($this->isAdmin() ? "\n<th style='width: 30'>Admin</th>" : '');
 		$html = <<<BLOCK
 <table id="userlist">
 <thead>
-<tr>
+<tr>{$adminrow}
 <th>Email</th>
 <th>Real Name</th>
 <th>Preferred MW Username</th>
@@ -448,8 +456,9 @@ BLOCK;
 		foreach ($this->getAllActivatedUsers() as $u) {
 			foreach ($u as $k => $v) { $u["q_$k"] = htmlspecialchars($v); }
 			extract ($u);
+			if ($this->isAdmin()) $adminrow = "\n<td><button class='admin-user-button' userid='$q_userid'><span class='ui-icon ui-icon-wrench'></span></button><td>";
 			$html .= <<<BLOCK
-<tr>
+<tr>{$adminrow}
 <td>$q_email</td>
 <td>$q_realname</td>
 <td>$q_mwusername</td>
@@ -457,10 +466,11 @@ BLOCK;
 </tr>
 BLOCK;
 		}
+		if ($this->isAdmin()) $adminrow = $this->frag_admin_manageuser();
 		$html .= <<<BLOCK
 </tbody>
 </table>
-
+{$adminrow}
 <script language="JavaScript">
 $("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25, "bLengthChange": false});
 </script>
@@ -609,6 +619,111 @@ BLOCK;
 \$(\"#mwu$wikiid\").dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
 </script>\n";
 		return $html;
+	}
+
+// ajax loaded dialog box content
+	function page_admin_managewiki() {
+		if (!$this->isAdmin()) {
+			error_log (__METHOD__.": requested by non-admin user");
+			return page_adminonly();
+		}
+		$wiki = $this->getWiki($_GET['wikiid'] + 0);
+		if (!is_array($wiki)) {
+			error_log (__METHOD__.": invalid wikiid in GET");
+			return "Invalid ID = " . $_GET['wikiid'];
+		}				
+		return $this->frag_managewiki($wiki);
+	}		
+
+// needs a <button class='admin-manage-button' wikiid='n'>Manage Wiki</button>
+	function frag_admin_managewiki() { 
+		return <<<BLOCK
+<script type="text/javascript">
+	$(function() { 
+			$('#amw-dialog').dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
+			"Close": function() { $(this).dialog("close"); }
+		} });
+		$('.admin-manage-button').click(function(){
+			var id = $(this).attr('wikiid');
+			$('#amw-content').load('?tab=admin_managewiki&wikiid='+id, function() {
+				$('#amw-waiting').hide();
+				$('#amw-content').show();
+			});			
+			$('#amw-content').hide();
+			$('#amw-waiting').css('line-height', $(window).height()+'px').show();
+			$('#amw-dialog').dialog('open');
+			return false;
+		});
+		$(".managebutton").button({icons:{primary:'ui-icon-zoomin'}});
+		$(".managebutton:first").button({icons:{primary:'ui-icon-suitcase'}});
+	});
+$('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
+</script>
+
+<div id="amw-dialog" title="Admin: Manage A Wiki">
+	<div id="amw-content"></div>
+	<div id="amw-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
+</div>
+BLOCK;
+	}
+
+// ajax loaded dialog box content TODO ~jer
+	function page_admin_manageuser() {
+		if (!$this->_security( array('access'=>'admin' ))) return page_adminonly();
+		$user = $this->getUser($_GET['userid'] + 0);
+		if (!is_array($user)) {
+			error_log (__METHOD__.": invalid userid in GET");
+			return "Invalid UserID = " . $_GET['userid'];
+		}
+		$this->Focus($user['userid']);
+		$useraccount = $this->page_myaccount();
+		$usergroups = $this->page_groups();
+		return <<<BLOCK
+<script type="text/javascript">
+	$(function() {
+		$('#amu-tabs').tabs();
+	});
+</script>
+(cough $user)
+<div id='amu-tabs'>
+	<ul>
+		<li><a tab_id='admin-userinfo-tab' href="#admin-userinfo-tab">User Details</a></li>
+		<li><a tab_id='admin-usergroups-tab' href="#admin-usergroups-tab">Groups</a></li>
+	</ul>
+	<div id='admin-userinfo-tab'>{$useraccount}</div>
+	<div id='admin-usergroups-tab'>{$usergroups}</div>
+</div>	
+BLOCK;
+	}
+
+// needs a <button class='admin-user-button' userid='n'>Manage User</button>
+	function frag_admin_manageuser() {
+		return <<<BLOCK
+<script type="text/javascript">
+	$(function() { 
+			$('#amu-dialog').dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
+			"Close": function() { $(this).dialog("close"); }
+		} });
+		$('.admin-user-button').click(function(){
+			var id = $(this).attr('userid');
+			$('#amu-content').load('?tab=admin_manageuser&userid='+id, function() {
+				$('#amu-waiting').hide();
+				$('#amu-content').show();
+			});			
+			$('#amu-content').hide();
+			$('#amu-waiting').css('line-height', $(window).height()+'px').show();
+			$('#amu-dialog').dialog('open');
+			return false;
+		});
+	});
+$('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
+</script>
+
+<div id="amu-dialog" title="Admin: Modify User">
+	<div id="amu-content"></div>
+	<div id="amu-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
+</div>
+BLOCK;
 	}
 
 	function textHighlight ($text, $icon="info", $id=false) {
@@ -989,6 +1104,11 @@ EOT;
 	}
 
 	function ajax_myaccount_save ($post) {
+		if (isset ($post["userid"]) && $post["userid"] != $this->openid) {
+			if (!$this->_security( array( 'access'=>'admin', 'message'=>'Attempt to modify user ('.$post['userid'].') by non admin "'.$this->openid.'".' ))) 
+				return array ("success" => false, "message" => "Access denied.");
+			$this->Focus($post["userid"]);
+		}				
 		$this->validate_email ($post["email"]);
 		if (isset ($post["mwusername"]) && $post["mwusername"] != "")
 			$this->validate_mwusername ($post["mwusername"]);
