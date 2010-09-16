@@ -200,7 +200,9 @@ $(function() {
 	$('#viewallradio input').change( function(){ oTable.fnDraw(); } );
 	$('.editbutton').click(function(){ mywikisLoadTabOnce = $(this).attr('wikiname'); wf_tab_select('tabs', 'mywikis'); });
 	$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })
-		$('.loginselect').change( function() { if ($(this).val()!='') { $(this).addClass('generic_ajax'); $(this).click(); $(this).removeClass('generic_ajax'); } $(this).val(''); return false; } ); 
+	$('.loginselect').change( function() { if ($(this).val()!='') { $(this).addClass('generic_ajax'); $(this).click(); $(this).removeClass('generic_ajax'); } $(this).val(''); return false; } );
+	\$('#allwikis a[icon]').each(function(){\$(this).button({icons:{primary:\$(this).attr('icon')}});});
+	\$('#allwikis a.ui-helper-hidden[icon]').hide();
 });
 </script>
 <style type="text/css">
@@ -246,8 +248,8 @@ BLOCK;
 				"<td class='minwidth nowrap'>$owner_realname".
 				"</td><td>".(implode(", ", $groups)).
 				"</td><td class='minwidth nowrap'>".
-				"<button id='button-admin-$wikiid' class='wf-button wf-button-icon-left editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-gear'></span>Manage</button>" .
-				"<button class='wf-button wf-button-icon-left admin-manage-button $show_admin_edit' wikiid='$wikiid'><span class='ui-icon ui-icon-gear'></span>Admin</button>".
+				"<a icon='ui-icon-gear' id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\">Manage</a>" .
+				"<a icon='ui-icon-gear' class='admin-manage-button $show_admin_edit' wikiid='$wikiid'>Admin</a>".
 				"</td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
@@ -260,11 +262,11 @@ BLOCK;
 			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='wf-button loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
-				"<button id='button-viewwiki-$wikiid' class='wf-button wf-button-icon-left linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play' />View</button>" .
+				"<a icon='ui-icon-play' id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'>View</a>" .
 				"</td><td class='minwidth nowrap'>" .
 				"<div id='button-requestpending-$wikiid' class='wf-button wf-button-icon-left $show_requestpending ui-state-disabled'><span class='ui-icon ui-icon-clock'></span>Request pending</div>" .
-				"<button id='button-requestwrite-$wikiid' class='wf-button wf-button-icon-left requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span>Request write access</button>" .
-				"<button id='button-request-$wikiid' class='wf-button wf-button-icon-left requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-key'></span>Request access</button>" .
+				"<a icon='ui-icon-key' id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'>Request write access</a>" .
+				"<a icon='ui-icon-key' id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\">Request access</a>" .
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
