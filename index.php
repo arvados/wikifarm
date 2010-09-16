@@ -99,7 +99,7 @@ if (isset ($_GET["tabActive"]))
 			show: function(event,ui){window.location.hash="";}
 		    });
 		$("#tabs").bind("tabsselect", function(){
-			$(".wf-dialog,.ui-dialog").remove();
+			$("#tabs .wf-dialog, #tabs .ui-dialog").remove();
 		    });
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
