@@ -9,9 +9,13 @@ td.formlabelleft { height: 3em; text-align: right; padding-right: 1em; }
 .celltexttoppad { padding-top: 12px; padding-bottom: 12px; vertical-align: top; }
 .dataTables_wrapper { min-height: 0; }
 .foo {position:absolute; bottom:30px; right:30px;}
+.wf-button { position: relative; margin: 0px 4px 0px 0px; padding: 0.4em 1em; }
+.wf-button-icon-left { padding-left: 2.1em; }
+.wf-button-icon-left .ui-icon { left: 0.2em; margin-left: 0; right: auto; position: absolute; margin-top: -8px; top: 50%; }
 .wf-button-icon { float: left; }
-.wf-message-icon { float: left; margin-right: 1em; }
 .wf-message-box { padding: 0 1em; }
+.wf-message-box .ui-icon { float: left; margin-right: 1em; }
+.wf-message-icon { float: left; margin-right: 1em; } /* deprecated */
 .clear1em { min-height: 1em; clear: both; }
 #pageheader { position: absolute; }
 #pageheader #logo { height: 44px; width: 48px; background-image: url(/favicon.png); position:relative; left:0; }

@@ -206,14 +206,6 @@ $(function() {
 <style type="text/css">
 #allwikis tr { min-height: 24px; }
 #allwikis td { padding: 0px 5px; }
-#allwikis button, #allwikis select  {
- position: relative;
- vertical-align: middle;
- font-size: 11px;
- padding: 0px 6px;
-}
-#allwikis select { height: 20; }
-#allwikis span.ui-icon { float: left; vertical-align: middle; }
 </style>
 BLOCK;
 		$output .= $this->textRequestAccess();
@@ -254,8 +246,8 @@ BLOCK;
 				"<td class='minwidth nowrap'>$owner_realname".
 				"</td><td>".(implode(", ", $groups)).
 				"</td><td class='minwidth nowrap'>".
-					"<button id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-gear'></span>Manage</button>" .
-					"<button class='admin-manage-button $show_admin_edit' wikiid='$wikiid'><span class='ui-icon ui-icon-gear'></span>Admin</button>".
+				"<button id='button-admin-$wikiid' class='wf-button wf-button-icon-left editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-gear'></span>Manage</button>" .
+				"<button class='wf-button wf-button-icon-left admin-manage-button $show_admin_edit' wikiid='$wikiid'><span class='ui-icon ui-icon-gear'></span>Admin</button>".
 				"</td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
@@ -265,14 +257,14 @@ BLOCK;
 			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
 			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
 			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
-			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
+			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='wf-button loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
-				"<button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play'></span>View</button>" .
+				"<button id='button-viewwiki-$wikiid' class='wf-button wf-button-icon-left linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play' />View</button>" .
 				"</td><td class='minwidth nowrap'>" .
-				"<div id='button-requestpending-$wikiid' class='$show_requestpending ui-state-disabled'><span class='ui-icon ui-icon-clock'></span>Request pending</div>" .
-				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span>Request write access</button>" .
-				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-key'></span>Request access</button>" .
+				"<div id='button-requestpending-$wikiid' class='wf-button wf-button-icon-left $show_requestpending ui-state-disabled'><span class='ui-icon ui-icon-clock'></span>Request pending</div>" .
+				"<button id='button-requestwrite-$wikiid' class='wf-button wf-button-icon-left requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span>Request write access</button>" .
+				"<button id='button-request-$wikiid' class='wf-button wf-button-icon-left requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-key'></span>Request access</button>" .
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
