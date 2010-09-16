@@ -23,7 +23,7 @@ while (defined ($_ = <STDIN>)) {
 
     if ($uri =~ m:^/[^/]*$: ||
 	$uri =~ m:^/\w+/(skins): ||
-	$uri =~ m:^/(css|js|images)/:) {
+	$uri =~ m:^/(css|js|images|help)/:) {
 	print X "uri $uri > yes\n";
 	print "yes\n";
 	next;

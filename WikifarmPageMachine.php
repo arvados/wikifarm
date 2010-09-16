@@ -1,12 +1,30 @@
 <?php	
 
 require_once ('WikifarmDriver.php');
+require_once('classTextile.php');
 
 class WikifarmPageMachine extends WikifarmDriver {
-	public $tabNames, $js_tabNames;
+	public $tabNames, $js_tabNames, $textile;
 
 	function __construct($db = null) {
 		WikifarmDriver::__construct($db);
+		$this->textile = new Textile;
+	}
+
+	function page_help() {
+		return $this->textile->textileThis(file_get_contents("help.textile")).<<<BLOCK
+<script type='text/javascript'>
+$("#Help h2").before('<div class="clear1em" />');
+$("#Help h2").wrap('<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box" />');
+$("#Help h2").wrap('<p />');
+$("#Help h2").before('<span class="ui-icon ui-icon-pin-s wf-message-icon" />');
+$("#Help h2").replaceWith(function(){\$(this).parent().attr('id',\$(this).attr('id')); return '<strong>'+\$(this).html()+'</strong>';});
+$("#Help img").after('<br clear="all" />');
+$("#Help img").wrap('<div style="float:left;" />');
+$("#Help img").wrap('<div class="ui-widget ui-state-highlight ui-corner-all" style="padding: 10px" />');
+$("#Help li").css("padding-bottom", "0.5em");
+</script>
+BLOCK;
 	}
 
 	function page_debug() {
@@ -161,7 +179,7 @@ BLOCK;
 	function page_wikis() {
 		if (!$this->isActivated()) {			
 			error_log ("page_wikis: requested by unactivated user");
-			return page_wikis_unactivated();
+			return "";
 		}
 		$wikiArray = $this->getAllWikis();
 /* --- Javascript and CSS --- */		
@@ -223,6 +241,7 @@ BLOCK;
 			$writable = !!($autologin && $autologin[0]);
 			if ($realname == '')
 				$realname = $wikiname;
+			$q_realname = htmlspecialchars($realname);
 			$show_edit = ($this->openid == $owner_userid ? '' : 'ui-helper-hidden');
 			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
 				"<td class='minwidth nowrap' style='text-align:right'>$wikiid</td>".
@@ -230,7 +249,7 @@ BLOCK;
 				"<td class='minwidth nowrap'>".($writable ? "<span class='ui-icon ui-icon-pencil' style='float:right; vertical-align:bottom;'></span>" : "" )."</td>".
 				"<td class='minwidth nowrap'>$owner_realname".
 				"</td><td>".(implode(", ", $groups)).
-				"</td><td class='minwidth nowrap'><button id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle='$realname'><span class='ui-icon ui-icon-gear'></span><span class='button-text'>Manage</span></button></td>";
+				"</td><td class='minwidth nowrap'><button id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-gear'></span><span class='button-text'>Manage</span></button></td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
 			// these are prepared in a way that we can use as little or as much Ajax as we like.
@@ -245,8 +264,8 @@ BLOCK;
 				"<button id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'><span class='ui-icon ui-icon-play'></span><span class='button-text'>View</span></button>" .
 				"</td><td class='minwidth nowrap'>" .
 				"<div id='button-requestpending-$wikiid' class='$show_requestpending ui-state-disabled'><span class='ui-icon ui-icon-clock'></span>Request pending</div>" .
-				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle='$realname' wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request write access</span></button>" .
-				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle='$realname'><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request access</span></button>" .
+				"<button id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request write access</span></button>" .
+				"<button id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\"><span class='ui-icon ui-icon-key'></span><span class='button-text'>Request access</span></button>" .
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
@@ -287,7 +306,7 @@ function selectTabByName(tabs, tab) {
 	$(tabs).tabs('select', $("a[tab_id='"+tab+"']").parent().index() );
 }
 $(function() {
-	$('#mywikistabs').tabs( { show: function(event, ui) { window.location.hash = ui.tab.hash; } });
+	$('#mywikistabs').tabs({show: function(event,ui){window.location.hash="";}});
 	if (mywikisLoadTabOnce != '') {
 		selectTabByName ('#mywikistabs','tab_'+mywikisLoadTabOnce);
 		mywikisLoadTabOnce = '';
@@ -297,35 +316,35 @@ $(function() {
 <div id="mywikistabs">
 	<ul>
 {$tabs}
-		<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a New Wiki</a></li>
+		<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a new wiki</a></li>
 	</ul>
 {$content}
 <div id="newwikitab">
 <form id="createwikiform" action="#">
 <table>
 
-<tr><td>Wiki title:</td>
-<td><input type=text name=realname size=32 value="Lab Notebook"></td>
-<td>Full title of your wiki, like "Jane Bobbleson's Lab Notebook"</td>
+<tr><td class="formlabelleft nowrap">Wiki title:</td>
+<td class="minwidth"><input type=text name=realname size=32 value="Lab Notebook"></td>
+<td>Full title of your wiki, like "Lab Notebook"</td>
 </tr>
 
-<tr><td>Wiki name: </td>
-<td><input type=text name=wikiname size=32 maxlength=12></td>
-<td>3 to 12 lower case letters. url of wiki will be http://{$_SERVER['HTTP_HOST']}/name</td>
+<tr><td class="formlabelleft nowrap">Wiki name: </td>
+<td class="minwidth"><input type=text name=wikiname size=32 maxlength=12></td>
+<td class="celltexttoppad">3 to 12 lower case letters.<br />your wiki will be http://{$_SERVER['HTTP_HOST']}/name</td>
 </tr>
 
-<tr><td>Your username in the new wiki: </td>
-<td><input type=text name=mwusername size=32 value="{$q_mwusername}"></td>
-<td>letters and digits only.  start with an upper case letter.
+<tr><td class="formlabelleft nowrap celltexttoppad">Your username in the new wiki: </td>
+<td class="minwidth"><input type=text name=mwusername size=32 value="{$q_mwusername}"></td>
+<td class="celltexttoppad">letters and digits only.  start with an upper case letter.
 </tr>
 
-<tr><td>Groups to invite to the new wiki: </td>
-<td><select multiple name="groups[]">$groups_options</select></td>
-<td>control-click to select and de-select multiple groups
+<tr><td class="formlabelleft nowrap celltexttoppad">Groups to invite to the new wiki: </td>
+<td class="minwidth"><select multiple name="groups[]">$groups_options</select></td>
+<td class="celltexttoppad">control-click to select and de-select multiple groups
 </tr>
 
 <tr><td></td>
-<td><button class="generic_ajax" ga_form_id="createwikiform" ga_loader_id="createwiki_loader" ga_message_id="createwiki_message" ga_action="createwiki">Create new wiki</button></td>
+<td class="minwidth"><button class="generic_ajax" ga_form_id="createwikiform" ga_loader_id="createwiki_loader" ga_message_id="createwiki_message" ga_action="createwiki">Create new wiki</button></td>
 <td></td>
 </tr>
 </table>
@@ -339,11 +358,6 @@ $(function() {
 BLOCK;
 	}
 	
-	// some default landing page
-	function page_wikis_unactivated() {
-		return "page_wikis_unactivated - [join group links]";
-	}
-
 	function page_groups() {
 		$need_activation_request = !$this->isActivated() && !$this->isActivationRequested();
 		$claimbox = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>") . "<div class=\"clear1em\" />";
@@ -418,6 +432,7 @@ BLOCK;
 	}
 
 	function page_users() {
+		if (!$this->isActivated()) return "";
 		$html = <<<BLOCK
 <table id="userlist">
 <thead>
@@ -455,10 +470,7 @@ BLOCK;
 
 	function page_tools() {
 		return <<<BLOCK
-<h2>Tools</h2><br>
-<ul>
-<li><a href="table.php">Excel -> Wiki Table converter</a></li>
-</ul>
+<p><a href="table.php">Excel -> Wiki Table converter</a></p>
 BLOCK;
 	}
 
@@ -626,6 +638,7 @@ BLOCK;
 			"Cancel": function() { $(this).dialog("close"); }
 		} });
 		$('.requestbutton').click(function(){
+			$('#requestmessage').hide();
 			$('#reqwikiname').html('<strong>'+$(this).attr('wikititle')+'</strong>');
 			$('#reqspeciallogin').attr('href','/'+$(this).attr('wikiname')+'/Special:Userlogin');
 			$('#reqwriteaccess').attr('checked',true).removeAttr('disabled');
@@ -644,14 +657,19 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="getaccessdialog" title="Request Access To A Wiki">
-	<form id="getaccess"><table>
-	<tr><td align=right>Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
-	<tr><td align=right>Write access wanted?</td><td><input type=checkbox id="reqwriteaccess" name="writeaccess" value="true" checked="checked">&nbsp;</td></tr>
-	<tr><td align=right>Username you want:</td><td><input type="text" id="reqmwusername" name="mwusername" value="$q_defaultmwusername"></td></tr>
+<div id="getaccessdialog" title="Request Access To A Wiki" ga_message_id="requestmessage">
+	<form id="getaccess">
+	<table>
+	<tr><td class="formlabelleft">Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
+	<tr><td class="formlabelleft">Write access wanted?</td><td><input type=checkbox id="reqwriteaccess" name="writeaccess" value="true" checked="checked">&nbsp;</td></tr>
+	<tr><td class="formlabelleft">Username you want:</td><td><input type="text" id="reqmwusername" name="mwusername" value="$q_defaultmwusername"></td></tr>
 	</table>
 	<input type="hidden" name="wikiid" id="reqwikiid" value=" ">
 	<input type="hidden" name="ga_action" value="requestwiki"></form>
+	<div class="ui-widget" id="requestmessage">
+	<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden">
+	</div>
+	</div>
 	{$footnote}
 </div>
 EOT;
@@ -693,9 +711,9 @@ $(function() {
 <div id="granteditdialog" title="Invite user to edit your wiki" ga_message_id="grantmessage">
 	<form id="granteditform">
 	<table>
-	<tr><td class="formlabelleft">Wiki:</td><td><span id="grantwikiname" /> (<span id="grantwikititle" />)</td></tr>
-	<tr><td class="formlabelleft">User to invite:</td><td><span id="grantrealname" /> (<span id="grantemail" />)</td></tr>
-	<tr><td class="formlabelleft">Username on your wiki:</td><td><input type="text" id="grantmwusername" name="mwusername" value=" " /></td></tr>
+	<tr><td class="formlabelleft nowrap">Wiki:</td><td><span id="grantwikiname" /> (<span id="grantwikititle" />)</td></tr>
+	<tr><td class="formlabelleft nowrap">User to invite:</td><td><span id="grantrealname" /> (<span id="grantemail" />)</td></tr>
+	<tr><td class="formlabelleft nowrap">Username on your wiki:</td><td><input type="text" id="grantmwusername" name="mwusername" value=" " /></td></tr>
 	</table>
 	<input type="hidden" name="wikiid" id="grantwikiid" value=" " />
 	<input type="hidden" name="userid" id="grantuserid" value=" " />
@@ -834,19 +852,19 @@ EOT;
 
 		foreach ($read_via_group_before as $userid => $x)
 			if (!isset($read_via_group_after[$userid])) {
-				if (!$read_anyway_after[$userid]) {
+				if (!isset($read_anyway_after[$userid])) {
 					$uncheckus[] = "mw${wikiid}_userview_".md5($userid);
 					$uncheckus[] = "mw${wikiid}_useredit_".md5($userid);
 				}
 				$enableus[] = "mw${wikiid}_userview_".md5($userid);
 			}
-		
+
 		foreach ($read_via_group_after as $userid => $x)
 			if (!isset($read_via_group_before[$userid])) {
 				$disableus[] = "mw${wikiid}_userview_".md5($userid);
 				$checkus[] = "mw${wikiid}_userview_".md5($userid);
 			}
-		
+
 		return array ("success" => true,
 			      "check" => $checkus,
 			      "uncheck" => $uncheckus,
@@ -941,7 +959,7 @@ EOT;
 		$ok = $this->createWiki ($post["wikiname"],
 					 $post["realname"],
 					 $post["mwusername"],
-					 $post["groups"]);
+					 isset($post["groups"]) ? $post["groups"] : array());
 		if (!$ok)
 			return $this->fail ("Something went wrong while setting up your wiki.  Please contact a site administrator before trying again.");
 		return array ("success" => true,
@@ -1035,7 +1053,7 @@ EOT;
 	}
 
 	function validate_wikiname ($x) {
-		if (!preg_match ('{^[a-z][a-z0-9]{3,12}$}', $x))
+		if (!preg_match ('{^[a-z][a-z0-9]{2,12}$}', $x))
 			throw new Exception ("Your wiki name must be 3 to 12 lower case letters and digits, and must start with a letter.");
 	}
 
