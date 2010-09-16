@@ -102,8 +102,8 @@ BLOCK;
 		return $output;
 	}
 
-	function page_myaccount() {
-		$q_openid = $_SERVER["REMOTE_USER"];
+	function page_myaccount() {  //TODO ~jer make sure the context of the user persists
+		$q_openid = $this->openid;
 		$q_email = htmlspecialchars($this->getUserEmail());
 		$q_realname = htmlspecialchars($this->getUserRealname());
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
@@ -135,6 +135,7 @@ BLOCK;
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-$icon" />$activation_status</p></div>
 <div class="clear1em" />
 <form id="myaccountform">
+<input type="hidden" name="userid" value="$q_openid">
 <table>
 <thead></thead><tbody>
 <tr>
@@ -351,7 +352,7 @@ BLOCK;
 		return "page_wikis_unactivated - [join group links]";
 	}
 
-	function page_groups() {
+	function page_groups() { //TODO ~jer make sure the context of the user persists, and that the tables have a unique id
 		$need_activation_request = !$this->isActivated() && !$this->isActivationRequested();
 		$claimbox = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>") . "<div class=\"clear1em\" />";
 		$html = $this->textClaimAccount();
@@ -425,10 +426,11 @@ BLOCK;
 	}
 
 	function page_users() {
+		$adminrow = ($this->isAdmin() ? "\n<th style='width: 30'>Admin</th>" : '');
 		$html = <<<BLOCK
 <table id="userlist">
 <thead>
-<tr>
+<tr>{$adminrow}
 <th>Email</th>
 <th>Real Name</th>
 <th>Preferred MW Username</th>
@@ -440,8 +442,9 @@ BLOCK;
 		foreach ($this->getAllActivatedUsers() as $u) {
 			foreach ($u as $k => $v) { $u["q_$k"] = htmlspecialchars($v); }
 			extract ($u);
+			if ($this->isAdmin()) $adminrow = "\n<td><button class='admin-user-button' userid='$q_userid'><span class='ui-icon ui-icon-wrench'></span></button><td>";
 			$html .= <<<BLOCK
-<tr>
+<tr>{$adminrow}
 <td>$q_email</td>
 <td>$q_realname</td>
 <td>$q_mwusername</td>
@@ -449,10 +452,11 @@ BLOCK;
 </tr>
 BLOCK;
 		}
+		if ($this->isAdmin()) $adminrow = $this->frag_admin_manageuser();
 		$html .= <<<BLOCK
 </tbody>
 </table>
-
+{$adminrow}
 <script language="JavaScript">
 $("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25, "bLengthChange": false});
 </script>
@@ -621,7 +625,7 @@ BLOCK;
 	}		
 
 // needs a <button class='admin-manage-button' wikiid='n'>Manage Wiki</button>
-	function frag_admin_managewiki() {   //TODO TODO 
+	function frag_admin_managewiki() { 
 		return <<<BLOCK
 <script type="text/javascript">
 	$(function() { 
@@ -648,6 +652,65 @@ $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('di
 <div id="amw-dialog" title="Admin: Manage A Wiki">
 	<div id="amw-content"></div>
 	<div id="amw-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
+</div>
+BLOCK;
+	}
+
+// ajax loaded dialog box content TODO ~jer
+	function page_admin_manageuser() {
+		if (!$this->_security( array('access'=>'admin' ))) return page_adminonly();
+		$user = $this->getUser($_GET['userid'] + 0);
+		if (!is_array($user)) {
+			error_log (__METHOD__.": invalid userid in GET");
+			return "Invalid UserID = " . $_GET['userid'];
+		}
+		$this->Focus($user['userid']);
+		$useraccount = $this->page_myaccount();
+		$usergroups = $this->page_groups();
+		return <<<BLOCK
+<script type="text/javascript">
+	$(function() {
+		$('#amu-tabs').tabs();
+	});
+</script>
+(cough $user)
+<div id='amu-tabs'>
+	<ul>
+		<li><a tab_id='admin-userinfo-tab' href="#admin-userinfo-tab">User Details</a></li>
+		<li><a tab_id='admin-usergroups-tab' href="#admin-usergroups-tab">Groups</a></li>
+	</ul>
+	<div id='admin-userinfo-tab'>{$useraccount}</div>
+	<div id='admin-usergroups-tab'>{$usergroups}</div>
+</div>	
+BLOCK;
+	}
+
+// needs a <button class='admin-user-button' userid='n'>Manage User</button>
+	function frag_admin_manageuser() {
+		return <<<BLOCK
+<script type="text/javascript">
+	$(function() { 
+			$('#amu-dialog').dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
+			"Close": function() { $(this).dialog("close"); }
+		} });
+		$('.admin-user-button').click(function(){
+			var id = $(this).attr('userid');
+			$('#amu-content').load('?tab=admin_manageuser&userid='+id, function() {
+				$('#amu-waiting').hide();
+				$('#amu-content').show();
+			});			
+			$('#amu-content').hide();
+			$('#amu-waiting').css('line-height', $(window).height()+'px').show();
+			$('#amu-dialog').dialog('open');
+			return false;
+		});
+	});
+$('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
+</script>
+
+<div id="amu-dialog" title="Admin: Modify User">
+	<div id="amu-content"></div>
+	<div id="amu-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
 </div>
 BLOCK;
 	}
@@ -1024,6 +1087,11 @@ EOT;
 	}
 
 	function ajax_myaccount_save ($post) {
+		if (isset ($post["userid"]) && $post["userid"] != $this->openid) {
+			if (!$this->_security( array( 'access'=>'admin', 'message'=>'Attempt to modify user ('.$post['userid'].') by non admin "'.$this->openid.'".' ))) 
+				return array ("success" => false, "message" => "Access denied.");
+			$this->Focus($post["userid"]);
+		}				
 		$this->validate_email ($post["email"]);
 		if (isset ($post["mwusername"]) && $post["mwusername"] != "")
 			$this->validate_mwusername ($post["mwusername"]);

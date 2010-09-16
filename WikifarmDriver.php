@@ -52,6 +52,38 @@ class WikifarmDriver {
 			foreach ($this->query ("SELECT users.* FROM wikis LEFT JOIN users ON 1=2 LIMIT 1") as $u)
 				$this->_cache["user"] = $u;
 	}
+	
+	// security function - tests and logs security calls
+	// if (!$this->_security( array( 'access' => 'activated', method => __METHOD__ ) )) return false;
+	// if (!$this->_security( array( 'access' => 'read', 'wiki' => 42 ))) return "No access to wiki";
+	// if (!$this->_security('admin')) return false;
+	// activated, admin (for site) read, write, owner (for wiki)
+	function _security($param = 'activated', $wiki = false ) {
+		if (is_array($param)) {
+			extract ($param);
+		} else {
+			$access = $param;
+			$wiki += 0;
+		}
+		$backtrace = debug_backtrace();
+		if (!isset($method)) $method = $backtrace[1]['function'];
+		$log = "(security) $method: ";
+		if (preg_match("/a(ctivated)?/i", $access) && !$this->isActivated() ) {
+			$defaultmessage = "called by non-activated user.";
+		} elseif (preg_match("/admin/i", $access) && !$this->isAdmin()) {
+			$defaultmessage = "called by non-admin user.";
+		} elseif (preg_match("/r(ead)?/i", $access)) { // TODO finish this read/write/owner wiki privs
+			$defaultmessage = "function unable to complete this!";
+		} elseif (preg_match("/w(rite)?/i", $access)) { // TODO finish this read/write/owner wiki privs
+			$defaultmessage = "security function unable to complete this request!";
+		} elseif (preg_match("/o(wner)?/i", $access)) { // TODO finish this read/write/owner wiki privs
+			$defaultmessage = "security function unable to complete this request!";
+		} else {
+			return true;
+		}		
+		error_log ("(security) $method: ".(isset($message) ? $message : $defaultmessage) );
+		return false;
+	}
 
 	// sanity functions
 	// NOTE: These are not for sanitizing text input, and do not. They merely verify table data.
@@ -278,7 +310,10 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	// returns true if $this->openid is a wikifarm admin	
 	function isAdmin () {
 		$id = $this->q_openid;
-		return $this->querySingle("SELECT 1 FROM usergroups WHERE usergroups.userid = '$id' AND groupname = 'ADMIN'" );
+		if (!array_key_exists ('isadmin', $this->_cache)) {
+			$this->_cache['isadmin'] = $this->querySingle("SELECT 1 FROM usergroups WHERE usergroups.userid = '$id' AND groupname = 'ADMIN'" );
+		}
+		return $this->_cache['isadmin'];		
 	}
 	
 	function getUserGroups() {
@@ -576,12 +611,16 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	}
 
 	function getAllActivatedUsers() {
-		if (!$this->isActivated()) {
-			error_log ("getAllActivatedUsers: called by non-activated user");
-			return false;
-		}
+		if (!$this->_security()) return false;
 		return $this->query ("SELECT usergroups.userid userid, email, realname, mwusername FROM usergroups LEFT JOIN users ON users.userid = usergroups.userid WHERE usergroups.userid LIKE '%://%' GROUP BY usergroups.userid");
 	}
+
+	function getUser ($userid) {		
+		foreach ($this->getAllActivatedUsers() as $u)
+			if ($u["userid"] == $userid)
+				return $u;
+	}
+
 
 }  // WikifarmDriver class ends
 
