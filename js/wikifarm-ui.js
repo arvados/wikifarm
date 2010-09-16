@@ -26,11 +26,11 @@ function generic_ajax_success(data, textStatus, req, button)
     if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
 	$('#'+data.request.ga_loader_id).hide();
     var msg = false;
-    if (data.message && data.request && data.request.ga_message_id)
+    if (data.request && data.request.ga_message_id)
 	msg = $('#'+data.request.ga_message_id);
     else if ($(button).attr('ga_message_id'))
 	msg = $('#'+$(button).attr('ga_message_id'));
-    if (msg) {
+    if (data.message && msg) {
 	msg.addClass('ui-widget ui-state-highlight ui-corner-all wf-message-box');
 	msg.removeClass('ui-state-error ui-state-highlight');
 	msg.addClass(data.success ? 'ui-state-highlight' : 'ui-state-error');
@@ -107,7 +107,7 @@ function dialog_submit(dialog, form)
 		data: $(form).serializeArray(),
 		success: function(d,t,r)
 		{
-		    if (d && d.success)
+		    if (d && (d.success || d.refreshtab || d.redirect || d.selecttab))
 			$(dialog).dialog("close");
 		    generic_ajax_success (d,t,r,dialog);
 		},
