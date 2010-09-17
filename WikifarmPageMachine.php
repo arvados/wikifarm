@@ -64,8 +64,7 @@ BLOCK;
 		if ($userid && $this->is_a_user($userid) && $this->_security('admin')) {
 			$admin_mode = true;
 			$this->Focus($userid);
-			$uid = preg_replace('/[^a-zA-Z0-9]/','', $this->openid);
-			$uid = '_'.substr($uid, (strlen($uid) > 8 ? -8 : 0));
+			$uid = md5($this->openid);
 		}
 		$q_openid = $this->openid;
 		$q_email = htmlspecialchars($this->getUserEmail());
@@ -73,13 +72,21 @@ BLOCK;
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
 		$q_uota = $this->getWikiQuota();
 		$icon = "info";
+		$your = $admin_mode ? "this user's" : "your";
+		$Your = ucfirst ($your);
+		$you = $admin_mode ? "this user" : "you";
+		$You = ucfirst ($you);
 		if (!$this->getUserEmail() || !$this->getUserRealname()) {
 			$icon = "circle-arrow-e";
-			$activation_status = "Please provide your real name and email address.";
+			$activation_status = "Please provide $your real name and email address.";
 		}
 		else if ($this->isActivated()) {
 			$icon = "circle-check";
-			$activation_status = "Your account is active.";
+			$activation_status = "$Your account is active.";
+		}
+		else if ($admin_mode) {
+			$icon = "alert";
+			$activation_status = "This account has not been activated.";
 		}
 		else if ($this->isActivationRequested())
 			$activation_status = "Your account has not yet been activated by a site administrator.  You can update your personal information and request more group memberships, but you cannot view or create any wikis until your account is activated.";
@@ -304,21 +311,22 @@ $(function() {
 BLOCK;
 	}
 
-/* --- function page_groups() --- */
-	function page_groups($userid = false) { //TODO ~jer make to work somehow
+	function page_groups($userid=false) {
 		$admin_mode = false;
 		$uid = '';
-		if ($userid && $this->is_a_user($userid) && $this->_security('admin')) {
+		if ($userid &&
+		    $this->is_a_user($userid) &&
+		    $this->_security('admin')) {
 			$admin_mode = true;
 			$this->Focus($userid);
-			$uid = preg_replace('/[^a-zA-Z0-9]/','', $this->openid);
-			$uid = '_'.substr($uid, (strlen($uid) > 8 ? -8 : 0));
+			$uid = md5($this->openid);
 		}
 		$q_openid = $this->q_openid;
 /* --- groups: page frills --- */
 		$request_activation = '';
 		$hidden_claim_dialog = '';
 		$claim_alert = '';
+		$hidden_uid_input = '';
 		if (!$admin_mode) {
 			if (!$this->isActivated() && !$this->isActivationRequested()) {
 				$request_activation = $this->textHighlight("<p>Please select any groups your account should belong to, then click the \"submit\" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>") .
@@ -330,16 +338,18 @@ BLOCK;
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request' ga_action='requestgroups' ga_loader_id='group_request_loader' disabled>Submit request</button>";
 			//$destroy_data_script = "$('#tabs').bind('tabshow', function(event, ui){ if $(ui.index != tabIndexByName('groups')) $('#grouplistcontainer').remove(); });";  //TODO remove if not needed
 		} else { // Admin stuff
-			$explanation_alert = $this->textHighlight ("<strong>Editing user {$q_openid}:</strong> Select the groups to which this user should belong.");			
-			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request{$uid}' ga_action='setgroups' ga_loader_id='group_request_loader'>Save changes</button>";
+			$explanation_alert = $this->textHighlight ("Editing group memberships for $q_openid");
+			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request{$uid}' ga_action='setgroups' ga_loader_id='group_request_loader' ga_message_id='group_request_message' admin_mode='1'>Save changes</button>";
+			$hidden_uid_input = "<input type='hidden' name='userid' value='".htmlspecialchars($this->openid)."' />";
 			//$destroy_data_script = "$('#amu-dialog').bind('dialogclose', function(event,ui) { $('#grouplistcontainer{$uid}').remove(); });";
-		} //TODO ~jer make a setgroups ga_action
+		}
 /* --- groups: output page head --- */
 		$output = <<<BLOCK
 {$explanation_alert}
 <form id="group_request{$uid}">
 {$hidden_claim_dialog}
 {$request_activation}
+{$hidden_uid_input}
 <div id="grouplistcontainer{$uid}">
 <table id="grouplist{$uid}">
 <thead><tr>
@@ -351,7 +361,7 @@ BLOCK;
 BLOCK;
 
 /* --- groups: table body ---- */
-		foreach ($this->getAllGroups() as $g) {
+		foreach ($this->getAllGroups($admin_mode) as $g) {
 			if (($g["groupid"] == "ADMIN" || $g["groupid"] == "users") && !$admin_mode)
 				continue;
 			$groupid = htmlspecialchars($g["groupid"]);
@@ -380,6 +390,7 @@ $output .= <<<BLOCK
 <p>
 {$request_button} after selecting groups.
 <span id="group_request_loader"></span></p>
+<div id="group_request_message" class="ui-helper-hidden" />
 </form>
 {$claim_alert}
 
@@ -672,7 +683,7 @@ BLOCK;
 			} });
 		$('.admin-user-button').click(function(){
 			var id = $(this).attr('userid');
-			$('#amu-content').load('?tab=admin_manageuser&userid='+id, function() {
+			$('#amu-content').load('?tab=admin_manageuser&userid='+encodeURIComponent(id), function() {
 				$('#amu-waiting').hide();
 				$('#amu-content').show();
 			});			
@@ -1067,6 +1078,13 @@ EOT;
 			      "alert" => "Your wiki has been created.  You will be logged in to your new wiki now.",
 			      "redirect" => "/".$post["wikiname"]."/Main_Page");
 		
+	}
+
+	function ajax_setgroups ($post) {
+		if (!$this->isAdmin()) return $this->fail ("You are not allowed to do that.");
+		$this->Focus ($post["userid"]);
+		$this->setGroups ($post["group_request"]);
+		return $this->success(array("message" => "Changes saved."));
 	}
 
 	function ajax_requestgroups ($post) {		

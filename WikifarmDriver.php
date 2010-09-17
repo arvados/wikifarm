@@ -340,10 +340,10 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		return $this->_cache["requested_group"];
 	}
 		
-	function getAllGroups() {
+	function getAllGroups($with_admin=false) {
 		if (!array_key_exists ("allgroups", $this->_cache)) {
 			$this->_preloadMyRequests();
-			$skipadmin = $this->isAdmin() ? "" : "WHERE groupname <> 'ADMIN'";
+			$skipadmin = ($this->isAdmin() || $with_admin) ? "" : "WHERE groupname <> 'ADMIN'";
 			$this->_cache["allgroups"] = $this->query("SELECT groupname as groupid, groupname as groupname FROM usergroups $skipadmin GROUP BY groupname UNION SELECT 'users', 'users'");
 			foreach ($this->_cache["allgroups"] as &$g) {
 				$g["requested"] = false !== array_search ($g["groupname"], $this->_cache["requested_group"]);
@@ -359,7 +359,8 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	// whether she's a spammer, attacker, spy, hater, etc.
 
 	function isActivated() {
-		return 0 != count ($this->getUserGroups());
+		return false !== array_search ("users", $this->getUserGroups())
+			|| false !== array_search ("ADMIN", $this->getUserGroups());
 	}
 
 	function isActivationRequested() {
@@ -433,6 +434,15 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		// Warning to caller: I assume you have a good reason to think you're allowed.
 		$this->DB->exec("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES ('{$this->q_openid}', 'users')");
 		return $this->DB->changes();
+	}
+
+	function setGroups($groups) {
+		$this->DB->exec ("DELETE FROM usergroups WHERE userid='{$this->q_openid}'");
+		foreach ($groups as $g) {
+			$q_g = SQLite3::escapeString ($g);
+			$this->DB->exec ("INSERT INTO usergroups (userid, groupname) VALUES ('{$this->q_openid}', '$q_g')");
+		}
+		return true;
 	}
 
 	function requestGroup($groups) {
