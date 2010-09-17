@@ -192,7 +192,7 @@ BLOCK;
 				"<td class='minwidth nowrap' style='text-align:right'>$wikiid</td>".
 				"<td class='minwidth nowrap'>".($readable ? "<a href=\"/$wikiname/\">$wikiname</a>" : $wikiname)."</td>".
 				"<td class='minwidth nowrap'>".($writable ? "<span class='ui-icon ui-icon-pencil' style='float:right; vertical-align:bottom;'></span>" : "" )."</td>".
-				"<td class='minwidth nowrap'>$owner_realname".
+				"<td class='minwidth nowrap'>".htmlspecialchars($owner_realname).
 				"</td><td>".(implode(", ", $groups)).
 				"</td><td class='minwidth nowrap'>".
 				"<a icon='ui-icon-gear' id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\">Manage</a>" .
@@ -231,7 +231,8 @@ BLOCK;
 		foreach ($wikiArray as $row) {
 			extract ($row);
 			$visible_to = implode(", ", $groups);
-			$tabs .= "\t\t<li><a tab_id='tab_$wikiname' href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $realname</a></li>\n";
+			$q_realname = htmlspecialchars ($realname);
+			$tabs .= "\t\t<li><a tab_id='tab_$wikiname' href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $q_realname</a></li>\n";
 			$content .= "<div id=\"tab_$wikiname\">" .	$this->frag_managewiki ($row) .	"</div>\n";
 		}
 		$groups_options = "";
@@ -270,7 +271,7 @@ $(function() {
 
 <tr><td class="formlabelleft nowrap">Wiki title:</td>
 <td class="minwidth"><input type=text name=realname size=32 value="Lab Notebook"></td>
-<td>Full title of your wiki, like "Lab Notebook"</td>
+<td>Full title of your wiki</td>
 </tr>
 
 <tr><td class="formlabelleft nowrap">Wiki name: </td>
