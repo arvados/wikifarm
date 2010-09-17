@@ -187,7 +187,7 @@ function req_response_click ()
 function group_request_enable ()
 {
     var button = "#group_request_submit";
-    if ($(button+"[admin_mode]").attr("disabled", false))
+    if ($(button+"[admin_mode]").attr("disabled", false).length)
 	return;
     if ($("form#group_request").serialize())
 	$(button).attr("disabled", false);
