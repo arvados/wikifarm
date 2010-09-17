@@ -493,14 +493,15 @@ BLOCK;
 				foreach ($this->getAdminEmails() as $e) {
 					$this->Mail ($e,
 						     $subject,
-						     wordwrap($message)."\n\n-- \nSent to {$e}\n");
+						     wordwrap($message));
 				}
 			}
 		}
 	}
 
 	function Mail ($to, $subject, $message) {
-		mail ($to, $subject, $message,
+		$unsubscribe = "\n\n-- \n-- Sent to {$to} .\n-- To disable notifications: https://{$_SERVER['HTTP_HOST']}/?tabActive=myaccount\n";
+		mail ($to, $subject, $message.$unsubscribe,
 		      "From: <".$this->getAdminSenderAddress().">\r\n".
 		      "Return-Path: <".$this->getAdminSenderAddress().">",
 		      "-r".$this->getAdminSenderAddress());
