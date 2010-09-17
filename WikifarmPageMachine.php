@@ -52,82 +52,27 @@ BLOCK;
 	}
 
 	// all about the tabs	
-
 	function tabGet($tab) {
 		if (!method_exists ($this, "page_$tab"))
 			return __METHOD__.": Invalid page request: \"$tab\"";
 		return call_user_func (array ($this, "page_$tab"));
 	}
 
-	// activating invites based on user/password or an invite code, requesting access or additional access
-	function page_getaccess() {
-		$openid = $this->openid;
-		$requestcount = 0;
-		$username = null;
-		if ($this->isActivated()) {
-			$username = $this->getUserRealname();
-			$wikinick = $this->getMWUsername();
+	function page_myaccount($userid = false) {
+		$admin_mode = false;
+		$uid = '';
+		if ($userid && $this->is_a_user($userid) && $this->_security('admin')) {
+			$admin_mode = true;
+			$this->Focus($userid);
+			$uid = preg_replace('/[^a-zA-Z0-9]/','', $this->openid);
+			$uid = '_'.substr($uid, (strlen($uid) > 8 ? -8 : 0));
 		}
-		//hack
-		$grouplist = array( 'group' => array('group1','group2','group3','group4','group5'),
-			'pending_since' => array( time()-1000, time()-4000, "june 23, 2010", null, null),
-			'is_a_member' => array (false, false, false, false, true) );		
-		
-		$output = <<<BLOCK
-<table width=100%><tr><td>
-Already have an invite code or a pre-OpenID username and password?<br><br>
-<blockquote>
-<form action="index.php" method="post">
-Username: <input type=text name=username size=16>
-<br />Password: <input type=password name=password size=16>
-
-<blockquote>Or</blockquote>
-
-Invite Code: <input type=text name=invite size=16>
-<br /><input type=submit value="Get Access">
-</form>
-
-</blockquote>
-After you do this, your wiki and group memberships will be
-attached to the OpenID you are currently logged in as ($openid).
-
-</td><td class=vertbreak>|</td><td>
-
-Request access to stuff (approval required, we will let you know)
-<blockquote>
-<form action="index.php" method="post">
-BLOCK;
-		if ($username) {
-			$output .= "You are signed in as: <b>$username</b><br>";
-		} else {
-			$output .= "Your Name: <input type=text name=realname size=16> Email Adress: <input type=text name=email size=16>";
-		}
-		$output .= "Groups you wish to request membership to:<br>
-<table><tr><td>group name</td><td>membership status</td></tr>";
-		foreach ($grouplist['group'] as $i => $group) {
-			$requestcount++;
-			$output .= "\n<tr><td>$group</td><td>";
-			if ($grouplist['pending_since'][$i]) {
-				$output .= "Request pending since " . PMRelativeTime($grouplist['pending_since'][$i]);
-			} elseif ($grouplist['is_a_member'][$i]) {
-				$output .= "You are a member";
-			} else {
-				$output .= "<input type=\"checkbox\" name=\"request$requestcount\" value=\"$group\" /> Request membership";
-			}
-			$output .= "</td></tr>";
-		}
-		$output .= "</table><input type=submit value=\"Send Request\"></form>\n</blockquote>";
-		return $output;
-	}
-
-	function page_myaccount() {  //TODO ~jer make sure the context of the user persists
 		$q_openid = $this->openid;
 		$q_email = htmlspecialchars($this->getUserEmail());
 		$q_realname = htmlspecialchars($this->getUserRealname());
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
 		$q_uota = $this->getWikiQuota();
 		$icon = "info";
-		$uid = preg_replace('/\W/','', $this->openid);
 		if (!$this->getUserEmail() || !$this->getUserRealname()) {
 			$icon = "circle-arrow-e";
 			$activation_status = "Please provide your real name and email address.";
@@ -150,10 +95,11 @@ BLOCK;
 			if ($type == "checkbox")
 				$preferences .= "<input type=\"checkbox\" name=\"pref_$prefid\" value=\"1\" $checked /> $description";
 		}
+		if ($admin_mode) $this->Focus(); // return to admin
 		return <<<BLOCK
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-$icon" />$activation_status</p></div>
 <div class="clear1em" />
-<form id="maf-$uid">
+<form id="maf{$uid}">
 <input type="hidden" name="userid" value="$q_openid">
 <table>
 <thead></thead><tbody>
@@ -170,7 +116,7 @@ BLOCK;
 </tr><tr>
 <td class="minwidth formlabelleft">Preferences</td><td>$preferences</td>
 </tr><tr>
-<td class="minwidth formlabelleft"></td><td><button class="generic_ajax" ga_form_id="maf-$uid" ga_action="myaccount_save" ga_message_id="myaccount_message" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader" class="ui-helper-hidden"></span></td>
+<td class="minwidth formlabelleft"></td><td><button class="generic_ajax" ga_form_id="maf{$uid}" ga_action="myaccount_save" ga_message_id="myaccount_message" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader" class="ui-helper-hidden"></span></td>
 </tr></tbody></table>
 <div id="myaccount_message" class="ui-helper-hidden" />
 </form>
@@ -194,7 +140,7 @@ $.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
 	if (nTr.className.match(/nonwritable/) && $('#viewwritableselected').attr('checked'))
 	    return false;
 	return true;
-    });
+});
 $(function() {
 	$('#viewallradio').buttonset();
 	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100, 'aoColumnDefs': [ { 'bSearchable': false, 'aTargets': [ 2, 5, 6, 7 ] } ] });
@@ -304,9 +250,6 @@ BLOCK;
 		return <<<BLOCK
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
 <script language="JavaScript">
-function selectTabByName(tabs, tab) {
-	$(tabs).tabs('select', $("a[tab_id='"+tab+"']").parent().index() );	
-}
 $(function() {
 	$('#mywikistabs').tabs({show: function(event,ui){window.location.hash="";}});
 	if (mywikisLoadTabOnce != '') {
@@ -359,101 +302,16 @@ $(function() {
 {$grantedit}
 BLOCK;
 	}
-	/*
-	function page_groups($userid = false) { //TODO ~jer make sure the context of the user persists, and that the tables have a unique id
-		$admin_mode = false;
-		$uid = '';
-		if ($userid && $this->_security('admin')) {
-			$admin_mode = true;
-			$this->Focus($user['userid']);
-			$uid = '_'.preg_replace('/\W/','', $this->openid);
-		}		
-		$need_activation_request = !$this->isActivated() && !$this->isActivationRequested();
-		$claimbox = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>") . "<div class=\"clear1em\" />";
-		$html = $this->textClaimAccount();
-		$html .= "<form id=\"group_request$uid\">\n";
-		if ($need_activation_request) { 
-			if (!$admin_mode) {
-				$html .= $claimbox;
-				$html .= $this->textHighlight(<<<BLOCK
-<p>Please select any groups your account should belong to, then click the "submit" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>
-<input type=hidden name="group_request[]" value="users" />
-BLOCK
-);
-				$footer = "";
-			} else {
-				//TODO: if an admin sees a user that needs activation
-			}
-		}	else {
-			if (!$admin_mode) {
-				$html .= $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator).");
-				$footer = $claimbox;
-			}
-		}
-		$html .= <<<BLOCK
-<table id="grouplist">
-<thead>
-<tr>
-<th class="minwidth">&nbsp;</th>
-<th class="minwidth">Group</th>
-<th>&nbsp;</th>
-</tr>
-</thead>
-<tbody>
-BLOCK;
-		foreach ($this->getAllGroups() as $g) {
-			if ($g["groupid"] == "ADMIN" || $g["groupid"] == "users")
-				continue;
-			$groupid = htmlspecialchars($g["groupid"]);
-			$attrs = "checked disabled";
-			$extra = "";
-			if ($g["member"])
-				;
-			else if ($g["requested"])
-				$extra = "(request&nbsp;pending)";
-			else
-				$attrs = "";
-			
-			$html .= <<<BLOCK
-<tr>
-<td class="minwidth"><input type="checkbox" name="group_request[]" value="$groupid" $attrs/></td>
-<td class="minwidth">$groupid</td>
-<td>$extra</td>
-</tr>
-BLOCK;
-		}
-		$html .= <<<BLOCK
-</tbody>
-</table>
-<p>
-<button
- id="group_request_submit"
- class="generic_ajax"
- ga_form_id="group_request"
- ga_action="requestgroups"
- ga_loader_id="group_request_loader"
- disabled>Submit request</button> after selecting groups.
-<span id="group_request_loader"></span></p>
-</form>
-
-<script language="JavaScript">
-$("#grouplist").dataTable({'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
-group_request_enable();
-</script>
-<br clear />
-BLOCK;
-		return $html.$footer;
-	}
-*/
 
 /* --- function page_groups() --- */
-	function page_groups($userid = false) { //TODO ~jer merge with original function
+	function page_groups($userid = false) { //TODO ~jer make to work somehow
 		$admin_mode = false;
 		$uid = '';
 		if ($userid && $this->is_a_user($userid) && $this->_security('admin')) {
 			$admin_mode = true;
-			$this->Focus($userid);			
-			$uid = '_'.preg_replace('/\W/','', $this->openid);
+			$this->Focus($userid);
+			$uid = preg_replace('/[^a-zA-Z0-9]/','', $this->openid);
+			$uid = '_'.substr($uid, (strlen($uid) > 8 ? -8 : 0));
 		}
 		$q_openid = $this->q_openid;
 /* --- groups: page frills --- */
@@ -469,9 +327,11 @@ BLOCK;
 			$hidden_claim_dialog = $this->textClaimAccount();
 			$explanation_alert = $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator)." );
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request' ga_action='requestgroups' ga_loader_id='group_request_loader' disabled>Submit request</button>";
+			//$destroy_data_script = "$('#tabs').bind('tabshow', function(event, ui){ if $(ui.index != tabIndexByName('groups')) $('#grouplistcontainer').remove(); });";  //TODO remove if not needed
 		} else { // Admin stuff
 			$explanation_alert = $this->textHighlight ("<strong>Editing user {$q_openid}:</strong> Select the groups to which this user should belong.");			
-			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request$uid' ga_action='setgroups' ga_loader_id='group_request_loader'>Save changes</button>";
+			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request{$uid}' ga_action='setgroups' ga_loader_id='group_request_loader'>Save changes</button>";
+			//$destroy_data_script = "$('#amu-dialog').bind('dialogclose', function(event,ui) { $('#grouplistcontainer{$uid}').remove(); });";
 		} //TODO ~jer make a setgroups ga_action
 /* --- groups: output page head --- */
 		$output = <<<BLOCK
@@ -479,6 +339,7 @@ BLOCK;
 <form id="group_request{$uid}">
 {$hidden_claim_dialog}
 {$request_activation}
+<div id="grouplistcontainer{$uid}">
 <table id="grouplist{$uid}">
 <thead><tr>
 <th class="minwidth">&nbsp;</th>
@@ -510,10 +371,11 @@ BLOCK;
 </tr>
 BLOCK;
 		}
-/* --- groups: tail --- */  // ~jer
-		$output .= <<<BLOCK
+/* --- groups: tail --- */ 
+$output .= <<<BLOCK
 </tbody>
 </table>
+</div>
 <p>
 {$request_button} after selecting groups.
 <span id="group_request_loader"></span></p>
@@ -522,15 +384,17 @@ BLOCK;
 
 <script language="JavaScript">
 	$(function(){
-		$("#grouplist{$uid}").dataTable({'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
+		$("#grouplist{$uid}").dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
 		group_request_enable();
+		//{\$destroy_data_script} // TODO use it or lose it ~jer
 	});
 </script>
 <br clear />
 BLOCK;
+		if ($admin_mode) $this->Focus(); // return to admin
 		return $output;
 	}
-
+/* --- END: groups ---*/
 
 /* --- function page_users() --- */
 	function page_users() {
@@ -551,7 +415,7 @@ BLOCK;
 		foreach ($this->getAllActivatedUsers() as $u) {
 			foreach ($u as $k => $v) { $u["q_$k"] = htmlspecialchars($v); }
 			extract ($u);
-			if ($this->isAdmin()) $adminrow = "\n<td><button class='admin-user-button' userid='$q_userid'><span class='ui-icon ui-icon-wrench'></span></button><td>";
+			if ($this->isAdmin()) $adminrow = "\n<td><button class='admin-user-button' userid='$q_userid'><span class='ui-icon ui-icon-wrench'></span></button></td>";
 			$html .= <<<BLOCK
 <tr>{$adminrow}
 <td>$q_email</td>
@@ -637,7 +501,7 @@ BLOCK;
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
 
-	function frag_managewiki ($wiki) {
+	function frag_managewiki ($wiki) {   //TODO: get admin mode working ~jer
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
 		$html = "";
@@ -710,14 +574,14 @@ BLOCK;
 
 		$html .= "</form>";
 		$html .= "<script language=\"JavaScript\">
-\$(\"#mwg$wikiid\").dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bFilter\": false, \"bLengthChange\": false, \"bPaginate\": false});
-\$(\"#mwu$wikiid\").dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
+\$(\"#mwg$wikiid\").mutateID().dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bFilter\": false, \"bLengthChange\": false, \"bPaginate\": false});
+\$(\"#mwu$wikiid\").mutateID().dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
 </script>\n";
 		return $html;
 	}
 
 // ajax loaded dialog box content
-	function page_admin_managewiki() {
+	function page_admin_managewiki() {  // ~jer I may need to edit this to get frag_managewiki to work
 		if (!$this->isAdmin()) {
 			error_log (__METHOD__.": requested by non-admin user");
 			return page_adminonly();
@@ -731,13 +595,16 @@ BLOCK;
 	}		
 
 // needs a <button class='admin-manage-button' wikiid='n'>Manage Wiki</button>
-	function frag_admin_managewiki() { //TODO ~jer and UID to content frame
+	function frag_admin_managewiki() {
 		return <<<BLOCK
 <script type="text/javascript">
 	$(function() { 
-			$('#amw-dialog').dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
-			"Close": function() { $(this).dialog("close"); }
-		} });
+		$('#amw-dialog')
+			.elevateDiv()
+			.addClass('wfdialog')			
+			.dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
+				"Close": function() { $(this).dialog("close"); }
+			} });
 		$('.admin-manage-button').click(function(){
 			var id = $(this).attr('wikiid');
 			$('#amw-content').load('?tab=admin_managewiki&wikiid='+id, function() {
@@ -749,13 +616,14 @@ BLOCK;
 			$('#amw-dialog').dialog('open');
 			return false;
 		});
+		
 		$(".managebutton").button({icons:{primary:'ui-icon-zoomin'}});
 		$(".managebutton:first").button({icons:{primary:'ui-icon-suitcase'}});
 	});
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="amw-dialog" class="wf-dialog" title="Admin: Manage A Wiki">
+<div id="amw-dialog" title="Admin: Manage A Wiki">
 	<div id="amw-content"></div>
 	<div id="amw-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
 </div>
@@ -763,7 +631,7 @@ BLOCK;
 	}
 
 // ajax loaded dialog box content 
-	function page_admin_manageuser() { //TODO ~jer in progress
+	function page_admin_manageuser() {
 		if (!$this->_security( array('access'=>'admin' ))) return page_adminonly();
 		$user = $this->getUser($_GET['userid']);
 		if (!is_array($user)) {
@@ -794,9 +662,13 @@ BLOCK;
 		return <<<BLOCK
 <script type="text/javascript">
 	$(function() { 
-			$('#amu-dialog').dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
-			"Close": function() { $(this).dialog("close"); }
-		} });
+		$('#amu-dialog')
+			.elevateDiv()
+			.addClass('wfdialog')
+			.attr('title','Admin: Modify User')
+			.dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
+				"Close": function() { $(this).dialog("close"); }
+			} });
 		$('.admin-user-button').click(function(){
 			var id = $(this).attr('userid');
 			$('#amu-content').load('?tab=admin_manageuser&userid='+id, function() {
@@ -812,12 +684,17 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="amu-dialog" class="wf-dialog" title="Admin: Modify User">
+<div id="amu-dialog">
 	<div id="amu-content"></div>
 	<div id="amu-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
 </div>
 BLOCK;
 	}
+	
+	// the access denied banner
+	function page_adminonly() {
+		return textError("<strong>Access Restricted</strong> Sorry, your account does not not permit the action you have requested.");
+	}	
 
 	function textHighlight ($text, $icon="info", $id=false) {
 		$idattr = $id === false ? "" : "id=\"".htmlspecialchars($id)."\"";
@@ -838,13 +715,18 @@ BLOCK;
 	function textRequestAccess() {
 		$q_defaultmwusername = htmlspecialchars ($this->getMWUsername());
 		$footnote = $this->textHighlight("<strong>Note:</strong> If you already have an account on this wiki, you do not need to request access.  Just log in once using the <a href=\"#\" id=\"reqspeciallogin\">MediaWiki login page</a> to associate your wiki account with your OpenID.", "info", "reqnativeloginhint");
-		$output = <<<EOT
+
+		$output = <<<BLOCK
 <script type="text/javascript">
 	$(function() { 
-			$('#getaccessdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
-			"Send Request": function() { dialog_submit(this, "#getaccess"); }, 
-			"Cancel": function() { $(this).dialog("close"); }
-		} });
+		$('#getaccessdialog')
+			.elevateDiv()
+			.addClass('wfdialog')
+			.attr("ga_message_id", "requestmessage")
+			.dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
+				"Send Request": function() { dialog_submit(this, "#getaccess"); }, 
+				"Cancel": function() { $(this).dialog("close"); }
+			} });
 		$('.requestbutton').click(function(){
 			$('#requestmessage').hide();
 			$('#reqwikiname').html('<strong>'+$(this).attr('wikititle')+'</strong>');
@@ -865,22 +747,22 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="getaccessdialog" class="wf-dialog" title="Request Access To A Wiki" ga_message_id="requestmessage">
-	<form id="getaccess">
-	<table>
+<div id="getaccessdialog" title="Request access to a wiki">
+<form id="getaccess">
+<table>
 	<tr><td class="formlabelleft">Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
 	<tr><td class="formlabelleft">Write access wanted?</td><td><input type=checkbox id="reqwriteaccess" name="writeaccess" value="true" checked="checked">&nbsp;</td></tr>
-	<tr><td class="formlabelleft">Username you want:</td><td><input type="text" id="reqmwusername" name="mwusername" value="$q_defaultmwusername"></td></tr>
-	</table>
-	<input type="hidden" name="wikiid" id="reqwikiid" value=" ">
-	<input type="hidden" name="ga_action" value="requestwiki"></form>
-	<div class="ui-widget" id="requestmessage">
-	<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden">
-	</div>
-	</div>
-	{$footnote}
+	<tr><td class="formlabelleft">Username you want:</td><td><input type="text" id="reqmwusername" name="mwusername"></td></tr>
+</table>
+<input type="hidden" name="wikiid" id="reqwikiid" value=" ">
+<input type="hidden" name="ga_action" value="requestwiki">
+</form>
+<div class="ui-widget" id="requestmessage">
+	<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden"></div>
 </div>
-EOT;
+{$footnote}
+</div>
+BLOCK;
 		return $output;
 	}
 
@@ -888,15 +770,20 @@ EOT;
 	function textGrantEdit() {
 		return <<<EOT
 <script type="text/javascript">
-$(function() {
-	$('#granteditdialog').dialog
-	({ modal: true,
-	   autoOpen: false,
-	   width: 400,
-	   buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
-		      "Cancel": function() { $(this).dialog("close"); } }
-	});
-	$('.granteditbutton').click(function(){
+	$(function() {
+		$('#granteditdialog')
+			.elevateDiv()
+			.addClass('wfdialog')
+			.attr('title','Invite user to edit your wiki')
+			.attr("ga_message_id", "grantmessage")
+			.dialog
+		({ modal: true,
+			 autoOpen: false,
+			 width: 400,
+			 buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
+				    "Cancel": function() { $(this).dialog("close"); } }
+		});
+		$('.granteditbutton').click(function(){
 			$('#grantmessage').hide();
 			$('#grantwikiname').html($(this).attr('wikiname'));
 			$('#grantwikititle').html($(this).attr('wikititle'));
@@ -913,39 +800,40 @@ $(function() {
 				$('#granteditdialog').dialog('open');
 			return false;
 		});
-});
+	});
 </script>
-
-<div id="granteditdialog" class="wf-dialog" title="Invite user to edit your wiki" ga_message_id="grantmessage">
+<div id="granteditdialog">
 	<form id="granteditform">
 	<table>
-	<tr><td class="formlabelleft nowrap">Wiki:</td><td><span id="grantwikiname" /> (<span id="grantwikititle" />)</td></tr>
-	<tr><td class="formlabelleft nowrap">User to invite:</td><td><span id="grantrealname" /> (<span id="grantemail" />)</td></tr>
-	<tr><td class="formlabelleft nowrap">Username on your wiki:</td><td><input type="text" id="grantmwusername" name="mwusername" value=" " /></td></tr>
+		<tr><td class="formlabelleft nowrap">Wiki:</td><td><span id="grantwikiname" /> (<span id="grantwikititle" />)</td></tr>
+		<tr><td class="formlabelleft nowrap">User to invite:</td><td><span id="grantrealname" /> (<span id="grantemail" />)</td></tr>
+		<tr><td class="formlabelleft nowrap">Username on your wiki:</td><td><input type="text" id="grantmwusername" name="mwusername" value=" " /></td></tr>
 	</table>
 	<input type="hidden" name="wikiid" id="grantwikiid" value=" " />
 	<input type="hidden" name="userid" id="grantuserid" value=" " />
 	<input type="hidden" name="grantflag" id="grantflag" value="1" />
 	<input type="hidden" name="ga_action" value="managewiki_editor" />
 	</form>
-
 	<div class="ui-widget" id="grantmessage">
-	<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden">
-	</div>
+		<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden"></div>
 	</div>
 </div>
 EOT;
 	}
 
 	// Claim an old account, served in a dialog box.
-	function textClaimAccount() {
+	function textClaimAccount() {	
 		return <<<EOT
 <script type="text/javascript">
 	$(function() { 
-			$('#claimaccountdialog').dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
-			"Claim Account": function() { dialog_submit(this, "#claimaccount"); }, 
-			"Cancel": function() { $(this).dialog("close"); }
-		} });
+		$('#claimaccountdialog')
+			.attr('title','Claim a Pre-OpenID Account')
+			.elevateDiv()
+			.addClass('wfdialog')
+			.dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
+				"Claim Account": function() { dialog_submit(this, "#claimaccount"); }, 
+				"Cancel": function() { $(this).dialog("close"); }
+			} });
 		$('.claimaccountbutton').click(function(){	
 			$('#claimaccount :input').not(':hidden').val('');
 			$('#claimaccountdialog').dialog('open');
@@ -953,15 +841,15 @@ EOT;
 		});
 	});
 </script>
-
-<div id="claimaccountdialog" class="wf-dialog" title="Claim a Pre-OpenID Account">
+<div id="claimaccountdialog">
 	<p>Enter the username and password that you were using before the conversion to <strong>OpenID</strong> authentication.
 	Please note that all existing user rights from your pre-OpenID account will be added to the OpenID-enabled account that you are currently using.</p>
 	<form id="claimaccount"><table>
 	<tr><td align=right>Username:</td><td><input type="text" id="claimusername" name="username" /></td></tr>
 	<tr><td align=right>Password:</td><td><input type="password" id="claimpassword" name="password" /></td></tr>
 	</table>
-	<input type="hidden" name="ga_action" value="claimaccount"></form>	
+	<input type="hidden" name="ga_action" value="claimaccount">
+	</form>
 </div>
 EOT;
 	}
@@ -1306,6 +1194,8 @@ EOT;
 
 // misc functions
 
+// usage: "Request pending since " . PMRelativeTime($grouplist['pending_since'][$i]);
+// output: "5 days ago", etc
 function PMRelativeTime($date) {
 	if ($date+0 == 0) $date = strtotime($date);
 	$diff = time() - $date;

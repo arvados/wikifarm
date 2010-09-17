@@ -1,12 +1,39 @@
+// adds $('element').exists();
+jQuery.fn.exists = function(){return jQuery(this).length>0;}
+
 // returns a number that it's never returned before
 function wf_uid()
 {
 	return (++wf_uid.n);
 }
+// mutate an id until unique
+(function( $ ){
+	$.fn.mutateID = function() {
+		var id = String($(this).attr('id'));
+		var mut=0;
+		while ($(id+mut).exists()) mut++;
+		return $(this).attr('id',id+mut);
+	};
+})( jQuery );
+
+// move a dialog div outside of the tab elements (TODO: this might be pointless with ZE AUTODESTRUCTOR)
+(function( $ ){
+	$.fn.elevateDiv = function() {					
+		return $(this).appendTo('#dialog-container');		
+	};
+})( jQuery );
 
 function wf_tab_select (tabset, selecttab)
 {
     $('#'+tabset+'>ul>li>a').each(function(i,e){ if($(e).attr('tab_id')==selecttab) $('#tabs').tabs('select', i); });
+}
+
+function tabIndexByName(tab) {
+	return $("a[tab_id='"+tab+"']").parent().index();
+}
+
+function selectTabByName(tabs, tab) {
+	$(tabs).tabs('select', tabIndexByName(tab));
 }
 
 function generic_ajax_success(data, textStatus, req, button)

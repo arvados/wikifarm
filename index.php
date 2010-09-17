@@ -28,6 +28,8 @@ if (preg_match ('{application/json}', $_SERVER["HTTP_ACCEPT"]) ||
 	exit;
 }
 
+header('Content-Language: en');
+
 // Would sir enjoy some tab content?
 if (isset($_GET['tab'])) {
 	echo $wf->tabGet($_GET['tab']);
@@ -80,7 +82,7 @@ if (isset ($_GET["tabActive"]))
 	else
 	    ++$tabActiveId;
 
-?><html>
+?><html lang='en'>
 <head>
 <title>WikiFarm Dashboard</title>
 <link type="text/css" href="js/DataTables/css/demo_page.css" rel="Stylesheet">
@@ -97,14 +99,17 @@ if (isset ($_GET["tabActive"]))
 		$("#tabs").tabs({
 			selected: <?=$tabActiveId?>,
 			show: function(event,ui){window.location.hash="";}
-		    });
+    });
+		//autodestructor
 		$("#tabs").bind("tabsselect", function(){
 			$("#tabs .wf-dialog, #tabs .ui-dialog").remove();
-		    });
+			$("#tabs").siblings('div').not('.nonvolatile').remove();
+		});
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
-		$("#logoutbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');	
-	});
+		$("#logoutbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');			
+	});	
+
 </script>
 <style type="text/css">
 	#pageheader { width: 100%; height: 45; position: relative; }
@@ -115,23 +120,21 @@ if (isset ($_GET["tabActive"]))
 </head>
 <body>
 
-<div id="pageheader"><div id="logo"></div>
+<div id="pageheader" class="nonvolatile"><div id="logo"></div>
 <div><a href="logout.php" id="logoutbutton">Log out</a></div>
 </div>
 
-<?php  // Begin tabs and stuff
-
-	echo "<div id=\"tabs\">\n\t<ul>";
+<div id="tabs" class="nonvolatile">
+	<ul>
+<?php  // jquery ui tabs
 	foreach ($tabTitles as $tab => $title) {
 		echo "\n\t\t<li><a tab_id=\"$tab\" href=\"?tab=$tab\" title=\"$title\">$title</a></li>";
 	}
-	echo "\n\t</ul>\n</div>";
+?>	
+	</ul>
+</div>
 
-?>
-
-
-<br>
-<br>
+<div id="dialog-container" class="nonvolatile"></div>
 
 </body>
 </html>
