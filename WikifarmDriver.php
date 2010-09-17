@@ -291,10 +291,12 @@ class WikifarmDriver {
 	}
 
 	function inviteGroup ($wikiid, $groupid) {
+		$wikiid = sprintf ("%02d", $wikiid);
 		$this->DB->exec ("INSERT OR IGNORE INTO wikipermission (wikiid, userid_or_groupname) values ('$wikiid', '".SQLite3::escapeString($groupid)."')");
 	}
 
 	function disinviteGroup ($wikiid, $groupid) {
+		$wikiid = sprintf ("%02d", $wikiid);
 		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid='$wikiid' AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
 	}
 

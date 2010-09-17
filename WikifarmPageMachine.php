@@ -599,11 +599,11 @@ BLOCK;
 	function frag_admin_managewiki() {
 		return <<<BLOCK
 <script type="text/javascript">
-	$(function() { 
+	$(function() {
 		$('#amw-dialog')
 			.elevateDiv()
-			.addClass('wfdialog')			
-			.dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
+			.addClass('wfdialog')
+			.dialog({ modal: true, autoOpen: false, width: 800, buttons: {
 				"Close": function() { $(this).dialog("close"); }
 			} });
 		$('.admin-manage-button').click(function(){
@@ -611,7 +611,7 @@ BLOCK;
 			$('#amw-content').load('?tab=admin_managewiki&wikiid='+id, function() {
 				$('#amw-waiting').hide();
 				$('#amw-content').show();
-			});			
+			});
 			$('#amw-content').hide();
 			$('#amw-waiting').css('line-height', '400px').show();
 			$('#amw-dialog').dialog('open');
@@ -910,6 +910,8 @@ EOT;
 	function ajax_managewiki_groups ($post) {
 		$wikiid = $post["wikiid"];
 		$wiki = $this->getWiki($wikiid);
+		if (!is_array ($wiki))
+			return $this->fail ("No wiki specified.");
 		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
 			return $this->fail ("You are not allowed to do that.");
 
