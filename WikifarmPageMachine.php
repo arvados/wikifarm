@@ -635,7 +635,7 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="amw-dialog" title="Admin: Manage A Wiki">
+<div id="amw-dialog" title="Admin: Manage A Wiki" class="wf-dialog">
 	<div id="amw-content"></div>
 	<div id="amw-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
 </div>
@@ -696,7 +696,7 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="amu-dialog">
+<div id="amu-dialog" class="wf-dialog">
 	<div id="amu-content"></div>
 	<div id="amu-waiting" style="width: 100%; line-height: 150px; text-align: center;">Loading...</div>
 </div>
@@ -759,7 +759,7 @@ BLOCK;
 $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('disabled')) $('#reqmwusername').attr('disabled',!$('#reqwriteaccess').attr('checked')); });
 </script>
 
-<div id="getaccessdialog" title="Request access to a wiki">
+<div id="getaccessdialog" title="Request access to a wiki" class="wf-dialog">
 <form id="getaccess">
 <table>
 	<tr><td class="formlabelleft">Wiki name:</td><td id="reqwikiname">&nbsp;</td></tr>
@@ -814,7 +814,7 @@ BLOCK;
 		});
 	});
 </script>
-<div id="granteditdialog">
+<div id="granteditdialog" class="wf-dialog">
 	<form id="granteditform">
 	<table>
 		<tr><td class="formlabelleft nowrap">Wiki:</td><td><span id="grantwikiname" /> (<span id="grantwikititle" />)</td></tr>
@@ -853,7 +853,7 @@ EOT;
 		});
 	});
 </script>
-<div id="claimaccountdialog">
+<div id="claimaccountdialog" class="wf-dialog">
 	<p>Enter the username and password that you were using before the conversion to <strong>OpenID</strong> authentication.
 	Please note that all existing user rights from your pre-OpenID account will be added to the OpenID-enabled account that you are currently using.</p>
 	<form id="claimaccount"><table>

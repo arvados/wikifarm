@@ -102,7 +102,8 @@ if (isset ($_GET["tabActive"]))
     });
 		//autodestructor
 		$("#tabs").bind("tabsselect", function(){
-			$("#tabs .wf-dialog, #tabs .ui-dialog").remove();
+			$(".wf-dialog, .ui-dialog").remove();
+			$("#tabs>div").empty();
 			$("#tabs").siblings('div').not('.nonvolatile').remove();
 		});
 		mywikisLoadTabOnce = '';

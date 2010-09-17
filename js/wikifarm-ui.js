@@ -186,13 +186,13 @@ function req_response_click ()
 
 function group_request_enable ()
 {
-    var button = $("#group_request_submit");
-    if (button.attr('admin_mode'))
-	button.attr("disabled", false);
-    else if ($("form#group_request").serialize())
-	button.attr("disabled", false);
+    var button = "#group_request_submit";
+    if ($(button+"[admin_mode]").attr("disabled", false))
+	return;
+    if ($("form#group_request").serialize())
+	$(button).attr("disabled", false);
     else
-	button.attr("disabled", true);
+	$(button).attr("disabled", true);
 }
 
 $('.generic_ajax').live('click', generic_ajax_submit);
