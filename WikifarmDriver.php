@@ -276,10 +276,10 @@ class WikifarmDriver {
 		$wikiid = $this->querySingle ("SELECT last_insert_rowid()");
 		if (!$wikiid) return false;
 		$wikiid = sprintf ("%02d", $wikiid);
-		$this->DB->exec ("INSERT INTO autologin (wikiid, userid, mwusername, lastlogintime, sysop) values ('$wikiid', '".$this->q_openid."','".SQLite3::escapeString ($mwusername)."',strftime('%s','now'),1)");
+		$this->DB->exec ("INSERT INTO autologin (wikiid, userid, mwusername, lastlogintime, sysop) values ($wikiid, '".$this->q_openid."','".SQLite3::escapeString ($mwusername)."',strftime('%s','now'),1)");
 		foreach ($this->getAllGroups() as $g)
 			if ($groups && false !== array_search ($g["groupid"], $groups))
-				$this->DB->exec ("INSERT INTO wikipermission (wikiid, userid_or_groupname) VALUES ('$wikiid', '".SQLite3::escapeString ($g["groupid"])."')");
+				$this->DB->exec ("INSERT INTO wikipermission (wikiid, userid_or_groupname) VALUES ($wikiid, '".SQLite3::escapeString ($g["groupid"])."')");
 
 		if (false === system ("sudo -u ubuntu /home/wikifarm/etc/wikifarm-create-wiki "
 				      .escapeshellarg($wikiid)." "
@@ -291,13 +291,13 @@ class WikifarmDriver {
 	}
 
 	function inviteGroup ($wikiid, $groupid) {
-		$wikiid = sprintf ("%02d", $wikiid);
-		$this->DB->exec ("INSERT OR IGNORE INTO wikipermission (wikiid, userid_or_groupname) values ('$wikiid', '".SQLite3::escapeString($groupid)."')");
+		$wikiid += 0;
+		$this->DB->exec ("INSERT OR IGNORE INTO wikipermission (wikiid, userid_or_groupname) values ($wikiid, '".SQLite3::escapeString($groupid)."')");
 	}
 
 	function disinviteGroup ($wikiid, $groupid) {
-		$wikiid = sprintf ("%02d", $wikiid);
-		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid='$wikiid' AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
+		$wikiid += 0;
+		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid=$wikiid AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
 	}
 
 	function getInvitedUsers ($wikiid) {
@@ -515,8 +515,8 @@ BLOCK;
 	}
 
 	function requestWiki ($wikiid, $mwusername=false) {
-		$wikiid = sprintf ("%02d", $wikiid);
-		$owner_userid = $this->querySingle ("SELECT userid FROM wikis WHERE id='$wikiid'");
+		$wikiid = $wikiid + 0;
+		$owner_userid = $this->querySingle ("SELECT userid FROM wikis WHERE id=$wikiid");
 		$user_requests_before = $this->getUserRequests ($owner_userid);
 
 		// DELETE + INSERT instead of INSERT OR REPLACE to
