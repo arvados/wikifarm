@@ -1,6 +1,6 @@
 <?php
 
-$GLOBALS["microtime0"] = microtime();
+$GLOBALS["microtime0"] = microtime(true);
 
 ini_set('display_errors',1);
 error_reporting(E_ALL);
@@ -35,7 +35,7 @@ header('Content-Language: en');
 // Would sir enjoy some tab content?
 if (isset($_GET['tab'])) {
 	echo $wf->tabGet($_GET['tab']);
-	// error_log ($_GET['tab'] . ": " . floor((microtime() - $GLOBALS["microtime0"])*1000) . " ms");
+	// error_log ($_GET['tab'] . ": " . floor((microtime(true) - $GLOBALS["microtime0"])*1000) . " ms");
 	exit;
 }
 
