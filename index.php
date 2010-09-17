@@ -104,7 +104,8 @@ if (isset ($_GET["tabActive"]))
 			show: function(event,ui){window.location.hash="";}
     });
 		//autodestructor
-		$("#tabs").bind("tabsselect", function(){
+		$("#tabs").bind("tabsselect", function(event,ui){
+			if ($(ui.panel).parent().attr("id")!="tabs") return;
 			$(".wf-dialog, .ui-dialog").remove();
 			$("#tabs>div").empty();
 			$("#tabs").siblings('div').not('.nonvolatile').remove();
