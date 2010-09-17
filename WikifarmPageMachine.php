@@ -615,7 +615,10 @@ BLOCK;
 			.elevateDiv()
 			.addClass('wfdialog')
 			.dialog({ modal: true, autoOpen: false, width: 800, buttons: {
-				"Close": function() { $(this).dialog("close"); }
+				"Close": function() {
+					$(this).dialog("close");
+					$('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
+				}
 			} });
 		$('.admin-manage-button').click(function(){
 			var id = $(this).attr('wikiid');
