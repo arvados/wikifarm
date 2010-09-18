@@ -393,7 +393,7 @@ $output .= <<<BLOCK
 
 <script language="JavaScript">
 	$(function(){
-		$("#grouplist{$uid}").dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
+		$("#grouplist{$uid}").mutateID().dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
 		group_request_enable();
 	});
 </script>
@@ -1110,8 +1110,8 @@ EOT;
 			$this->validate_mwusername ($post["mwusername"]);
 		$did_not_have_basics = !$this->getUserEmail() || !$this->getUserRealname();
 		if ($requestor_is_admin && isset ($post["quota"])) {
-			if (!is_numeric ($post["quota"]))
-				return $this->fail ("Wiki quota must be a number.");
+			if (!is_numeric ($post["quota"]) || $post["quota"] < 0 )
+				return $this->fail ("Wiki quota must be a valid number.");
 			$this->setWikiQuota ($post["quota"] + 0);
 		}
 		$this->setUserEmail ($post["email"]);

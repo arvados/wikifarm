@@ -117,3 +117,7 @@ h2(#Help,Approving). Responding to other users' requests to read and edit your w
 When someone requests access to your wiki, a Requests tab appears on your dashboard.
 
 Click "Approve" or "Reject" for each request as you see fit.
+
+h2(#Help,Resources). Additional Resources
+
+* Once you have a wiki, learn more about it in our "Wiki Tutorial.":docs/Wiki_Tutorial
