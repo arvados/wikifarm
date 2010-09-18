@@ -56,6 +56,9 @@ if (!$wf->isAdmin()) {
 	unset ( $tabTitles['debug'] );
 	unset ( $tabTitles['settings'] );
 }
+else if (!(isset ($_GET["tabActive"]) && $_GET["tabActive"] == "debug")) {
+	unset ( $tabTitles['debug'] );
+}
 
 if (!$wf->getUserRealname() || !$wf->getUserEmail()) {
 	$tabActive = "myaccount";
