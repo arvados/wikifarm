@@ -615,14 +615,10 @@ BLOCK;
 		$('#amw-dialog')
 			.elevateDiv()
 			.addClass('wfdialog')
-			.dialog({ modal: true, autoOpen: false, width: 800, buttons: {
-				"Close": function() {
-					$(this).dialog("close");
-					$('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
-				}
-			} });
+		.dialog({ modal: true, autoOpen: false, width: 800, position: ['center', 32] });
 		$('.admin-manage-button').click(function(){
 			var id = $(this).attr('wikiid');
+			$('#amw-content').hide();
 			$('#amw-content').load('?tab=admin_managewiki&wikiid='+id, function() {
 				$('#amw-waiting').hide();
 				$('#amw-content').show();
