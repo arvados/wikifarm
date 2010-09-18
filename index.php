@@ -106,9 +106,9 @@ if (isset ($_GET["tabActive"]))
 		//autodestructor
 		$("#tabs").bind("tabsselect", function(event,ui){
 			if ($(ui.panel).parent().attr("id")!="tabs") return;
-			$(".wf-dialog, .ui-dialog").remove();
 			$("#tabs>div").empty();
-			$("#tabs").siblings('div').not('.nonvolatile').remove();
+			$("body>div.wf-dialog").remove();
+			$("body>div.ui-dialog").remove();
 		});
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
@@ -125,11 +125,11 @@ if (isset ($_GET["tabActive"]))
 </head>
 <body>
 
-<div id="pageheader" class="nonvolatile"><div id="logo"></div>
+<div id="pageheader"><div id="logo"></div>
 <div><a href="logout.php" id="logoutbutton">Log out</a></div>
 </div>
 
-<div id="tabs" class="nonvolatile">
+<div id="tabs">
 	<ul>
 <?php  // jquery ui tabs
 	foreach ($tabTitles as $tab => $title) {
@@ -139,7 +139,7 @@ if (isset ($_GET["tabActive"]))
 	</ul>
 </div>
 
-<div id="dialog-container" class="nonvolatile"></div>
+<div id="dialog-container"></div>
 
 </body>
 </html>
