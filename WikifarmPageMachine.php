@@ -48,6 +48,7 @@ BLOCK;
 			$output .= htmlspecialchars($row['sql']) . "\n\n";
 		}
 		$output .= "</pre>";
+		$output .= "<h3>Contents of _cache</h3><br>(it might show up if there was something in it...)<pre>" . $this->uglydumpling($this->cacheDebugDump()) . "</pre>";		
 		return $output;
 	}
 
@@ -336,12 +337,10 @@ BLOCK;
 			$hidden_claim_dialog = $this->textClaimAccount();
 			$explanation_alert = $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator)." );
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request' ga_action='requestgroups' ga_loader_id='group_request_loader' disabled>Submit request</button>";
-			//$destroy_data_script = "$('#tabs').bind('tabshow', function(event, ui){ if $(ui.index != tabIndexByName('groups')) $('#grouplistcontainer').remove(); });";  //TODO remove if not needed
 		} else { // Admin stuff
 			$explanation_alert = $this->textHighlight ("Editing group memberships for $q_openid");
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request{$uid}' ga_action='setgroups' ga_loader_id='group_request_loader' ga_message_id='group_request_message' admin_mode='1'>Save changes</button>";
 			$hidden_uid_input = "<input type='hidden' name='userid' value='".htmlspecialchars($this->openid)."' />";
-			//$destroy_data_script = "$('#amu-dialog').bind('dialogclose', function(event,ui) { $('#grouplistcontainer{$uid}').remove(); });";
 		}
 /* --- groups: output page head --- */
 		$output = <<<BLOCK
@@ -398,7 +397,6 @@ $output .= <<<BLOCK
 	$(function(){
 		$("#grouplist{$uid}").dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
 		group_request_enable();
-		//{\$destroy_data_script} // TODO use it or lose it ~jer
 	});
 </script>
 <br clear />
@@ -513,7 +511,7 @@ BLOCK;
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
 
-	function frag_managewiki ($wiki) {   //TODO: get admin mode working ~jer
+	function frag_managewiki ($wiki) {
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
 		$html = "";
@@ -593,7 +591,7 @@ BLOCK;
 	}
 
 // ajax loaded dialog box content
-	function page_admin_managewiki() {  // ~jer I may need to edit this to get frag_managewiki to work
+	function page_admin_managewiki() {
 		if (!$this->isAdmin()) {
 			error_log (__METHOD__.": requested by non-admin user");
 			return page_adminonly();
