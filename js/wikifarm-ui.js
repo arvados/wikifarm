@@ -135,11 +135,13 @@ function dialog_submit(dialog, form)
 	    url: '/',
 		type: 'POST',
 		dataType: 'json',
-		data: $(form).serializeArray(),
+		data: $(dialog).find(form).serializeArray(),
 		success: function(d,t,r)
 		{
-		    if (d && (d.success || d.refreshtab || d.redirect || d.selecttab))
+		    if (d && (d.success || d.refreshtab || d.redirect || d.selecttab)) {
 			$(dialog).dialog("close");
+			d.request.ga_message_id = null;
+		    }
 		    generic_ajax_success (d,t,r,dialog);
 		},
 		error: function(r,t,e)

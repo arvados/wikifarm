@@ -348,7 +348,6 @@ BLOCK;
 		$output = <<<BLOCK
 {$explanation_alert}
 <form id="group_request{$uid}">
-{$hidden_claim_dialog}
 {$request_activation}
 {$hidden_uid_input}
 <div id="grouplistcontainer{$uid}">
@@ -394,13 +393,11 @@ $output .= <<<BLOCK
 <div id="group_request_message" class="ui-helper-hidden" />
 </form>
 {$claim_alert}
+{$hidden_claim_dialog}
 
 <script language="JavaScript">
-	$(function(){
-		$("#grouplist{$uid}").dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
-		group_request_enable();
-		//{\$destroy_data_script} // TODO use it or lose it ~jer
-	});
+	$("#grouplist{$uid}").dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
+	group_request_enable();
 </script>
 <br clear />
 BLOCK;
@@ -613,8 +610,6 @@ BLOCK;
 <script type="text/javascript">
 	$(function() {
 		$('#amw-dialog')
-			.elevateDiv()
-			.addClass('wfdialog')
 		.dialog({ modal: true, autoOpen: false, width: 800, position: ['center', 32] });
 		$('.admin-manage-button').click(function(){
 			var id = $(this).attr('wikiid');
@@ -675,8 +670,6 @@ BLOCK;
 <script type="text/javascript">
 	$(function() { 
 		$('#amu-dialog')
-			.elevateDiv()
-			.addClass('wfdialog')
 			.attr('title','Admin: Modify User')
 			.dialog({ modal: true, autoOpen: false, width: 800, buttons: { 
 				"Close": function() { $(this).dialog("close"); }
@@ -732,8 +725,6 @@ BLOCK;
 <script type="text/javascript">
 	$(function() { 
 		$('#getaccessdialog')
-			.elevateDiv()
-			.addClass('wfdialog')
 			.attr("ga_message_id", "requestmessage")
 			.dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
 				"Send Request": function() { dialog_submit(this, "#getaccess"); }, 
@@ -784,8 +775,6 @@ BLOCK;
 <script type="text/javascript">
 	$(function() {
 		$('#granteditdialog')
-			.elevateDiv()
-			.addClass('wfdialog')
 			.attr('title','Invite user to edit your wiki')
 			.attr("ga_message_id", "grantmessage")
 			.dialog
@@ -836,33 +825,34 @@ EOT;
 	// Claim an old account, served in a dialog box.
 	function textClaimAccount() {	
 		return <<<EOT
-<script type="text/javascript">
-	$(function() { 
-		$('#claimaccountdialog')
-			.attr('title','Claim a Pre-OpenID Account')
-			.elevateDiv()
-			.addClass('wfdialog')
-			.dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
-				"Claim Account": function() { dialog_submit(this, "#claimaccount"); }, 
-				"Cancel": function() { $(this).dialog("close"); }
-			} });
-		$('.claimaccountbutton').click(function(){	
-			$('#claimaccount :input').not(':hidden').val('');
-			$('#claimaccountdialog').dialog('open');
-			return false;
-		});
-	});
-</script>
 <div id="claimaccountdialog" class="wf-dialog">
 	<p>Enter the username and password that you were using before the conversion to <strong>OpenID</strong> authentication.
 	Please note that all existing user rights from your pre-OpenID account will be added to the OpenID-enabled account that you are currently using.</p>
-	<form id="claimaccount"><table>
+	<form id="claimaccount">
+	<table>
 	<tr><td align=right>Username:</td><td><input type="text" id="claimusername" name="username" /></td></tr>
 	<tr><td align=right>Password:</td><td><input type="password" id="claimpassword" name="password" /></td></tr>
 	</table>
-	<input type="hidden" name="ga_action" value="claimaccount">
+	<input type="hidden" name="ga_action" value="claimaccount" />
+	<input type="hidden" name="ga_message_id" value="claimmessage" />
 	</form>
+	<div class="ui-widget" id="claimmessage">
+		<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden"></div>
+	</div>
 </div>
+<script type="text/javascript">
+$('#claimaccountdialog')
+	.attr('title','Claim a Pre-OpenID Account')
+	.dialog({ modal: true, autoOpen: false, width: 400, buttons: { 
+		"Claim Account": function() { dialog_submit(this, "#claimaccount"); }
+	} });
+$('.claimaccountbutton').click(function(){
+	$('#claimaccount input[type!=hidden]').val('');
+	$('#claimmessage').hide();
+	$('#claimaccountdialog').dialog('open');
+	return false;
+});
+</script>
 EOT;
 	}
 
