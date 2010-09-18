@@ -221,7 +221,7 @@ BLOCK;
 				"<a icon='ui-icon-play' id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'>View</a>" .
 				"</td><td class='minwidth nowrap'>" .
 				"<div id='button-requestpending-$wikiid' class='ui-widget ui-button-text-icon-primary ui-state-disabled $show_requestpending'><span class='ui-button-icon-primary ui-icon ui-icon-clock'></span><span class='ui-button-text'>Request pending</span></div>" .
-				"<a icon='ui-icon-key' id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'>Request write access</a>" .
+				"<a icon='ui-icon-key' id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'>Request&nbsp;write&nbsp;access</a>" .
 				"<a icon='ui-icon-key' id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\">Request access</a>" .
 				"</td></tr>\n";
 		}
@@ -364,15 +364,12 @@ BLOCK;
 			if (($g["groupid"] == "ADMIN" || $g["groupid"] == "users") && !$admin_mode)
 				continue;
 			$groupid = htmlspecialchars($g["groupid"]);
-			$attrs = "checked disabled";
+			$attrs = "";
+			if ($g["member"]) $attrs = "checked";
+			if ($g["requested"] && !$admin_mode) $attrs = "checked";
+			if ($attrs && !$admin_mode) $attrs .= " disabled";
 			$extra = "";
-			if ($g["member"]) {
-				if ($admin_mode)
-					$attrs = "checked";
-			} else if ($g["requested"])
-				$extra = "(request&nbsp;pending)";
-			else
-				$attrs = "";
+			if ($g["requested"]) $extra = "(request&nbsp;pending)";
 			$output .= <<<BLOCK
 <tr>
 <td class="minwidth"><input type="checkbox" name="group_request[]" value="$groupid" $attrs/></td>
@@ -395,8 +392,10 @@ $output .= <<<BLOCK
 {$hidden_claim_dialog}
 
 <script language="JavaScript">
-	$("#grouplist{$uid}").dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
-	group_request_enable();
+	$(function(){
+		$("#grouplist{$uid}").mutateID().dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
+		group_request_enable();
+	});
 </script>
 <br clear />
 BLOCK;
@@ -421,7 +420,10 @@ BLOCK;
 </thead>
 <tbody>
 BLOCK;
-		foreach ($this->getAllActivatedUsers() as $u) {
+		$userlist = $this->getAllActivatedUsers();
+		if ($this->isAdmin())
+			$userlist = array_merge ($userlist, $this->getAllUnactivatedUsers());
+		foreach ($userlist as $u) {
 			foreach ($u as $k => $v) { $u["q_$k"] = htmlspecialchars($v); }
 			extract ($u);
 			if ($this->isAdmin()) $adminrow = "\n<td><button class='admin-user-button' userid='$q_userid'><span class='ui-icon ui-icon-wrench'></span></button></td>";

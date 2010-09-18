@@ -758,10 +758,21 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 		return $this->query ("SELECT usergroups.userid userid, email, realname, mwusername FROM usergroups LEFT JOIN users ON users.userid = usergroups.userid WHERE usergroups.userid LIKE '%://%' GROUP BY usergroups.userid");
 	}
 
+	function getAllUnactivatedUsers() {
+		if (!$this->_security('admin')) return false;
+		return $this->query ("SELECT users.userid userid, email, realname, mwusername FROM users LEFT JOIN usergroups ON users.userid = usergroups.userid WHERE users.userid LIKE '%://%' AND usergroups.userid IS NULL");
+	}
+
 	function getUser ($userid) {		
 		foreach ($this->getAllActivatedUsers() as $u)
 			if ($u["userid"] == $userid)
 				return $u;
+		foreach ($this->getAllUnactivatedUsers() as $u)
+			if ($u["userid"] == $userid) {
+				if (!$this->_security ('admin')) return false;
+				return $u;
+			}
+		return false;
 	}
 
 

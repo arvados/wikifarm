@@ -56,6 +56,9 @@ if (!$wf->isAdmin()) {
 	unset ( $tabTitles['debug'] );
 	unset ( $tabTitles['settings'] );
 }
+else if (!(isset ($_GET["tabActive"]) && $_GET["tabActive"] == "debug")) {
+	unset ( $tabTitles['debug'] );
+}
 
 if (!$wf->getUserRealname() || !$wf->getUserEmail()) {
 	$tabActive = "myaccount";
@@ -87,7 +90,7 @@ if (isset ($_GET["tabActive"]))
 
 ?><html lang='en'>
 <head>
-<title>WikiFarm Dashboard</title>
+<title><?=preg_replace('{([^\.]+\.?[^\.]*).*}','$1',`hostname`);?> dashboard</title>
 <link type="text/css" href="js/DataTables/css/demo_page.css" rel="Stylesheet">
 <link type="text/css" href="js/DataTables/css/demo_table.css" rel="Stylesheet">
 <link rel="stylesheet" type="text/css" href="style.css">
