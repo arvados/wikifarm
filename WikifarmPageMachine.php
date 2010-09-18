@@ -72,6 +72,7 @@ BLOCK;
 		$q_realname = htmlspecialchars($this->getUserRealname());
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
 		$q_uota = $this->getWikiQuota();
+		$q_uota = $admin_mode ? "<input type=\"text\" name=\"quota\" size=\"4\" maxlength=\"3\" value=\"$q_uota\" />" : $q_uota;
 		$icon = "info";
 		$your = $admin_mode ? "this user's" : "your";
 		$Your = ucfirst ($your);
@@ -1109,15 +1110,21 @@ EOT;
 	}
 
 	function ajax_myaccount_save ($post) {
+		$requestor_is_admin = $this->isAdmin();
 		if (isset ($post["userid"]) && $post["userid"] != $this->openid) {
 			if (!$this->_security( array( 'access'=>'admin', 'message'=>'Attempt to modify user ('.$post['userid'].') by non admin "'.$this->openid.'".' ))) 
 				return array ("success" => false, "message" => "Access denied.");
 			$this->Focus($post["userid"]);
-		}				
+		}
 		$this->validate_email ($post["email"]);
 		if (isset ($post["mwusername"]) && $post["mwusername"] != "")
 			$this->validate_mwusername ($post["mwusername"]);
 		$did_not_have_basics = !$this->getUserEmail() || !$this->getUserRealname();
+		if ($requestor_is_admin && isset ($post["quota"])) {
+			if (!is_numeric ($post["quota"]))
+				return $this->fail ("Wiki quota must be a number.");
+			$this->setWikiQuota ($post["quota"] + 0);
+		}
 		$this->setUserEmail ($post["email"]);
 		$this->setMWUsername ($post["mwusername"]);
 		$this->setUserRealname ($post["realname"]);
