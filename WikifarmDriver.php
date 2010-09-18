@@ -14,7 +14,11 @@ class WikifarmDriver {
 		} elseif (is_file($db)) {
 			$this->DB = new SQLite3($db);
 		}
-		if (!$this->DB) die("Fatal: The wikifarm database was unavailable.\n\n");
+		if (!$this->DB) {
+			error_log(__METHOD__.": Fatal! Unable to connect to database. \$this->DB is not an object.");
+			die("Fatal: The wikifarm database was unavailable.\n\n");
+		}
+		$this->cacheClear();
 		$this->Focus();  // $_SERVER["REMOTE_USER"] by default, the user in focus is the currently signed-in one.
 	}
 
@@ -47,16 +51,24 @@ class WikifarmDriver {
 	}
 
 	function Focus ($openid = null) {
+		$lastid = $this->openid;
 		if (!$openid) $openid = $_SERVER["REMOTE_USER"];
 		if ($openid === $this->openid) return;
 		$this->openid = $openid;
 		$this->q_openid = SQLite3::escapeString ($openid);
-		$this->cacheClear();
-		foreach ($this->query ("SELECT * FROM users WHERE userid='".$this->q_openid."' LIMIT 1") as $u)
-			$this->_cache["user"] = $u;
-		if (!isset($this->_cache["user"]))
-			foreach ($this->query ("SELECT users.* FROM wikis LEFT JOIN users ON 1=2 LIMIT 1") as $u)
-				$this->_cache["user"] = $u;
+		$this->cacheClear();  //hack
+		$user =& $this->cacheRefDefault('user');
+		if ($lastid && $user) $this->_cache["user:$lastid"] = $user;
+		if ($this->cacheHit("user:$openid")) {
+			$user = $this->_cache["user:$openid"];
+		} else {
+			foreach ($this->query ("SELECT * FROM users WHERE userid='".$this->q_openid."' LIMIT 1") as $u)
+				$user = $u;
+			if (!$user)
+				foreach ($this->query ("SELECT users.* FROM wikis LEFT JOIN users ON 1=2 LIMIT 1") as $u)
+					$user = $u;
+		}
+		return ($user ? true : false);
 	}
 	
 	// security function - tests and logs security calls
@@ -109,7 +121,14 @@ class WikifarmDriver {
 
 	function cacheClear() { $this->_cache = array( 'on' => true ); }
 	function cacheDisable() { $this->_cache['on'] = false; }
-	function cacheEnable() { $this->_cache['on'] = true; }	
+	function cacheEnable() { $this->_cache['on'] = true; }
+	function &cacheRef($i) { return $this->_cache[$i]; }
+	function &cacheRefDefault($i, $val = false) {
+		if (!$this->cacheHit($i)) $this->_cache[$i] = $val;
+		return $this->_cache[$i];
+	}
+	function cacheHit($i) { return array_key_exists($i, $this->_cache); }
+	function cacheDebugDump() { $this->_cache; }
 	
 	// specific set functions
 
@@ -210,10 +229,11 @@ class WikifarmDriver {
 	# returns true if the focus user owns any wikis
 	function hasWikis() {
 		$id = $this->q_openid;
-		return $this->querySingle(
-			"SELECT 1 FROM wikis WHERE wikis.userid='$id' " .
-			"UNION SELECT 1 FROM wikipermission WHERE userid_or_groupname='$id'; "
-		) ? true : false;
+		$ci = "user:$id:".__FUNCTION__;
+		if (!$this->cacheHit($ci)) $this->_cache[$ci] = $this->querySingle(
+				"SELECT 1 FROM wikis WHERE wikis.userid='$id' " .
+				"UNION SELECT 1 FROM wikipermission WHERE userid_or_groupname='$id';" );
+		return $this->_cache[$ci];
 	}
 
 	# returns wikis owned by the focus user
