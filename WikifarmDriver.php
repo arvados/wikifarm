@@ -259,6 +259,11 @@ class WikifarmDriver {
 		return $quota;
 	}
 
+	function setWikiQuota($newquota) {
+		$this->_cache["user"]["wikiquota"] = $newquota;
+		$this->DB->exec ("UPDATE users SET wikiquota=$newquota WHERE userid='{$this->q_openid}'");
+	}
+
 	function canCreateWikis() {
 		return (count($this->getMyWikis()) < $this->getWikiQuota());
 	}
