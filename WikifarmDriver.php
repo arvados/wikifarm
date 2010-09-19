@@ -398,7 +398,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	
 	function getUserRealname() {
 		$id = $this->q_openid;
-		return $this->querySingle("SELECT CASE WHEN realname IS NOT NULL THEN realname WHEN email IS NOT NULL THEN '('||email||')' ELSE '(None)' END FROM users WHERE userid='$id';" );
+		return $this->querySingle("SELECT realname FROM users WHERE userid='$id';" );
 	}
 	
 	function setUserRealname($name) {
