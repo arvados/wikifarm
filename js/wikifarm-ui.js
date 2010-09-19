@@ -160,6 +160,7 @@ function req_response_click ()
     else if ($(this).hasClass('reject')) ga_action = 'reject';
     else return false;
 
+    var action_icon = (ga_action == 'approve' ? 'check' : 'close');
     var requestid = $(this).attr('requestid');
     if (!requestid) return false;
 
@@ -174,7 +175,9 @@ function req_response_click ()
 		{
 		    if (d && d.success) {
 			$('#req_row_'+requestid).css('height', $('#req_row_'+requestid).height());
-			$('.req_response_button[requestid='+requestid+']').hide();
+			$('.req_response_button[requestid='+requestid+']').hide()
+				.first().parent().prepend('<span class="ui-icon ui-icon-'+action_icon+' wf-message-icon" style="float: right" />')
+				.next().prepend(ga_action);
 			if (d.request.ga_action == 'reject_request')
 			    $('[requestid='+requestid+']').css('text-decoration','line-through');
 		    }

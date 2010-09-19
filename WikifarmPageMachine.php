@@ -498,7 +498,7 @@ BLOCK;
 <td>$q_openid</td>
 </tr>
 BLOCK;
-		}
+		}  // ~jer ^ reject code
 		$html .= <<<BLOCK
 </tbody></table>
 <script language="JavaScript">
