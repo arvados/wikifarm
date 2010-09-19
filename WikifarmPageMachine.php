@@ -213,8 +213,8 @@ BLOCK;
 			$show_login = ($autologin[0] ? '' : 'ui-helper-hidden');
 			$show_view = (!$writable && $readable ? '' : 'ui-helper-hidden');
 			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
-			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
-			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
+			$show_requestwrite = (!$writable && !$requested_writable && ($readable || $requested_readable) ? '' : 'ui-helper-hidden');
+			$show_request = (!$readable && !$requested_readable ? '' : 'ui-helper-hidden');
 			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='wf-button loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
@@ -1095,6 +1095,7 @@ EOT;
 	function ajax_requestwiki ($post) {
 		$this->validate_activated();
 		$wikiid = $post["wikiid"]+0;
+		$showus = array ("button-requestpending-$wikiid");
 		$hideus = array("button-request-$wikiid");
 		if (isset ($post["mwusername"]) ||
 		    (isset ($post["writeaccess"]) && $post["writeaccess"])) {
@@ -1104,7 +1105,7 @@ EOT;
 		} else
 			$this->requestWiki ($post["wikiid"]+0);
 		return $this->success (array ("hide" => $hideus,
-					      "show" => array ("button-requestpending-$wikiid")));
+					      "show" => $showus));
 	}
 
 	function ajax_myaccount_save ($post) {
