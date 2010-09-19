@@ -176,8 +176,7 @@ function req_response_click ()
 		    if (d && d.success) {
 			$('#req_row_'+requestid).css('height', $('#req_row_'+requestid).height());
 			$('.req_response_button[requestid='+requestid+']').hide()
-				.first().parent().prepend('<span class="ui-icon ui-icon-'+action_icon+' wf-message-icon" style="float: right" />')
-				.next().prepend(ga_action);
+				.first().parent().prepend('<span class="ui-icon ui-icon-'+action_icon+' wf-message-icon" style="float: left" />');
 			if (d.request.ga_action == 'reject_request')
 			    $('[requestid='+requestid+']').css('text-decoration','line-through');
 		    }
