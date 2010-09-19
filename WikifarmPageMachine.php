@@ -280,7 +280,7 @@ $(function() {
 <table>
 
 <tr><td class="formlabelleft nowrap">Wiki title:</td>
-<td class="minwidth"><input type=text name=realname size=32 value="Lab Notebook"></td>
+<td class="minwidth"><input type=text name=realname size=32 value="Notebook"></td>
 <td>Full title of your wiki</td>
 </tr>
 
