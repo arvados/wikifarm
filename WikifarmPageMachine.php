@@ -361,14 +361,16 @@ BLOCK;
 
 /* --- groups: table body ---- */
 		foreach ($this->getAllGroups($admin_mode) as $g) {
-			if (($g["groupid"] == "ADMIN" || $g["groupid"] == "users") && !$admin_mode)
-				continue;
+			$extra = "";
+			if (($g["groupid"] == "ADMIN" || $g["groupid"] == "users")) {
+				if (!$admin_mode) continue;
+				$extra = "<span class='ui-icon ui-icon-alert' style='float: left'></span>special group, use with caution";
+			}
 			$groupid = htmlspecialchars($g["groupid"]);
 			$attrs = "";
 			if ($g["member"]) $attrs = "checked";
 			if ($g["requested"] && !$admin_mode) $attrs = "checked";
-			if ($attrs && !$admin_mode) $attrs .= " disabled";
-			$extra = "";
+			if ($attrs && !$admin_mode) $attrs .= " disabled";			
 			if ($g["requested"]) $extra = "(request&nbsp;pending)";
 			$output .= <<<BLOCK
 <tr>
