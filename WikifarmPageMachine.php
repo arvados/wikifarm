@@ -212,8 +212,8 @@ BLOCK;
 				"<td class='minwidth nowrap'>".htmlspecialchars($owner_realname).
 				"</td><td>".(implode(", ", $groups)).
 				"</td><td class='minwidth nowrap'>".
-				"<a icon='ui-icon-gear' id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\">Manage</a>" .
-				"<a icon='ui-icon-gear' class='admin-manage-button $show_admin_edit' wikiid='$wikiid'>Admin</a>".
+				"<a icon='ui-icon-wrench' id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\">Manage</a>" .
+				"<a icon='ui-icon-wrench' class='admin-manage-button $show_admin_edit' wikiid='$wikiid'>Admin</a>".
 				"</td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
@@ -439,7 +439,7 @@ BLOCK;
 		foreach ($userlist as $u) {
 			foreach ($u as $k => $v) { $u["q_$k"] = htmlspecialchars($v); }
 			extract ($u);
-			if ($this->isAdmin()) $adminrow = "\n<td><button class='admin-user-button' userid='$q_userid'><span class='ui-icon ui-icon-wrench'></span></button></td>";
+			if ($this->isAdmin()) $adminrow = "\n<td><a class='admin-user-button' userid='$q_userid'>Edit</a></td>";
 			$html .= <<<BLOCK
 <tr>{$adminrow}
 <td>$q_email</td>
@@ -456,6 +456,7 @@ BLOCK;
 {$adminrow}
 <script language="JavaScript">
 $("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25, "bLengthChange": false});
+$(".admin-user-button").button({icons:{primary:'ui-icon-wrench'}});
 </script>
 BLOCK;
 		return $html;
