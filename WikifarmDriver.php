@@ -746,11 +746,11 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 	}
 
 	function disinviteUser ($wikiid, $userid) {
-		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid='$wikiid' AND userid_or_groupname='".SQLite3::escapeString($userid)."'");
+		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid=$wikiid AND userid_or_groupname='".SQLite3::escapeString($userid)."'");
 	}
 
 	function disinviteEditor ($wikiid, $userid) {
-		$this->DB->exec ("DELETE FROM autologin WHERE wikiid='$wikiid' AND userid='".SQLite3::escapeString($userid)."'");
+		$this->DB->exec ("DELETE FROM autologin WHERE wikiid=$wikiid AND userid='".SQLite3::escapeString($userid)."'");
 	}
 
 	function getAllActivatedUsers() {

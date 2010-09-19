@@ -135,7 +135,7 @@ function dialog_submit(dialog, form)
 	    url: '/',
 		type: 'POST',
 		dataType: 'json',
-		data: $(dialog).find(form).serializeArray(),
+		data: (typeof(form)=="object" ? form : $(dialog).find(form)).serializeArray(),
 		success: function(d,t,r)
 		{
 		    if (d && (d.success || d.refreshtab || d.redirect || d.selecttab)) {

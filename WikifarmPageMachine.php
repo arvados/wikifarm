@@ -226,6 +226,7 @@ BLOCK;
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
+		$output .= $this->frag_grant_edit();
 		return $output;
 	}
 
@@ -242,7 +243,7 @@ BLOCK;
 			$visible_to = implode(", ", $groups);
 			$q_realname = htmlspecialchars ($realname);
 			$tabs .= "\t\t<li><a tab_id='tab_$wikiname' href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $q_realname</a></li>\n";
-			$content .= "<div id=\"tab_$wikiname\">" .	$this->frag_managewiki ($row) .	"</div>\n";
+			$content .= "<div id=\"tab_$wikiname\">" . $this->frag_managewiki ($row) . "</div>\n";
 		}
 		$groups_options = "";
 		foreach ($this->getAllGroups() as $g) {
@@ -515,7 +516,7 @@ BLOCK;
 
 	function frag_managewiki ($wiki) {
 		extract ($wiki);
-		$wikiid = sprintf ("%02d", $wikiid);
+		$wikiid = $wikiid + 0;
 		$html = ""; // ~jer added a button here
 		$html .= <<<BLOCK
 <div style="float: right;">
@@ -776,37 +777,6 @@ BLOCK;
 	// Grant access to a wiki, served in a popup.
 	function frag_grant_edit() {
 		return <<<EOT
-<script type="text/javascript">
-	$(function() {
-		$('#granteditdialog')
-			.attr('title','Invite user to edit your wiki')
-			.attr("ga_message_id", "grantmessage")
-			.dialog
-		({ modal: true,
-			 autoOpen: false,
-			 width: 400,
-			 buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
-				    "Cancel": function() { $(this).dialog("close"); } }
-		});
-		$('.granteditbutton').click(function(){
-			$('#grantmessage').hide();
-			$('#grantwikiname').html($(this).attr('wikiname'));
-			$('#grantwikititle').html($(this).attr('wikititle'));
-			$('#grantrealname').html($(this).attr('realname'));
-			$('#grantemail').html($(this).attr('email'));
-			$('#grantuserid').val($(this).attr('userid'));
-			$('#grantmwusername').val($(this).attr('mwusername'));
-			$('#grantwikiid').val($(this).attr('wikiid'));
-			$('#grantflag').val($(this).attr('checked') ? 1 : 0);
-			if (!$(this).attr('checked')) {
-				if (confirm("Do you really want to remove "+($(this).attr('realname') ? $(this).attr('realname') : "this user")+"'s write access to the \""+$(this).attr('wikiname')+"\" wiki?"))
-					dialog_submit(this, "#granteditform");
-			} else
-				$('#granteditdialog').dialog('open');
-			return false;
-		});
-	});
-</script>
 <div id="granteditdialog" class="wf-dialog">
 	<form id="granteditform">
 	<table>
@@ -823,6 +793,35 @@ BLOCK;
 		<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden"></div>
 	</div>
 </div>
+<script type="text/javascript">
+		$('#granteditdialog')
+			.attr('title','Invite user to edit your wiki')
+			.attr("ga_message_id", "grantmessage")
+			.dialog
+		({ modal: true,
+			 autoOpen: false,
+			 width: 400,
+			 buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
+				    "Cancel": function() { $(this).dialog("close"); } }
+		});
+		$('.granteditbutton').live('click',function(){
+			$('#grantmessage').hide();
+			$('#grantwikiname').html($(this).attr('wikiname'));
+			$('#grantwikititle').html($(this).attr('wikititle'));
+			$('#grantrealname').html($(this).attr('realname'));
+			$('#grantemail').html($(this).attr('email'));
+			$('#grantuserid').val($(this).attr('userid'));
+			$('#grantmwusername').val($(this).attr('mwusername'));
+			$('#grantwikiid').val($(this).attr('wikiid'));
+			$('#grantflag').val($(this).attr('checked') ? 1 : 0);
+			if (!$(this).attr('checked')) {
+				if (confirm("Do you really want to remove "+($(this).attr('realname') ? $(this).attr('realname') : "this user")+"'s write access to the \""+$(this).attr('wikiname')+"\" wiki?"))
+					dialog_submit(this, $("#granteditform"));
+			} else
+				$('#granteditdialog').dialog('open');
+			return false;
+		});
+</script>
 EOT;
 	}
 
@@ -979,7 +978,7 @@ EOT;
 	}
 
 	function ajax_managewiki_users ($post) {
-		$wikiid = $post["wikiid"];
+		$wikiid = $post["wikiid"] + 0;
 		$wiki = $this->getWiki($wikiid);
 		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
 			return $this->fail ("You are not allowed to do that.");
@@ -1032,17 +1031,21 @@ EOT;
 
 	function ajax_managewiki_editor ($post) {
 		$checkus = array();
+		$wikiid = $post["wikiid"] + 0;
+		$wiki = $this->getWiki($wikiid);
+		if ($wiki["userid"] != $this->openid && !$this->isAdmin())
+			return $this->fail ("You are not allowed to do that.");
 		if ($post["grantflag"]) {
 			$this->validate_mwusername ($post["mwusername"]);
-			$this->inviteUser ($post["wikiid"], $post["userid"], $post["mwusername"]);
+			$this->inviteUser ($wikiid, $post["userid"], $post["mwusername"]);
 			$check = "check";
-			$checkus[] = "mw".$post["wikiid"]."_userview_".md5($post["userid"]);
+			$checkus[] = "mw".$wikiid."_userview_".md5($post["userid"]);
 		}
 		else {
-			$this->disinviteEditor ($post["wikiid"], $post["userid"]);
+			$this->disinviteEditor ($wikiid, $post["userid"]);
 			$check = "uncheck";
 		}
-		$checkus[] = "mw".$post["wikiid"]."_useredit_".md5($post["userid"]);
+		$checkus[] = "mw".$wikiid."_useredit_".md5($post["userid"]);
 		return $this->success(array ($check => $checkus));
 	}
 
