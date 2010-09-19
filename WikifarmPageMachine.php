@@ -333,10 +333,12 @@ BLOCK;
 			if (!$this->isActivated() && !$this->isActivationRequested()) {
 				$explanation_alert = $this->textHighlight("<p>Please select any groups your account should belong to, then click the \"submit\" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>") .
 					"<input type=hidden name=\"group_request[]\" value=\"users\" />";
+			} else if (!$this->isActivated()) {
+				$explanation_alert = $this->textHighlight ("Your request for account activation has been submitted.", "comment");
 			} else {
 				$explanation_alert = $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator)." );
 			}
-			$claim_alert = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>");
+			$claim_alert = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>", "lightbulb");
 			$hidden_claim_dialog = $this->frag_claim_account();
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request' ga_action='requestgroups' ga_loader_id='group_request_loader' disabled>Submit request</button>";
 		} else { // Admin stuff
@@ -348,6 +350,7 @@ BLOCK;
 		$output = <<<BLOCK
 <form id="group_request{$uid}">
 {$explanation_alert}
+<div class="clear1em" />
 {$hidden_uid_input}
 <div id="grouplistcontainer{$uid}">
 <table id="grouplist{$uid}">
