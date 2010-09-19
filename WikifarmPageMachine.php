@@ -20,7 +20,7 @@ $("#Help h2").wrap('<p />');
 $("#Help h2").before('<span class="ui-icon ui-icon-pin-s wf-message-icon" />');
 $("#Help h2").replaceWith(function(){\$(this).parent().attr('id',\$(this).attr('id')); return '<strong>'+\$(this).html()+'</strong>';});
 $("#Help img").after('<br clear="all" />');
-$("#Help img").wrap('<div style="float:left;" />');
+$("#Help img").wrap('<div style="float:left; margin-left: 4em;" />');
 $("#Help img").wrap('<div class="ui-widget ui-state-highlight ui-corner-all" style="padding: 10px" />');
 $("#Help li").css("padding-bottom", "0.5em");
 </script>
