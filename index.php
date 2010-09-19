@@ -55,8 +55,11 @@ $tabTitles = array(
 if (!$wf->isAdmin()) {
 	unset ( $tabTitles['debug'] );
 	unset ( $tabTitles['settings'] );
-} elseif (!(isset ($_GET["tabActive"]) && $_GET["tabActive"] == "debug")) {
-	unset ( $tabTitles['debug'] );
+} else {
+	if (!(isset ($_GET["tabActive"]) && $_GET["tabActive"] == "debug")) {
+		unset ( $tabTitles['debug'] );
+	}
+	$tabTitles['adminhelp'] = 'Admin Help';
 }
 
 if (!$wf->getUserRealname() || !$wf->getUserEmail()) {

@@ -12,17 +12,25 @@ class WikifarmPageMachine extends WikifarmDriver {
 	}
 
 	function page_help() {
-		return $this->textile->textileThis(file_get_contents("help.textile")).<<<BLOCK
+		return $this->textile->textileThis(file_get_contents("help.textile")).$this->textilePostprocess("Help");
+	}
+
+	function page_adminhelp() {
+		return $this->textile->textileThis(file_get_contents("adminhelp.textile")).$this->textilePostprocess("Admin_Help");
+	}
+
+	function textilePostprocess($id) {
+		return <<<BLOCK
 <script type='text/javascript'>
-$("#Help h2").before('<div class="clear1em" />');
-$("#Help h2").wrap('<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box" />');
-$("#Help h2").wrap('<p />');
-$("#Help h2").before('<span class="ui-icon ui-icon-pin-s wf-message-icon" />');
-$("#Help h2").replaceWith(function(){\$(this).parent().attr('id',\$(this).attr('id')); return '<strong>'+\$(this).html()+'</strong>';});
-$("#Help img").after('<br clear="all" />');
-$("#Help img").wrap('<div style="float:left; margin-left: 4em;" />');
-$("#Help img").wrap('<div class="ui-widget ui-state-highlight ui-corner-all" style="padding: 10px" />');
-$("#Help li").css("padding-bottom", "0.5em");
+$("#$id h2").before('<div class="clear1em" />');
+$("#$id h2").wrap('<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box" />');
+$("#$id h2").wrap('<p />');
+$("#$id h2").before('<span class="ui-icon ui-icon-pin-s wf-message-icon" />');
+$("#$id h2").replaceWith(function(){\$(this).parent().attr('id',\$(this).attr('id')); return '<strong>'+\$(this).html()+'</strong>';});
+$("#$id img").after('<br clear="all" />');
+$("#$id img").wrap('<div style="float:left; margin-left: 4em;" />');
+$("#$id img").wrap('<div class="ui-widget ui-state-highlight ui-corner-all" style="padding: 10px" />');
+$("#$id li").css("padding-bottom", "0.5em");
 </script>
 BLOCK;
 	}
