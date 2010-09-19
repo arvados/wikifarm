@@ -346,8 +346,8 @@ BLOCK;
 		}
 /* --- groups: output page head --- */
 		$output = <<<BLOCK
-{$explanation_alert}
 <form id="group_request{$uid}">
+{$explanation_alert}
 {$hidden_uid_input}
 <div id="grouplistcontainer{$uid}">
 <table id="grouplist{$uid}">
