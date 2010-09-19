@@ -278,7 +278,7 @@ class WikifarmDriver {
 		if (!isset($quota)) $quota = 5;
 		return $quota;
 	}
-
+	
 	function setWikiQuota($newquota) {
 		$this->_cache["user"]["wikiquota"] = $newquota;
 		$this->DB->exec ("UPDATE users SET wikiquota=$newquota WHERE userid='{$this->q_openid}'");
@@ -774,7 +774,6 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 			}
 		return false;
 	}
-
 
 }  // WikifarmDriver class ends
 

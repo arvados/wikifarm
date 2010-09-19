@@ -515,16 +515,18 @@ BLOCK;
 	function frag_managewiki ($wiki) {
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
-		$html = "";
+		$html = ""; // ~jer added a button here
 		$html .= <<<BLOCK
 <div style="float: right;">
-<a class="managebutton" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download backup</a>
-<a class="managebutton" href="/$wikiid/private/stats/awstats.$wikiid.html">Web stats</a>
-<a class="managebutton" href="/$wikiid/private/access_log.txt">Raw access log</a>
+<a class="managebutton{$wikiid}" href="?view=$wikiid">View wiki</a>
+<a class="managebutton{$wikiid}" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download backup</a>
+<a class="managebutton{$wikiid}" href="/$wikiid/private/stats/awstats.$wikiid.html">Web stats</a>
+<a class="managebutton{$wikiid}" href="/$wikiid/private/access_log.txt">Raw access log</a>
 </div>
 <script language="JavaScript">
-$(".managebutton").button({icons:{primary:'ui-icon-zoomin'}});
-$(".managebutton:first").button({icons:{primary:'ui-icon-suitcase'}});
+$(".managebutton{$wikiid}").button({icons:{primary:'ui-icon-zoomin'}})
+	.first().button({icons:{primary:'ui-icon-play'}})	
+	.next().button({icons:{primary:'ui-icon-suitcase'}});
 </script>
 <div class="clear1em" />
 BLOCK;

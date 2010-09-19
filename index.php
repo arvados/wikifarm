@@ -30,8 +30,17 @@ if (preg_match ('{application/json}', $_SERVER["HTTP_ACCEPT"]) ||
 	exit;
 }
 
-header('Content-Language: en');
+// Maybe someone wants something specific
+if (isset($_GET['view'])) { // maybe a wiki?
+	$id = $_GET['view']+0;
+	if ($id > 0) {
+		$wiki = $wf->getWiki($id);
+		header('location: '.$wiki['wikiname']);
+	}
+}	
 
+header('Content-Language: en');
+	
 // Would sir enjoy some tab content?
 if (isset($_GET['tab'])) {
 	echo $wf->tabGet($_GET['tab']);
@@ -47,7 +56,7 @@ $tabTitles = array(
 			'groups'=>'Groups',
 			'myaccount'=>'My Account',
 //			'getaccess'=>'Get Access',
-			'tools'=>'Tools',
+//			'tools'=>'Tools',
 			'users'=>'User List',
 			'debug'=>'Debug',
 			'help'=>'Help');
@@ -55,8 +64,7 @@ $tabTitles = array(
 if (!$wf->isAdmin()) {
 	unset ( $tabTitles['debug'] );
 	unset ( $tabTitles['settings'] );
-}
-else if (!(isset ($_GET["tabActive"]) && $_GET["tabActive"] == "debug")) {
+} elseif (!(isset ($_GET["tabActive"]) && $_GET["tabActive"] == "debug")) {
 	unset ( $tabTitles['debug'] );
 }
 
