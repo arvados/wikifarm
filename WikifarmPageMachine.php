@@ -166,7 +166,7 @@ $(function() {
 #allwikis td { padding: 0px 5px; }
 </style>
 BLOCK;
-		$output .= $this->textRequestAccess();
+		$output .= $this->frag_request_access();
 		if ($this->isAdmin()) $output .= $this->frag_admin_managewiki();
 		/* --- Page Heading --- */
 		$output .= "<table><tr><td><div class=\"ui-widget ui-state-highlight ui-corner-all wf-message-box\"><p><span class=\"ui-icon wf-message-icon ui-icon-folder-collapsed\" /><strong>All Wikis:</strong> browse a list of all wikis on this site, or request access to specific wikis.</p></div><div class=\"clear1em\" /></td>\n".
@@ -256,7 +256,7 @@ BLOCK;
 			$groups_options .= "<option value=\"$groupid\">$groupname</option>";
 		}
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
-		$grantedit = $this->textGrantEdit();
+		$grantedit = $this->frag_grant_edit();
 		return <<<BLOCK
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your wikis: invite users, download database backups, view web stats.</p></div><div class="clear1em" />
 <script language="JavaScript">
@@ -335,7 +335,7 @@ BLOCK;
 					"<input type=hidden name=\"group_request[]\" value=\"users\" />";
 			}
 			$claim_alert = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>");
-			$hidden_claim_dialog = $this->textClaimAccount();
+			$hidden_claim_dialog = $this->frag_claim_account();
 			$explanation_alert = $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator)." );
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request' ga_action='requestgroups' ga_loader_id='group_request_loader' disabled>Submit request</button>";
 		} else { // Admin stuff
@@ -718,7 +718,7 @@ BLOCK;
 	}
 	
 	// Request access to a wiki, served in a popup.
-	function textRequestAccess() {
+	function frag_request_access() {
 		$q_defaultmwusername = htmlspecialchars ($this->getMWUsername());
 		$footnote = $this->textHighlight("<strong>Note:</strong> If you already have an account on this wiki, you do not need to request access.  Just log in once using the <a href=\"#\" id=\"reqspeciallogin\">MediaWiki login page</a> to associate your wiki account with your OpenID.", "info", "reqnativeloginhint");
 
@@ -771,7 +771,7 @@ BLOCK;
 	}
 
 	// Grant access to a wiki, served in a popup.
-	function textGrantEdit() {
+	function frag_grant_edit() {
 		return <<<EOT
 <script type="text/javascript">
 	$(function() {
@@ -824,7 +824,7 @@ EOT;
 	}
 
 	// Claim an old account, served in a dialog box.
-	function textClaimAccount() {	
+	function frag_claim_account() {	
 		return <<<EOT
 <div id="claimaccountdialog" class="wf-dialog">
 	<p>Enter the username and password that you were using before the conversion to <strong>OpenID</strong> authentication.
