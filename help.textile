@@ -48,6 +48,10 @@ If you didn't already have an account before the OpenID login system came along,
 
 !help/ss-groups.png!
 
+After you submit your request, the groups you selected will be marked "request pending" until an administrator activates your account.
+
+!help/ss-groupspending.png!
+
 After your account is activated, you will be able to browse, view, and create wikis.
 
 h2(#Help,Browsing). Browsing wikis
