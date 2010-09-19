@@ -497,7 +497,7 @@ BLOCK;
 <td>$q_openid</td>
 </tr>
 BLOCK;
-		}
+		}  // ~jer ^ reject code
 		$html .= <<<BLOCK
 </tbody></table>
 <script language="JavaScript">
@@ -519,7 +519,7 @@ BLOCK;
 		$html = ""; // ~jer added a button here
 		$html .= <<<BLOCK
 <div style="float: right;">
-<a class="managebutton{$wikiid}" href="?view=$wikiid">View wiki</a>
+<a class="managebutton{$wikiid}" href="{$wiki['wikiname']}">View wiki</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download backup</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/stats/awstats.$wikiid.html">Web stats</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/access_log.txt">Raw access log</a>
@@ -788,6 +788,16 @@ BLOCK;
 			 buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
 				    "Cancel": function() { $(this).dialog("close"); } }
 		});
+		$('#revokeeditdialog')
+			.attr('title','Uninvite a user')
+			.attr("ga_message_id", "grantmessage")
+			.dialog
+		({ modal: true,
+			 autoOpen: false,
+			 width: 400,
+			 buttons: { "OK": function() { dialog_submit(this, "#revokeeditform"); },
+				    "Cancel": function() { $(this).dialog("close"); } }
+		});
 		$('.granteditbutton').click(function(){
 			$('#grantmessage').hide();
 			$('#grantwikiname').html($(this).attr('wikiname'));
@@ -799,8 +809,13 @@ BLOCK;
 			$('#grantwikiid').val($(this).attr('wikiid'));
 			$('#grantflag').val($(this).attr('checked') ? 1 : 0);
 			if (!$(this).attr('checked')) {
-				if (confirm("Do you really want to remove "+($(this).attr('realname') ? $(this).attr('realname') : "this user")+"'s write access to the \""+$(this).attr('wikiname')+"\" wiki?"))
-					dialog_submit(this, "#granteditform");
+				$('#revokeeditform input')
+					.first().val($(this).attr('wikiid'))
+					.next().val($(this).attr('userid'));
+				$('#revokeeditdialog span')
+					.first().html(($(this).attr('realname') ? $(this).attr('realname') : "this user")+"'s")
+					.next().html($(this).attr('wikiname'))
+					.parent().dialog('open');
 			} else
 				$('#granteditdialog').dialog('open');
 			return false;
@@ -823,6 +838,16 @@ BLOCK;
 		<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden"></div>
 	</div>
 </div>
+<div id="revokeeditdialog" class="wf-dialog">
+	Do you really want to remove <span></span> write access to the "<span></span>" wiki?
+	<form id="revokeeditform">
+		<input type="hidden" name="wikiid" value=" " />
+		<input type="hidden" name="userid" value=" " />
+		<input type="hidden" name="grantflag" id="grantflag" value="0" />
+		<input type="hidden" name="ga_action" value="managewiki_editor" />
+	<form>
+</div>
+
 EOT;
 	}
 
