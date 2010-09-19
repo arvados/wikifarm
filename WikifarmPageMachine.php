@@ -520,7 +520,7 @@ BLOCK;
 		$html = ""; // ~jer added a button here
 		$html .= <<<BLOCK
 <div style="float: right;">
-<a class="managebutton{$wikiid}" href="?view=$wikiid">View wiki</a>
+<a class="managebutton{$wikiid}" href="/$wikiname/">View wiki</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download backup</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/stats/awstats.$wikiid.html">Web stats</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/access_log.txt">Raw access log</a>
