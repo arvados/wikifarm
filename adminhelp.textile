@@ -4,7 +4,7 @@ h2. Your account has admin powers.
 
 * The "Edit" button next to each user on the "User List" tab lets you edit the user's name, email, preferences, wiki quota, and group membership.
 
-* "User List" tab shows unactivated users (regular users only see activated users).
+* "User List" tab shows both activated and unactivated users (regular users only see activated users).
 
 * You get a "send me email about new accounts / group requests" checkbox on your "My Account" tab.
 
