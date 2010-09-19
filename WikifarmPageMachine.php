@@ -220,7 +220,7 @@ BLOCK;
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
 				"<a icon='ui-icon-play' id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'>View</a>" .
 				"</td><td class='minwidth nowrap'>" .
-				"<div id='button-requestpending-$wikiid' class='ui-widget ui-button-text-icon-primary ui-state-disabled $show_requestpending'><span class='ui-button-icon-primary ui-icon ui-icon-clock'></span><span class='ui-button-text'>Request pending</span></div>" .
+				"<div id='button-requestpending-$wikiid' class='ui-widget ui-button-text-icon-primary ui-state-disabled $show_requestpending' style='position:relative'><span class='ui-button-icon-primary ui-icon ui-icon-clock'></span><span class='ui-button-text'>Request pending</span></div>" .
 				"<a icon='ui-icon-key' id='button-requestwrite-$wikiid' class='requestbutton $show_requestwrite' wikiid='$wikiid' wikititle=\"$q_realname\" wikiname='$wikiname' writeonly='true'>Request&nbsp;write&nbsp;access</a>" .
 				"<a icon='ui-icon-key' id='button-request-$wikiid' class='requestbutton $show_request' wikiid='$wikiid' wikititle=\"$q_realname\">Request access</a>" .
 				"</td></tr>\n";
