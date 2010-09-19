@@ -325,18 +325,18 @@ BLOCK;
 		}
 		$q_openid = $this->q_openid;
 /* --- groups: page frills --- */
-		$request_activation = '';
 		$hidden_claim_dialog = '';
 		$claim_alert = '';
 		$hidden_uid_input = '';
 		if (!$admin_mode) {
 			if (!$this->isActivated() && !$this->isActivationRequested()) {
-				$request_activation = $this->textHighlight("<p>Please select any groups your account should belong to, then click the \"submit\" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>") .
+				$explanation_alert = $this->textHighlight("<p>Please select any groups your account should belong to, then click the \"submit\" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>") .
 					"<input type=hidden name=\"group_request[]\" value=\"users\" />";
+			} else {
+				$explanation_alert = $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator)." );
 			}
 			$claim_alert = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>");
 			$hidden_claim_dialog = $this->frag_claim_account();
-			$explanation_alert = $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator)." );
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request' ga_action='requestgroups' ga_loader_id='group_request_loader' disabled>Submit request</button>";
 		} else { // Admin stuff
 			$explanation_alert = $this->textHighlight ("Editing group memberships for $q_openid");
@@ -347,7 +347,6 @@ BLOCK;
 		$output = <<<BLOCK
 {$explanation_alert}
 <form id="group_request{$uid}">
-{$request_activation}
 {$hidden_uid_input}
 <div id="grouplistcontainer{$uid}">
 <table id="grouplist{$uid}">
