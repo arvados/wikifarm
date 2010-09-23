@@ -20,7 +20,7 @@ class WikifarmAuthPlugin extends AuthPlugin {
 			 . SQLite3::escapeString ($this->userid)
 			 . "' order by lastlogintime desc limit 1", true);
 		if ($autologin) {
-			$this->mwusername = $autologin["mwusername"];
+			$this->mwusername = preg_replace('{_}',' ',$autologin["mwusername"]);
 			$this->userid_is_owner = $autologin["sysop"];
 		}
 
