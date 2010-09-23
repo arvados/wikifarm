@@ -300,12 +300,13 @@ class WikifarmDriver {
 		if (!$ok) return false;
 		$wikiid = $this->querySingle ("SELECT last_insert_rowid()");
 		if (!$wikiid) return false;
-		$wikiid = sprintf ("%02d", $wikiid);
 		$this->DB->exec ("INSERT INTO autologin (wikiid, userid, mwusername, lastlogintime, sysop) values ($wikiid, '".$this->q_openid."','".SQLite3::escapeString ($mwusername)."',strftime('%s','now'),1)");
 		foreach ($this->getAllGroups() as $g)
 			if ($groups && false !== array_search ($g["groupid"], $groups))
 				$this->DB->exec ("INSERT INTO wikipermission (wikiid, userid_or_groupname) VALUES ($wikiid, '".SQLite3::escapeString ($g["groupid"])."')");
+		$this->inviteUser ($wikiid, $this->openid, $mwusername);
 
+		$wikiid = sprintf ("%02d", $wikiid);
 		if (false === system ("sudo -u ubuntu /home/wikifarm/etc/wikifarm-create-wiki "
 				      .escapeshellarg($wikiid)." "
 				      .escapeshellarg($wikiname)." "
