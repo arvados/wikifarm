@@ -146,12 +146,14 @@ BLOCK;
 			error_log ("page_wikis: requested by unactivated user");
 			return "";
 		}
-		$wikiArray = $this->getAllWikis();
-/* --- Javascript and CSS --- */		
-		$output = <<<BLOCK
+		$output = $this->frag_request_access();
+		if ($this->isAdmin()) $output .= $this->frag_admin_managewiki();
+		$output .= <<<BLOCK
 <script type='text/javascript'>
 $.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
-	var nTr = oSettings.aoData[iDataIndex].nTr; 
+	var nTr = oSettings.aoData[iDataIndex].nTr;
+	if (nTr.className.match(/inactive/) && !$('#viewinactive').attr('checked'))
+	    return false;
 	if (nTr.className.match(/nonreadable/) && $('#viewreadableselected').attr('checked'))
 	    return false;
 	if (nTr.className.match(/nonwritable/) && $('#viewwritableselected').attr('checked'))
@@ -160,13 +162,14 @@ $.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
 });
 $(function() {
 	$('#viewallradio').buttonset();
-	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100, 'aoColumnDefs': [ { 'bSearchable': false, 'aTargets': [ 2, 5, 6, 7 ] } ] });
-	$('#viewallradio input').change( function(){ oTable.fnDraw(); } );
 	$('.editbutton').click(function(){ mywikisLoadTabOnce = $(this).attr('wikiname'); wf_tab_select('tabs', 'mywikis'); });
 	$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })
 	$('.loginselect').change( function() { if ($(this).val()!='') { $(this).addClass('generic_ajax'); $(this).click(); $(this).removeClass('generic_ajax'); } $(this).val(''); return false; } );
 	\$('#allwikis a[icon]').each(function(){\$(this).button({icons:{primary:\$(this).attr('icon')}});});
 	\$('#allwikis a.ui-helper-hidden[icon]').hide();
+	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100, 'aoColumnDefs': [ { 'bSearchable': false, 'aTargets': [ 2, 5, 6, 7 ] } ] });
+	$('#viewallradio input').change( function(){ oTable.fnDraw(); } );
+	$('#viewinactive').change( function(){ oTable.fnDraw(); } );
 });
 </script>
 <style type="text/css">
@@ -174,15 +177,13 @@ $(function() {
 #allwikis td { padding: 0px 5px; }
 </style>
 BLOCK;
-		$output .= $this->frag_request_access();
-		if ($this->isAdmin()) $output .= $this->frag_admin_managewiki();
 		/* --- Page Heading --- */
 		$output .= "<table><tr><td><div class=\"ui-widget ui-state-highlight ui-corner-all wf-message-box\"><p><span class=\"ui-icon wf-message-icon ui-icon-folder-collapsed\" /><strong>All Wikis:</strong> browse a list of all wikis on this site, or request access to specific wikis.</p></div><div class=\"clear1em\" /></td>\n".
 			"<td><div align=right id='viewallradio'>\n".
 				"\t<input type='radio' id='viewallselected' name='viewallradio' checked='checked' /><label for='viewallselected'>View All</label>\n".
 				"\t<input type='radio' id='viewreadableselected' name='viewallradio' /><label for='viewreadableselected'>View Readable</label>\n".
 				"\t<input type='radio' id='viewwritableselected' name='viewallradio' /><label for='viewwritableselected'>View Writable</label>\n".				
-			"</div></td></tr></table>\n".
+			"</div></td><td class='nowrap'><input type='checkbox' id='viewinactive' name='viewinactive' /> Include inactive wikis</td></tr></table>\n".
 			"<form id='allwikisform'>\n" .
 			"<table id='allwikis'>\n" .
 			"<thead><tr>\n".
@@ -196,8 +197,10 @@ BLOCK;
 				"<th class='minwidth'>Request</th>".
 			"</tr></thead>\n<tbody>\n";
 /* --- Each Wiki Listing --- */	
+		$wikiArray = $this->getAllWikis();
 		foreach ($wikiArray as $row) {
 			extract ($row);
+			$active = preg_match('{://}', $userid);
 			$requested_writable = $requested_autologin;
 			$writable = !!($autologin && $autologin[0]);
 			if ($realname == '')
@@ -205,7 +208,7 @@ BLOCK;
 			$q_realname = htmlspecialchars($realname);
 			$show_edit = ($this->openid == $owner_userid && !$this->isAdmin() ? '' : 'ui-helper-hidden');
 			$show_admin_edit = ($this->isAdmin() ? '' : 'ui-helper-hidden');
-			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
+			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . (!$active ? 'inactive' : '') . "'>".
 				"<td class='minwidth nowrap' style='text-align:right'>$wikiid</td>".
 				"<td class='minwidth nowrap'>".($readable ? "<a href=\"/$wikiname/\">$wikiname</a>" : $wikiname)."</td>".
 				"<td class='minwidth nowrap'>".($writable ? "<span class='ui-icon ui-icon-pencil' style='float:right; vertical-align:bottom;'></span>" : "" )."</td>".
