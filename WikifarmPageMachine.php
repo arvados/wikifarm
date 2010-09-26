@@ -455,8 +455,8 @@ BLOCK;
 </table>
 {$adminrow}
 <script language="JavaScript">
-$("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25, "bLengthChange": false});
 $(".admin-user-button").button({icons:{primary:'ui-icon-wrench'}});
+$("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25});
 </script>
 BLOCK;
 		return $html;
