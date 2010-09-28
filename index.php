@@ -55,15 +55,16 @@ $tabTitles = array(
 			'mywikis'=>'My Wikis',
 			'groups'=>'Groups',
 			'myaccount'=>'My Account',
-//			'getaccess'=>'Get Access',
-//			'tools'=>'Tools',
 			'users'=>'User List',
 			'debug'=>'Debug',
-			'help'=>'Help');
+			'help'=>'Help',
+			'adminhelp'=>'Admin Help'
+			);
 
 if (!$wf->isAdmin()) {
 	unset ( $tabTitles['debug'] );
 	unset ( $tabTitles['settings'] );
+	unset ( $tabTitles['adminhelp'] );
 } elseif (!(isset ($_GET["tabActive"]) && $_GET["tabActive"] == "debug")) {
 	unset ( $tabTitles['debug'] );
 }
@@ -123,7 +124,8 @@ if (isset ($_GET["tabActive"]))
 		});
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
-		$("#logoutbutton").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');			
+		$("#pageheader a").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');
+		$("#pageheader a:first").hide(); // TODO: make a "what's new" page?
 	});	
 
 </script>
@@ -137,7 +139,7 @@ if (isset ($_GET["tabActive"]))
 <body>
 
 <div id="pageheader"><div id="logo"></div>
-<div><a href="logout.php" id="logoutbutton">Log out</a></div>
+<div><a href="logout.php">What's New?</a><a href="logout.php">Log out</a></div>
 </div>
 
 <div id="tabs">

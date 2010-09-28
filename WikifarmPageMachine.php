@@ -315,6 +315,7 @@ BLOCK;
 
 	function page_groups($userid=false) {
 		$admin_mode = false;
+		if ($this->isAdmin() && isset($_GET['userid'])) $userid = $_GET['userid'];
 		$uid = '';
 		if ($userid &&
 		    $this->is_a_user($userid) &&
@@ -341,14 +342,15 @@ BLOCK;
 		} else { // Admin stuff
 			$explanation_alert = $this->textHighlight ("Editing group memberships for $q_openid");
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request{$uid}' ga_action='setgroups' ga_loader_id='group_request_loader' ga_message_id='group_request_message' admin_mode='1'>Save changes</button>";
-			$hidden_uid_input = "<input type='hidden' name='userid' value='".htmlspecialchars($this->openid)."' />";
+			$hidden_uid_input = "<input type='hidden' name='userid' value='".htmlspecialchars($this->openid)."' />" .
+				"<input type='hidden' name='refresh_tabs' value='#amu-tabs' />";
 		}
+		
 /* --- groups: output page head --- */
 		$output = <<<BLOCK
 {$explanation_alert}
 <form id="group_request{$uid}">
 {$hidden_uid_input}
-<div id="grouplistcontainer{$uid}">
 <table id="grouplist{$uid}">
 <thead><tr>
 <th class="minwidth">&nbsp;</th>
@@ -357,7 +359,6 @@ BLOCK;
 </tr></thead>
 <tbody>
 BLOCK;
-
 /* --- groups: table body ---- */
 		foreach ($this->getAllGroups($admin_mode) as $g) {
 			$extra = "";
@@ -379,11 +380,16 @@ BLOCK;
 </tr>
 BLOCK;
 		}
+		// Input box to create a new group
+		if ($admin_mode)  $output .= <<<BLOCK
+<tr><td class="minwidth"><input type="checkbox" name="group_request[]" value=""/></td>
+<td class="minwidth"><input type=text value="new group"></td>
+<td>&nbsp</td></tr>
+BLOCK;
 /* --- groups: tail --- */ 
-$output .= <<<BLOCK
+		$output .= <<<BLOCK
 </tbody>
 </table>
-</div>
 <p>
 {$request_button} after selecting groups.
 <span id="group_request_loader"></span></p>
@@ -391,9 +397,21 @@ $output .= <<<BLOCK
 </form>
 {$claim_alert}
 {$hidden_claim_dialog}
-
 <script language="JavaScript">
 	$(function(){
+		$("#grouplist{$uid} input[type=text]")
+		.focus( function(){ 
+			$(this).parent().prev().find("input[type=checkbox]").attr('checked', 'true');
+			if ($(this).val() == "new group") $(this).val("");
+			$("#group_request_submit").removeAttr('disabled');
+		})
+		.blur( function(){ 
+			if ($(this).val() == "" || $(this).val() == "new group") {
+				$("#group_request_submit").attr('disabled', 'true');
+				$(this).val("new group");
+				$(this).parent().prev().find("input[type=checkbox]").removeAttr('checked');
+			} else $(this).parent().prev().find("input[type=checkbox]").val($(this).val());
+		});
 		$("#grouplist{$uid}").mutateID().dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
 		group_request_enable();
 	});
@@ -449,9 +467,20 @@ BLOCK;
 		return $html;
 	}
 
-	function page_tools() {
+	function page_adminhelp() {
 		return <<<BLOCK
-<p><a href="table.php">Excel -> Wiki Table converter</a></p>
+<ol>
+<li>"Manage" button next to each wiki in the "All Wikis" tab lets you invite/disinvite users/groups 
+	(same way regular users can do for wikis they own)
+
+<li> "Wrench" icon next to each user on the "User List" tab lets you edit name/email/preferences/quota/groups
+
+<li> "User List" tab shows unactivated users (regular users only see activated users)
+
+<li>You get a "send me email about new accounts / group requests" checkbox on your "My Account" tab
+
+<li>Your "Requests" tab shows any outstanding activation/group requests (along with any requests to read/edit your wikis)
+</ol>
 BLOCK;
 	}
 
@@ -497,7 +526,7 @@ BLOCK;
 <td>$q_openid</td>
 </tr>
 BLOCK;
-		}  // ~jer ^ reject code
+		}
 		$html .= <<<BLOCK
 </tbody></table>
 <script language="JavaScript">
@@ -513,11 +542,12 @@ BLOCK;
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
 
+// Admin "Manage A Wiki" dialog box Content
 	function frag_managewiki ($wiki) {
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
-		$html = ""; // ~jer added a button here
-		$html .= <<<BLOCK
+		$groups_heading = $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
+		$html = <<<BLOCK
 <div style="float: right;">
 <a class="managebutton{$wikiid}" href="{$wiki['wikiname']}">View wiki</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download backup</a>
@@ -530,25 +560,32 @@ $(".managebutton{$wikiid}").button({icons:{primary:'ui-icon-zoomin'}})
 	.next().button({icons:{primary:'ui-icon-suitcase'}});
 </script>
 <div class="clear1em" />
+<form id="mwf{$wikiid}">
+	<input type="hidden" name="wikiid" value="{$wikiid}" />
+{$groups_heading}
+	<table id="mwg{$wikiid}">
+		<thead><tr><th class="minwidth">&nbsp;</th><th>&nbsp;</th></tr></thead><tbody>
 BLOCK;
-		$html .= "<form id=\"mwf$wikiid\">";
-		$html .= "<input type=\"hidden\" name=\"wikiid\" value=\"$wikiid\" />\n";
-		$html .= $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
-		$html .= "<table id=\"mwg${wikiid}\">";
-		$html .= "<thead><tr><th class=\"minwidth\">&nbsp;</th><th>&nbsp;</th></tr></thead><tbody>";
+/* Groups that feature this wiki: */
 		foreach ($this->getAllGroups() as $g) {
 			if ($g["groupid"] == "ADMIN") continue;
-			$html .= "<tr>";
 			$checked = false === array_search ($g["groupid"], $groups) ? "" : "checked";
-			$groupid = $g["groupid"];
-			$html .= "<td class=\"minwidth\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mwf$wikiid\" ga_action=\"managewiki_groups\" id=\"mw${wikiid}_group_".htmlspecialchars($g["groupid"])."\" name=\"mw${wikiid}_groups[]\" value=\"".htmlspecialchars($g["groupid"])."\" $checked></td>";
-			$html .= "<td>".htmlspecialchars($g["groupname"])."</td>";
-			$html .= "</tr>";
-		}
-		$html .= "</tbody></table>";
-
-		$html .= "<div class=\"clear1em\" />";
-
+			$groupid = htmlspecialchars($g["groupid"]);
+			$groupname = htmlspecialchars($g["groupname"]);
+			$html .= <<<BLOCK
+			<tr><td class="minwidth"><input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_group_{$groupid}" name="mw{$wikiid}_groups[]" value="{$groupid}" {$checked}></td>
+				<td>{$groupname}</td></tr>
+BLOCK;
+		}  
+		/* -- unused: since a group can't exist without a member, there's no point in creating one from this screen --
+		if ($this->isAdmin()) $html .= <<<BLOCK
+			<tr><td class="minwidth"><input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_newgroup" name="mw{$wikiid}_groups[]" value="" refresh_tabs="false" disabled="disabled" /></td>
+				<td class="minwidth"><input type=text value="new group"></td></tr>
+		
+BLOCK; 
+		*/
+		$html .= "</tbody></table>" . 
+			"<div class=\"clear1em\" />";
 		$invited_users = $this->getInvitedUsers ($wikiid);
 		$invited_userid = array();
 		$invited_userid_w = array();
@@ -587,10 +624,28 @@ BLOCK;
 		$html .= "<br /><div style=\"min-height: 12px;\" /><br />";
 
 		$html .= "</form>";
-		$html .= "<script language=\"JavaScript\">
-\$(\"#mwg$wikiid\").mutateID().dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bFilter\": false, \"bLengthChange\": false, \"bPaginate\": false});
-\$(\"#mwu$wikiid\").mutateID().dataTable({'bJQueryUI': true, \"bAutoWidth\": false, \"bInfo\": false, \"bSort\": false, \"bLengthChange\": false});
-</script>\n";
+		$html .= "<script language=\"JavaScript\">";
+		/* --- unused: javascript portion of add-a-group ---
+		$html .= <<<BLOCK
+	$(function(){
+		$("#mwg{$wikiid} input[type=text]")
+		.focus( function(){ 
+			if ($(this).val() == "new group") $(this).val("");
+			$(this).parent().prev().find("input[type=checkbox]").removeAttr('disabled');
+		})
+		.blur( function(){ 
+			if ($(this).val() == "" || $(this).val() == "new group") {
+			$(this).parent().prev().find("input[type=checkbox]").attr('disabled', 'true');
+				$(this).val("new group");
+			} else $(this).parent().prev().find("input[type=checkbox]").val($(this).val());
+		});				
+	});
+	*/
+		$html .= <<<BLOCK
+	$("#mwg{$wikiid}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "bFilter": false, "bLengthChange": false, "bPaginate": false});
+	$("#mwu{$wikiid}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "bLengthChange": false});
+</script>
+BLOCK;
 		return $html;
 	}
 
@@ -650,7 +705,6 @@ BLOCK;
 			return "Invalid UserID = " . $_GET['userid'];
 		}
 		$useraccount = $this->page_myaccount($user['userid']);
-		$usergroups = $this->page_groups($user['userid']);
 		return <<<BLOCK
 <script type="text/javascript">
 	$(function() {
@@ -660,10 +714,9 @@ BLOCK;
 <div id='amu-tabs'>
 	<ul>
 		<li><a tab_id='admin-userinfo-tab' href="#admin-userinfo-tab">User Details</a></li>
-		<li><a tab_id='admin-usergroups-tab' href="#admin-usergroups-tab">Groups</a></li>
+		<li><a tab_id='admin-usergroups-tab' href="?tab=groups&userid={$user['userid']}">Groups</a></li>
 	</ul>
 	<div id='admin-userinfo-tab'>{$useraccount}</div>
-	<div id='admin-usergroups-tab'>{$usergroups}</div>
 </div>	
 BLOCK;
 	}
@@ -887,6 +940,7 @@ EOT;
 
 	// AJAX handlers
 
+	// Parent Ajax handler, returns objects from any ajax_* methods to be dispatched as json-encoded data
 	function dispatch_ajax ($post) {
 		if (!isset($post["ga_action"]))
 			return $this->fail ("Client side error: no action requested.");
@@ -898,7 +952,7 @@ EOT;
 			return $this->fail ($e->getMessage());
 		}
 	}
-
+	// example methods for using dispach_ajax()
 	function ajax_test_success ($post) {
 		if (preg_match ('{^\d+$}', $post["sample_id"]))
 			sleep ($post["sample_id"]);
@@ -949,6 +1003,7 @@ EOT;
 		$uncheckus = array();
 		$enableus = array();
 		$disableus = array();
+		$refreshrule = isset($post["refreshtab"]) ? $post["refreshtab"] : "false";
 
 		// Note which users can view the wiki before we make changes
 		$read_via_group_before = array();
@@ -968,6 +1023,16 @@ EOT;
 				$checkus[] = "mw${wikiid}_group_".$g["groupid"];
 			}
 		}
+		/* --- unused: no point in creating a group here... unless you don't mind being a member, too?
+		// An Admin might be trying to create a new group
+		if ($this->isAdmin()) {
+			$all_groupids = array_map( function ($g) { return $g["groupid"]; }, $this->getAllGroups() );
+			foreach (array_diff( $want, $all_groupids ) as $g) {
+				$this->inviteGroup($wikiid, $g);
+				$this->joinGroup($g); // aye, there's the rub
+				}
+		}
+		*/
 
 		// Check which users can view the wiki now, and
 		// check/uncheck "view" checkboxes in the "invite
@@ -1000,7 +1065,8 @@ EOT;
 			      "check" => $checkus,
 			      "uncheck" => $uncheckus,
 			      "enable" => $enableus,
-			      "disable" => $disableus);
+			      "disable" => $disableus,
+			      "refreshtab" => $refreshrule);
 	}
 
 	function ajax_managewiki_users ($post) {
@@ -1102,8 +1168,11 @@ EOT;
 	function ajax_setgroups ($post) {
 		if (!$this->isAdmin()) return $this->fail ("You are not allowed to do that.");
 		$this->Focus ($post["userid"]);
+		foreach ($post["group_request"] as $g)
+			$this->validate_groupid ($g);
 		$this->setGroups ($post["group_request"]);
-		return $this->success(array("message" => "Changes saved."));
+		$tabs = $post['refresh_tabs'] ? $post['refresh_tabs'] : false;  // if tabs is set, reload this tab
+		return $this->success(array("message" => "Changes saved.", "refreshtab" => $tabs));
 	}
 
 	function ajax_requestgroups ($post) {		
@@ -1214,6 +1283,11 @@ EOT;
 	function validate_email ($x) {
 		if (!preg_match ('{^[-_\.a-z0-9]+@[-_\.a-z0-9]+\.[a-z]+$}i', $x))
 			throw new Exception ("That email address does not look like an email address.");
+	}
+
+	function validate_groupid ($x) {
+		if (!preg_match ('{^[a-z][a-z0-9]{2,12}$}', $x))
+			throw new Exception ("Your group id must be 3 to 12 lower case letters and digits, must start with a letter, and cannot contain quotation marks, symbols, or special characters.");
 	}
 
 	function validate_activated () {

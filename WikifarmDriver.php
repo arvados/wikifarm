@@ -315,8 +315,9 @@ class WikifarmDriver {
 		return true;
 	}
 
+	// Affects a group's relationship with a wiki
 	function inviteGroup ($wikiid, $groupid) {
-		$wikiid += 0;
+		$wikiid += 0;		
 		$this->DB->exec ("INSERT OR IGNORE INTO wikipermission (wikiid, userid_or_groupname) values ($wikiid, '".SQLite3::escapeString($groupid)."')");
 	}
 
@@ -378,7 +379,6 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		return $this->_cache["allgroups"];
 	}
 	
-
 	// Has this user been added to one or more groups, i.e.,
 	// sanctioned as a legitimate user?  If not, we have no idea
 	// whether she's a spammer, attacker, spy, hater, etc.
@@ -470,6 +470,12 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		return true;
 	}
 
+	function joinGroup($group) {
+		$q_group = SQLite3::escapeString ($group);
+		$this->DB->exec ("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES ('{$this->q_openid}', '{$q_group}')");
+		return true;
+	}
+
 	function requestGroup($groups) {
 		if (!is_array($groups))
 			$groups = array($groups);
@@ -494,7 +500,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 					$found = true;
 					break;
 				}
-			if (!$found)
+			if (!$found) 
 				error_log ("requestGroup nonexistent group: $group");
 		}
 

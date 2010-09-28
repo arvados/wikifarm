@@ -53,7 +53,7 @@ function generic_ajax_success(data, textStatus, req, button)
 	$.each(data.hide, function (i,e) { if ($('#'+e)) $('#'+e).hide(); });
     if (data.show)
 	$.each(data.show, function (i,e) { if ($('#'+e)) $('#'+e).show(); });
-
+	
     if (data.request && data.request.ga_loader_id && $('#'+data.request.ga_loader_id))
 	$('#'+data.request.ga_loader_id).hide();
     var msg = false;
@@ -79,8 +79,11 @@ function generic_ajax_success(data, textStatus, req, button)
 	alert (data.message);
     if (data.redirect)
 	window.location = data.redirect;
-    if (data.refreshtab)
-	$('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
+	  if (data.refreshtab)  // TODO: test this more
+			if ($(data.refreshtab).exists())
+	$(data.refreshtab).tabs('load', $(data.refreshtab).tabs('option', 'selected'));	
+			else
+  $('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
     if (data.selecttab)
 	wf_tab_select('tabs', data.selecttab);
 }
@@ -98,8 +101,9 @@ function generic_ajax_error(req, textStatus, errorThrown, button)
 function generic_ajax_submit()
 {
     try {
-	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
+	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();	
 	var ga_loader_id = $(this).attr('ga_loader_id');
+	var gibbrish = '';
 	postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
 		    {name: 'ga_loader_id', value: $(this).attr('ga_loader_id')},
 		    {name: 'ga_button_id', value: $(this).attr('id')},
