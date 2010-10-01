@@ -483,23 +483,6 @@ BLOCK;
 		return $html;
 	}
 
-	function page_adminhelp() {
-		return <<<BLOCK
-<ol>
-<li>"Manage" button next to each wiki in the "All Wikis" tab lets you invite/disinvite users/groups 
-	(same way regular users can do for wikis they own)
-
-<li> "Wrench" icon next to each user on the "User List" tab lets you edit name/email/preferences/quota/groups
-
-<li> "User List" tab shows unactivated users (regular users only see activated users)
-
-<li>You get a "send me email about new accounts / group requests" checkbox on your "My Account" tab
-
-<li>Your "Requests" tab shows any outstanding activation/group requests (along with any requests to read/edit your wikis)
-</ol>
-BLOCK;
-	}
-
 	function page_requests() {
 		$requests = $this->getAllRequests();
 		$num = count($requests);
