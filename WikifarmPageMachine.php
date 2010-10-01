@@ -12,17 +12,25 @@ class WikifarmPageMachine extends WikifarmDriver {
 	}
 
 	function page_help() {
-		return $this->textile->textileThis(file_get_contents("help.textile")).<<<BLOCK
+		return $this->textile->textileThis(file_get_contents("help.textile")).$this->textilePostprocess("Help");
+	}
+
+	function page_adminhelp() {
+		return $this->textile->textileThis(file_get_contents("adminhelp.textile")).$this->textilePostprocess("Admin_Help");
+	}
+
+	function textilePostprocess($id) {
+		return <<<BLOCK
 <script type='text/javascript'>
-$("#Help h2").before('<div class="clear1em" />');
-$("#Help h2").wrap('<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box" />');
-$("#Help h2").wrap('<p />');
-$("#Help h2").before('<span class="ui-icon ui-icon-pin-s wf-message-icon" />');
-$("#Help h2").replaceWith(function(){\$(this).parent().attr('id',\$(this).attr('id')); return '<strong>'+\$(this).html()+'</strong>';});
-$("#Help img").after('<br clear="all" />');
-$("#Help img").wrap('<div style="float:left; margin-left: 4em;" />');
-$("#Help img").wrap('<div class="ui-widget ui-state-highlight ui-corner-all" style="padding: 10px" />');
-$("#Help li").css("padding-bottom", "0.5em");
+$("#$id h2").before('<div class="clear1em" />');
+$("#$id h2").wrap('<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box" />');
+$("#$id h2").wrap('<p />');
+$("#$id h2").before('<span class="ui-icon ui-icon-pin-s wf-message-icon" />');
+$("#$id h2").replaceWith(function(){\$(this).parent().attr('id',\$(this).attr('id')); return '<strong>'+\$(this).html()+'</strong>';});
+$("#$id img").after('<br clear="all" />');
+$("#$id img").wrap('<div style="float:left; margin-left: 4em;" />');
+$("#$id img").wrap('<div class="ui-widget ui-state-highlight ui-corner-all" style="padding: 10px" />');
+$("#$id li").css("padding-bottom", "0.5em");
 </script>
 BLOCK;
 	}
@@ -138,12 +146,14 @@ BLOCK;
 			error_log ("page_wikis: requested by unactivated user");
 			return "";
 		}
-		$wikiArray = $this->getAllWikis();
-/* --- Javascript and CSS --- */		
-		$output = <<<BLOCK
+		$output = $this->frag_request_access();
+		if ($this->isAdmin()) $output .= $this->frag_admin_managewiki();
+		$output .= <<<BLOCK
 <script type='text/javascript'>
 $.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
-	var nTr = oSettings.aoData[iDataIndex].nTr; 
+	var nTr = oSettings.aoData[iDataIndex].nTr;
+	if (nTr.className.match(/inactive/) && !$('#viewinactive').attr('checked'))
+	    return false;
 	if (nTr.className.match(/nonreadable/) && $('#viewreadableselected').attr('checked'))
 	    return false;
 	if (nTr.className.match(/nonwritable/) && $('#viewwritableselected').attr('checked'))
@@ -152,13 +162,14 @@ $.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
 });
 $(function() {
 	$('#viewallradio').buttonset();
-	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100, 'aoColumnDefs': [ { 'bSearchable': false, 'aTargets': [ 2, 5, 6, 7 ] } ] });
-	$('#viewallradio input').change( function(){ oTable.fnDraw(); } );
 	$('.editbutton').click(function(){ mywikisLoadTabOnce = $(this).attr('wikiname'); wf_tab_select('tabs', 'mywikis'); });
 	$('.linkbutton').click(function(){ var url = $(this).attr('link'); $(location).attr('href',url); })
 	$('.loginselect').change( function() { if ($(this).val()!='') { $(this).addClass('generic_ajax'); $(this).click(); $(this).removeClass('generic_ajax'); } $(this).val(''); return false; } );
 	\$('#allwikis a[icon]').each(function(){\$(this).button({icons:{primary:\$(this).attr('icon')}});});
 	\$('#allwikis a.ui-helper-hidden[icon]').hide();
+	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100, 'aoColumnDefs': [ { 'bSearchable': false, 'aTargets': [ 2, 5, 6, 7 ] } ] });
+	$('#viewallradio input').change( function(){ oTable.fnDraw(); } );
+	$('#viewinactive').change( function(){ oTable.fnDraw(); } );
 });
 </script>
 <style type="text/css">
@@ -166,15 +177,13 @@ $(function() {
 #allwikis td { padding: 0px 5px; }
 </style>
 BLOCK;
-		$output .= $this->frag_request_access();
-		if ($this->isAdmin()) $output .= $this->frag_admin_managewiki();
 		/* --- Page Heading --- */
 		$output .= "<table><tr><td><div class=\"ui-widget ui-state-highlight ui-corner-all wf-message-box\"><p><span class=\"ui-icon wf-message-icon ui-icon-folder-collapsed\" /><strong>All Wikis:</strong> browse a list of all wikis on this site, or request access to specific wikis.</p></div><div class=\"clear1em\" /></td>\n".
 			"<td><div align=right id='viewallradio'>\n".
 				"\t<input type='radio' id='viewallselected' name='viewallradio' checked='checked' /><label for='viewallselected'>View All</label>\n".
 				"\t<input type='radio' id='viewreadableselected' name='viewallradio' /><label for='viewreadableselected'>View Readable</label>\n".
 				"\t<input type='radio' id='viewwritableselected' name='viewallradio' /><label for='viewwritableselected'>View Writable</label>\n".				
-			"</div></td></tr></table>\n".
+			"</div></td><td class='nowrap'><input type='checkbox' id='viewinactive' name='viewinactive' /> Include inactive wikis</td></tr></table>\n".
 			"<form id='allwikisform'>\n" .
 			"<table id='allwikis'>\n" .
 			"<thead><tr>\n".
@@ -188,8 +197,10 @@ BLOCK;
 				"<th class='minwidth'>Request</th>".
 			"</tr></thead>\n<tbody>\n";
 /* --- Each Wiki Listing --- */	
+		$wikiArray = $this->getAllWikis();
 		foreach ($wikiArray as $row) {
 			extract ($row);
+			$active = preg_match('{://}', $userid);
 			$requested_writable = $requested_autologin;
 			$writable = !!($autologin && $autologin[0]);
 			if ($realname == '')
@@ -197,15 +208,15 @@ BLOCK;
 			$q_realname = htmlspecialchars($realname);
 			$show_edit = ($this->openid == $owner_userid && !$this->isAdmin() ? '' : 'ui-helper-hidden');
 			$show_admin_edit = ($this->isAdmin() ? '' : 'ui-helper-hidden');
-			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . "'>".
+			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . (!$active ? 'inactive' : '') . "'>".
 				"<td class='minwidth nowrap' style='text-align:right'>$wikiid</td>".
 				"<td class='minwidth nowrap'>".($readable ? "<a href=\"/$wikiname/\">$wikiname</a>" : $wikiname)."</td>".
 				"<td class='minwidth nowrap'>".($writable ? "<span class='ui-icon ui-icon-pencil' style='float:right; vertical-align:bottom;'></span>" : "" )."</td>".
 				"<td class='minwidth nowrap'>".htmlspecialchars($owner_realname).
 				"</td><td>".(implode(", ", $groups)).
 				"</td><td class='minwidth nowrap'>".
-				"<a icon='ui-icon-gear' id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\">Manage</a>" .
-				"<a icon='ui-icon-gear' class='admin-manage-button $show_admin_edit' wikiid='$wikiid'>Admin</a>".
+				"<a icon='ui-icon-wrench' id='button-admin-$wikiid' class='editbutton $show_edit' wikiname='$wikiname' wikititle=\"$q_realname\">Manage</a>" .
+				"<a icon='ui-icon-wrench' class='admin-manage-button $show_admin_edit' wikiid='$wikiid'>Admin</a>".
 				"</td>";
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
@@ -213,8 +224,8 @@ BLOCK;
 			$show_login = ($autologin[0] ? '' : 'ui-helper-hidden');
 			$show_view = (!$writable && $readable ? '' : 'ui-helper-hidden');
 			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
-			$show_requestwrite = (!$writable && $readable && !$requested_readable && !$requested_writable ? '' : 'ui-helper-hidden');
-			$show_request =  (!$writable && !$readable ? '' : 'ui-helper-hidden');
+			$show_requestwrite = (!$writable && !$requested_writable && ($readable || $requested_readable) ? '' : 'ui-helper-hidden');
+			$show_request = (!$readable && !$requested_readable ? '' : 'ui-helper-hidden');
 			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='wf-button loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
 			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
@@ -226,6 +237,7 @@ BLOCK;
 				"</td></tr>\n";
 		}
 		$output .= "</tbody></table></form>\n";
+		$output .= $this->frag_grant_edit();
 		return $output;
 	}
 
@@ -242,7 +254,7 @@ BLOCK;
 			$visible_to = implode(", ", $groups);
 			$q_realname = htmlspecialchars ($realname);
 			$tabs .= "\t\t<li><a tab_id='tab_$wikiname' href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $q_realname</a></li>\n";
-			$content .= "<div id=\"tab_$wikiname\">" .	$this->frag_managewiki ($row) .	"</div>\n";
+			$content .= "<div id=\"tab_$wikiname\">" . $this->frag_managewiki ($row) . "</div>\n";
 		}
 		$groups_options = "";
 		foreach ($this->getAllGroups() as $g) {
@@ -279,7 +291,7 @@ $(function() {
 <table>
 
 <tr><td class="formlabelleft nowrap">Wiki title:</td>
-<td class="minwidth"><input type=text name=realname size=32 value="Lab Notebook"></td>
+<td class="minwidth"><input type=text name=realname size=32 value="Notebook"></td>
 <td>Full title of your wiki</td>
 </tr>
 
@@ -333,10 +345,12 @@ BLOCK;
 			if (!$this->isActivated() && !$this->isActivationRequested()) {
 				$explanation_alert = $this->textHighlight("<p>Please select any groups your account should belong to, then click the \"submit\" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>") .
 					"<input type=hidden name=\"group_request[]\" value=\"users\" />";
+			} else if (!$this->isActivated()) {
+				$explanation_alert = $this->textHighlight ("Your request for account activation has been submitted.", "comment");
 			} else {
 				$explanation_alert = $this->textHighlight ("This page shows which groups your account belongs to.  You can also request to be added to more groups (your request will be approved by a site administrator)." );
 			}
-			$claim_alert = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>");
+			$claim_alert = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>", "lightbulb");
 			$hidden_claim_dialog = $this->frag_claim_account();
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request' ga_action='requestgroups' ga_loader_id='group_request_loader' disabled>Submit request</button>";
 		} else { // Admin stuff
@@ -348,8 +362,9 @@ BLOCK;
 		
 /* --- groups: output page head --- */
 		$output = <<<BLOCK
-{$explanation_alert}
 <form id="group_request{$uid}">
+{$explanation_alert}
+<div class="clear1em" />
 {$hidden_uid_input}
 <table id="grouplist{$uid}">
 <thead><tr>
@@ -445,7 +460,7 @@ BLOCK;
 		foreach ($userlist as $u) {
 			foreach ($u as $k => $v) { $u["q_$k"] = htmlspecialchars($v); }
 			extract ($u);
-			if ($this->isAdmin()) $adminrow = "\n<td><button class='admin-user-button' userid='$q_userid'><span class='ui-icon ui-icon-wrench'></span></button></td>";
+			if ($this->isAdmin()) $adminrow = "\n<td><a class='admin-user-button' userid='$q_userid'>Edit</a></td>";
 			$html .= <<<BLOCK
 <tr>{$adminrow}
 <td>$q_email</td>
@@ -461,7 +476,8 @@ BLOCK;
 </table>
 {$adminrow}
 <script language="JavaScript">
-$("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25, "bLengthChange": false});
+$(".admin-user-button").button({icons:{primary:'ui-icon-wrench'}});
+$("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25});
 </script>
 BLOCK;
 		return $html;
@@ -549,7 +565,7 @@ BLOCK;
 		$groups_heading = $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
 		$html = <<<BLOCK
 <div style="float: right;">
-<a class="managebutton{$wikiid}" href="{$wiki['wikiname']}">View wiki</a>
+<a class="managebutton{$wikiid}" href="/$wikiname/">View wiki</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download backup</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/stats/awstats.$wikiid.html">Web stats</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/access_log.txt">Raw access log</a>
@@ -829,52 +845,6 @@ BLOCK;
 	// Grant access to a wiki, served in a popup.
 	function frag_grant_edit() {
 		return <<<EOT
-<script type="text/javascript">
-	$(function() {
-		$('#granteditdialog')
-			.attr('title','Invite user to edit your wiki')
-			.attr("ga_message_id", "grantmessage")
-			.dialog
-		({ modal: true,
-			 autoOpen: false,
-			 width: 400,
-			 buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
-				    "Cancel": function() { $(this).dialog("close"); } }
-		});
-		$('#revokeeditdialog')
-			.attr('title','Uninvite a user')
-			.attr("ga_message_id", "grantmessage")
-			.dialog
-		({ modal: true,
-			 autoOpen: false,
-			 width: 400,
-			 buttons: { "OK": function() { dialog_submit(this, "#revokeeditform"); },
-				    "Cancel": function() { $(this).dialog("close"); } }
-		});
-		$('.granteditbutton').click(function(){
-			$('#grantmessage').hide();
-			$('#grantwikiname').html($(this).attr('wikiname'));
-			$('#grantwikititle').html($(this).attr('wikititle'));
-			$('#grantrealname').html($(this).attr('realname'));
-			$('#grantemail').html($(this).attr('email'));
-			$('#grantuserid').val($(this).attr('userid'));
-			$('#grantmwusername').val($(this).attr('mwusername'));
-			$('#grantwikiid').val($(this).attr('wikiid'));
-			$('#grantflag').val($(this).attr('checked') ? 1 : 0);
-			if (!$(this).attr('checked')) {
-				$('#revokeeditform input')
-					.first().val($(this).attr('wikiid'))
-					.next().val($(this).attr('userid'));
-				$('#revokeeditdialog span')
-					.first().html(($(this).attr('realname') ? $(this).attr('realname') : "this user")+"'s")
-					.next().html($(this).attr('wikiname'))
-					.parent().dialog('open');
-			} else
-				$('#granteditdialog').dialog('open');
-			return false;
-		});
-	});
-</script>
 <div id="granteditdialog" class="wf-dialog">
 	<form id="granteditform">
 	<table>
@@ -891,16 +861,35 @@ BLOCK;
 		<div class="ui-state-highlight ui-corner-all wf-message-box ui-helper-hidden"></div>
 	</div>
 </div>
-<div id="revokeeditdialog" class="wf-dialog">
-	Do you really want to remove <span></span> write access to the "<span></span>" wiki?
-	<form id="revokeeditform">
-		<input type="hidden" name="wikiid" value=" " />
-		<input type="hidden" name="userid" value=" " />
-		<input type="hidden" name="grantflag" id="grantflag" value="0" />
-		<input type="hidden" name="ga_action" value="managewiki_editor" />
-	<form>
-</div>
-
+<script type="text/javascript">
+		$('#granteditdialog')
+			.attr('title','Invite user to edit your wiki')
+			.attr("ga_message_id", "grantmessage")
+			.dialog
+		({ modal: true,
+			 autoOpen: false,
+			 width: 400,
+			 buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
+				    "Cancel": function() { $(this).dialog("close"); } }
+		});
+		$('.granteditbutton').live('click',function(){
+			$('#grantmessage').hide();
+			$('#grantwikiname').html($(this).attr('wikiname'));
+			$('#grantwikititle').html($(this).attr('wikititle'));
+			$('#grantrealname').html($(this).attr('realname'));
+			$('#grantemail').html($(this).attr('email'));
+			$('#grantuserid').val($(this).attr('userid'));
+			$('#grantmwusername').val($(this).attr('mwusername'));
+			$('#grantwikiid').val($(this).attr('wikiid'));
+			$('#grantflag').val($(this).attr('checked') ? 1 : 0);
+			if (!$(this).attr('checked')) {
+				if (confirm("Do you really want to remove "+($(this).attr('realname') ? $(this).attr('realname') : "this user")+"'s write access to the \""+$(this).attr('wikiname')+"\" wiki?"))
+					dialog_submit(this, $("#granteditform"));
+			} else
+				$('#granteditdialog').dialog('open');
+			return false;
+		});
+</script>
 EOT;
 	}
 
@@ -1070,7 +1059,7 @@ EOT;
 	}
 
 	function ajax_managewiki_users ($post) {
-		$wikiid = $post["wikiid"];
+		$wikiid = $post["wikiid"] + 0;
 		$wiki = $this->getWiki($wikiid);
 		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
 			return $this->fail ("You are not allowed to do that.");
@@ -1123,17 +1112,21 @@ EOT;
 
 	function ajax_managewiki_editor ($post) {
 		$checkus = array();
+		$wikiid = $post["wikiid"] + 0;
+		$wiki = $this->getWiki($wikiid);
+		if ($wiki["userid"] != $this->openid && !$this->isAdmin())
+			return $this->fail ("You are not allowed to do that.");
 		if ($post["grantflag"]) {
 			$this->validate_mwusername ($post["mwusername"]);
-			$this->inviteUser ($post["wikiid"], $post["userid"], $post["mwusername"]);
+			$this->inviteUser ($wikiid, $post["userid"], $post["mwusername"]);
 			$check = "check";
-			$checkus[] = "mw".$post["wikiid"]."_userview_".md5($post["userid"]);
+			$checkus[] = "mw".$wikiid."_userview_".md5($post["userid"]);
 		}
 		else {
-			$this->disinviteEditor ($post["wikiid"], $post["userid"]);
+			$this->disinviteEditor ($wikiid, $post["userid"]);
 			$check = "uncheck";
 		}
-		$checkus[] = "mw".$post["wikiid"]."_useredit_".md5($post["userid"]);
+		$checkus[] = "mw".$wikiid."_useredit_".md5($post["userid"]);
 		return $this->success(array ($check => $checkus));
 	}
 
@@ -1183,6 +1176,7 @@ EOT;
 	function ajax_requestwiki ($post) {
 		$this->validate_activated();
 		$wikiid = $post["wikiid"]+0;
+		$showus = array ("button-requestpending-$wikiid");
 		$hideus = array("button-request-$wikiid");
 		if (isset ($post["mwusername"]) ||
 		    (isset ($post["writeaccess"]) && $post["writeaccess"])) {
@@ -1192,7 +1186,7 @@ EOT;
 		} else
 			$this->requestWiki ($post["wikiid"]+0);
 		return $this->success (array ("hide" => $hideus,
-					      "show" => array ("button-requestpending-$wikiid")));
+					      "show" => $showus));
 	}
 
 	function ajax_myaccount_save ($post) {

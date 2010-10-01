@@ -30,15 +30,6 @@ if (preg_match ('{application/json}', $_SERVER["HTTP_ACCEPT"]) ||
 	exit;
 }
 
-// Maybe someone wants something specific
-if (isset($_GET['view'])) { // maybe a wiki?
-	$id = $_GET['view']+0;
-	if ($id > 0) {
-		$wiki = $wf->getWiki($id);
-		header('location: '.$wiki['wikiname']);
-	}
-}	
-
 header('Content-Language: en');
 	
 // Would sir enjoy some tab content?
@@ -119,8 +110,8 @@ if (isset ($_GET["tabActive"]))
 		$("#tabs").bind("tabsselect", function(event,ui){
 			if ($(ui.panel).parent().attr("id")!="tabs") return;
 			$("#tabs>div").empty();
-			$("body>div.wf-dialog").remove();
-			$("body>div.ui-dialog").remove();
+			$("div.wf-dialog").remove();
+			$("div.ui-dialog").remove();
 		});
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');

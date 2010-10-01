@@ -300,12 +300,13 @@ class WikifarmDriver {
 		if (!$ok) return false;
 		$wikiid = $this->querySingle ("SELECT last_insert_rowid()");
 		if (!$wikiid) return false;
-		$wikiid = sprintf ("%02d", $wikiid);
 		$this->DB->exec ("INSERT INTO autologin (wikiid, userid, mwusername, lastlogintime, sysop) values ($wikiid, '".$this->q_openid."','".SQLite3::escapeString ($mwusername)."',strftime('%s','now'),1)");
 		foreach ($this->getAllGroups() as $g)
 			if ($groups && false !== array_search ($g["groupid"], $groups))
 				$this->DB->exec ("INSERT INTO wikipermission (wikiid, userid_or_groupname) VALUES ($wikiid, '".SQLite3::escapeString ($g["groupid"])."')");
+		$this->inviteUser ($wikiid, $this->openid, $mwusername);
 
+		$wikiid = sprintf ("%02d", $wikiid);
 		if (false === system ("sudo -u ubuntu /home/wikifarm/etc/wikifarm-create-wiki "
 				      .escapeshellarg($wikiid)." "
 				      .escapeshellarg($wikiname)." "
@@ -398,7 +399,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	
 	function getUserRealname() {
 		$id = $this->q_openid;
-		return $this->querySingle("SELECT CASE WHEN realname IS NOT NULL THEN realname WHEN email IS NOT NULL THEN '('||email||')' ELSE '(None)' END FROM users WHERE userid='$id';" );
+		return $this->querySingle("SELECT realname FROM users WHERE userid='$id';" );
 	}
 	
 	function setUserRealname($name) {
@@ -752,11 +753,11 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 	}
 
 	function disinviteUser ($wikiid, $userid) {
-		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid='$wikiid' AND userid_or_groupname='".SQLite3::escapeString($userid)."'");
+		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid=$wikiid AND userid_or_groupname='".SQLite3::escapeString($userid)."'");
 	}
 
 	function disinviteEditor ($wikiid, $userid) {
-		$this->DB->exec ("DELETE FROM autologin WHERE wikiid='$wikiid' AND userid='".SQLite3::escapeString($userid)."'");
+		$this->DB->exec ("DELETE FROM autologin WHERE wikiid=$wikiid AND userid='".SQLite3::escapeString($userid)."'");
 	}
 
 	function getAllActivatedUsers() {

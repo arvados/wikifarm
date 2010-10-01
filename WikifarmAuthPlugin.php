@@ -20,7 +20,7 @@ class WikifarmAuthPlugin extends AuthPlugin {
 			 . SQLite3::escapeString ($this->userid)
 			 . "' order by lastlogintime desc limit 1", true);
 		if ($autologin) {
-			$this->mwusername = $autologin["mwusername"];
+			$this->mwusername = preg_replace('{_}',' ',$autologin["mwusername"]);
 			$this->userid_is_owner = $autologin["sysop"];
 		}
 
@@ -47,7 +47,7 @@ class WikifarmAuthPlugin extends AuthPlugin {
 	public function authenticate( $username, $password ) {
 		return isset ($this->mwusername) &&
 			$this->mwusername !== false &&
-			$this->mwusername == $username;
+			ucfirst($this->mwusername) == ucfirst($username);
 	}
 
 	public function modifyUITemplate( &$template ) {
@@ -127,7 +127,7 @@ class WikifarmAuthPlugin extends AuthPlugin {
 		global	$wgCommandLineMode;
 		if( !$wgCommandLineMode && (!$_SESSION ||
 					    ($_SESSION["wsUserName"] != "" &&
-					     $_SESSION["wsUserName"] != $this->mwusername))) {
+					     ucfirst($_SESSION["wsUserName"]) != ucfirst($this->mwusername)))) {
 			$_SESSION = array();
 			global $wgCookiePrefix;
 			foreach ($_COOKIE as $k => $v) {

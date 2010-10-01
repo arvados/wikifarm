@@ -30,6 +30,7 @@ install $SOURCEDIR/favicon.ico $INSTALLDIR/wikis/
 make -C $SOURCEDIR
 install $SOURCEDIR/textile-2.0.0/classTextile.php $INSTALLDIR/wikis/
 install $SOURCEDIR/help.textile $INSTALLDIR/wikis/
+install $SOURCEDIR/adminhelp.textile $INSTALLDIR/wikis/
 rsync -av $SOURCEDIR/help/ $INSTALLDIR/wikis/help/
 
 mkdir -p $INSTALLDIR/wikis/js
