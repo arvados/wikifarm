@@ -47,6 +47,7 @@ install $SOURCEDIR/style.css $INSTALLDIR/wikis/
 
 install $SOURCEDIR/GeSHiHighlight.php /usr/share/mediawiki-extensions/
 install $SOURCEDIR/WikifarmAuthPlugin.php /usr/share/mediawiki-extensions/
+ln -sf /usr/share/mediawiki-extensions/WikifarmAuthPlugin.php /etc/mediawiki-extensions/extensions-available/
 install $SOURCEDIR/SimpleTable.php /usr/share/mediawiki-extensions/
 
 install /usr/share/doc/awstats/examples/awstats_buildstaticpages.pl $INSTALLDIR/etc/awstats_buildstaticpages.pl
