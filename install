@@ -24,7 +24,7 @@ install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
 install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmDriver.php $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmPageMachine.php $INSTALLDIR/wikis/
-install $SOURCEDIR/favicon.png $INSTALLDIR/wikis/
+install $SOURCEDIR/serverlogo.png $INSTALLDIR/wikis/
 install $SOURCEDIR/favicon.ico $INSTALLDIR/wikis/
 
 make -C $SOURCEDIR

@@ -9,6 +9,8 @@ require_once('WikifarmDriver.php');
 require_once('WikifarmPageMachine.php');
 
 $wf = new WikifarmPageMachine();
+$friendly_servername = $_SERVER['HTTP_HOST'];  // displayed in the title area
+$friendly_byline = "wikis for researchers";
 
 if (isset($_GET["modauthopenid_referrer"]) &&
     $wf->isActivated() &&
@@ -122,15 +124,15 @@ if (isset ($_GET["tabActive"]))
 
 </script>
 <style type="text/css">
-	#pageheader { width: 100%; height: 45; position: relative; }
+	#pageheader { width: 100%; height: 64px; position: relative; background: url('serverlogo.png') no-repeat top left; }
 	#pageheader div { position: absolute; bottom: 0; right: 0; }
-	#pageheader img { position: absolute; bottom: 0; left: 0; }
+	#pageheader div#byline { position: absolute; bottom: 16px; left: 0; text-align: center; }
 	#tabs { clear: both; }
 </style>
 </head>
 <body>
 
-<div id="pageheader"><div id="logo"></div>
+<div id="pageheader"><div id="byline"><h3><?=$friendly_servername?></h3><?=$friendly_byline?></div>
 <div><a href="logout.php" id="logoutbutton">Log out</a></div>
 </div>
 
