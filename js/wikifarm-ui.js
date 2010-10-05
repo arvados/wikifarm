@@ -19,7 +19,14 @@ function wf_uid()
 // move a dialog div outside of the tab elements (TODO: this might be pointless with ZE AUTODESTRUCTOR)
 (function( $ ){
 	$.fn.elevateDiv = function() {					
-		return $(this).appendTo('#dialog-container');		
+		return $(this).appendTo('#dialog-container');
+	};
+})( jQuery );
+
+// reload (.load()) a div based on an internal URL attribute
+(function( $ ){
+	$.fn.reloadDiv = function() {
+		return $(this).load($(this).attr('URL'));
 	};
 })( jQuery );
 
@@ -38,9 +45,12 @@ function selectTabByName(tabs, tab) {
 
 function generic_ajax_success(data, textStatus, req, button)
 {
+//	var op = ''; //~jer
+//	for (i in data) op += i+' '; //'['+data[i]['name']+'='+data[i]['value']+'] ';
+//	alert ('refreshtab: '+data['refreshtab']);
+//	alert (op);
     if (button.disabled)
 	button.disabled = false;
-
     if (data.check)
 	$.each(data.check, function (i,e) { if ($('#'+e)) $('#'+e).attr('checked', true); });
     if (data.uncheck)
@@ -79,6 +89,9 @@ function generic_ajax_success(data, textStatus, req, button)
 	alert (data.message);
     if (data.redirect)
 	window.location = data.redirect;
+//		if (data.refreshdiv && data.refreshdiv != false)
+//		alert (data.refreshdiv);
+//	$(data.refreshdiv).reloadDiv();  //~jer
 	  if (data.refreshtab)  // TODO: test this more
 			if ($(data.refreshtab).exists())
 	$(data.refreshtab).tabs('load', $(data.refreshtab).tabs('option', 'selected'));	
@@ -101,9 +114,11 @@ function generic_ajax_error(req, textStatus, errorThrown, button)
 function generic_ajax_submit()
 {
     try {
-	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();	
+	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
 	var ga_loader_id = $(this).attr('ga_loader_id');
-	var gibbrish = '';
+//	var op = ''; //~jer
+//	for (i in postme) op += '['+postme[i]['name']+'='+postme[i]['value']+'] ';
+//	alert (op);
 	postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
 		    {name: 'ga_loader_id', value: $(this).attr('ga_loader_id')},
 		    {name: 'ga_button_id', value: $(this).attr('id')},

@@ -36,6 +36,7 @@ class WikifarmDriver {
 
 	function lastResult() { return $DBresult; }
 
+	// takes a sql statement, returns a numeric array (rows) filled with associative arrays (cols)
 	function query($sql) {
 		$result = $this->DB->query($sql);
 		if ($result===false) die ( $this->DB->lastErrorMsg() );
@@ -44,12 +45,23 @@ class WikifarmDriver {
 		return $this->DBresult;
 	}
 	
+	// returns a single result
 	function querySingle($sql) {
 		$this->DBresult = $this->DB->querySingle($sql);
 		if ($this->DBresult===false) die ( $this->DB->lastErrorMsg() );
 		return $this->DBresult;
 	}
+	
+	// returns a one-dimentional numeric array
+	function queryList($sql) {
+		$result = $this->DB->query($sql);
+		if ($result===false) die ( $this->DB->lastErrorMsg() );
+		$this->DBresult = array();
+	  while ( $row = $result->fetchArray(SQLITE3_NUM) ) array_push($this->DBresult, $row[0]);
+		return $this->DBresult;
+	}
 
+	// sets the object's focus on a user based on their openid
 	function Focus ($openid = null) {
 		$lastid = $this->openid;
 		if (!$openid) $openid = $_SERVER["REMOTE_USER"];
@@ -108,14 +120,21 @@ class WikifarmDriver {
 	// Never mind, it appears now as though they do
 
 	function is_a_group($group) {
-		return ($this->querySingle("SELECT 1 FROM usergroups WHERE groupname = '".SQLite3::escapeString($group)."'")) ? true : false;
+		$groups =& $this->cacheRefDefault('is_a_group');
+		if (!is_array($groups)) {
+			$groups = array();
+			foreach ($this->getAllGroups(true) as $g)
+				$groups[$g['groupid']] = true;
+		}			
+		return array_key_exists($group, $groups);
 	}
-	function is_a_user($openid) {
+	function is_a_user($openid) {	
 		return ($this->querySingle("SELECT 1 FROM users WHERE userid = '".SQLite3::escapeString($openid)."'")) ? true : false;
 	}
 	function is_a_wiki($wikiname) {
 		return $this->querySingle("SELECT 1 FROM wikis WHERE wikiname = '".SQLite3::escapeString($wikiname)."'") ? true : false;
 	}
+	
 		
 	// cache functions
 
@@ -124,7 +143,8 @@ class WikifarmDriver {
 	function cacheEnable() { $this->_cache['on'] = true; }
 	function &cacheRef($i) { return $this->_cache[$i]; }
 	function &cacheRefDefault($i, $val = false) {
-		if (!$this->cacheHit($i)) $this->_cache[$i] = $val;
+		if (!$this->cacheHit($i)) 
+			$this->_cache[$i] = $val;
 		return $this->_cache[$i];
 	}
 	function cacheHit($i) { return array_key_exists($i, $this->_cache); }
@@ -380,6 +400,14 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		return $this->_cache["allgroups"];
 	}
 	
+	// simple 1d list of groupids
+	function getAllGroupIDs() {
+		$all_groupids =& $this->cacheRefDefault('getAllGroupIDs');
+		if (!is_array($all_groupids))
+			$all_groupids = array_map( function ($g) { return $g["groupid"]; }, $this->getAllGroups() );
+		return $all_groupids;
+	}
+	
 	// Has this user been added to one or more groups, i.e.,
 	// sanctioned as a legitimate user?  If not, we have no idea
 	// whether she's a spammer, attacker, spy, hater, etc.
@@ -441,6 +469,16 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		$email = SQLite3::escapeString (filter_var($email, FILTER_VALIDATE_EMAIL));
 		return $this->querySingle("SELECT userid FROM users WHERE email='$email';" );
 	}
+
+	function getUsersByGroup($group) {
+		$users =& $this->cacheRefDefault("getUsersByGroup:$group");
+		if (!is_array($users)) {
+			$q_group = SQLite3::escapeString ($group);			
+			$users = $this->queryList("SELECT userid FROM usergroups WHERE groupname='{$q_group}' AND userid <> ' ' GROUP BY userid;");
+		}
+		return $users;
+	}
+
 	
 	function getMWUsername() {
 		$id = $this->q_openid;
@@ -455,18 +493,19 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 			return $this->DB->changes() == 1;
 		}
 	}
-
+	
 	function selfActivate() {
 		// Warning to caller: I assume you have a good reason to think you're allowed.
-		$this->DB->exec("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES ('{$this->q_openid}', 'users')");
+		$this->joinGroup('users');
 		return $this->DB->changes();
 	}
 
 	function setGroups($groups) {
 		$this->DB->exec ("DELETE FROM usergroups WHERE userid='{$this->q_openid}'");
-		foreach ($groups as $g) {
-			$q_g = SQLite3::escapeString ($g);
-			$this->DB->exec ("INSERT INTO usergroups (userid, groupname) VALUES ('{$this->q_openid}', '$q_g')");
+		foreach ($groups as $g) {					
+			if (!$this->is_a_group($g))				
+				$this->newGroup($g);
+			$this->joinGroup($g);
 		}
 		return true;
 	}
@@ -476,6 +515,21 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		$this->DB->exec ("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES ('{$this->q_openid}', '{$q_group}')");
 		return true;
 	}
+	
+	// Add a blank "placeholder" userid to a group
+	function newGroup($group) {
+		$q_group = SQLite3::escapeString ($group);
+		$this->DB->exec ("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES (' ', '{$q_group}')");
+		return true;
+	}
+	
+	// Re-sets all "placeholder" users created by newGroup, effectivly removing empty groups
+	function removeEmptyGroups() {
+		$this->DB->exec ("DELETE FROM usergroups WHERE userid=' '");
+		foreach ($this->getAllGroups() as $g)
+			$this->newGroup($g['groupid']);
+		return true;
+	}		
 
 	function requestGroup($groups) {
 		if (!is_array($groups))
