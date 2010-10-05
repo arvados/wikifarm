@@ -133,8 +133,7 @@ if (isset ($_GET["tabActive"]))
 <body>
 
 <div id="pageheader"><div id="byline"><h3><?=$friendly_servername?></h3><?=$friendly_byline?></div>
-<div>
-<a href="logout.php">Log out</a></div>
+<div><a href="logout.php" id="logoutbutton">Log out</a></div>
 </div>
 
 <div id="tabs">
