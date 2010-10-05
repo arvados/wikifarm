@@ -62,10 +62,10 @@ chmod 750 $INSTALLDIR/db
 $INSTALLDIR/etc/wikifarm-update-config.pl
 
 sudo tee /etc/cron.d/wikifarm-update-stats <<EOF
-30 4 * * * www-data $INSTALLDIR/etc/wikifarm-update-stats.sh
+30 4 * * * www-data $INSTALLDIR/etc/wikifarm-update-stats.sh >>/tmp/wikifarm-stats.log 2>&1
 EOF
 sudo tee /etc/cron.d/wikifarm-backup <<EOF
-30 1 * * * www-data $INSTALLDIR/etc/wikifarm-backup.sh
+30 1 * * * www-data $INSTALLDIR/etc/wikifarm-backup.sh >>/tmp/wikifarm-backup.log 2>&1
 EOF
 sudo chmod a+x /var/log/apache2
 
