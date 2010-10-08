@@ -357,8 +357,8 @@ BLOCK;
 			} else {  
 				$extra_col_name = "Members";
 				$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request' ga_action='setgroups' ga_loader_id='group_request_loader' ga_message_id='group_request_message' admin_mode='1'>Save changes</button>";
-				$hidden_uid_input = "<input type='hidden' name='userid' value='".htmlspecialchars($this->openid)."' />" .
-					"<input type='hidden' name='refresh_tabs' value='#amu-tabs' />";
+				$hidden_uid_input = "<input type='hidden' name='userid' value='".htmlspecialchars($this->openid)."' />".
+					"<input type='hidden' name='refresh_tab' value='#tabs' />";
 			}
 			$claim_alert = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>", "lightbulb");
 			$hidden_claim_dialog = $this->frag_claim_account();
@@ -367,7 +367,7 @@ BLOCK;
 			$explanation_alert = $this->textHighlight ("Editing group memberships for $q_openid");
 			$request_button = "<button id='group_request_submit' class='generic_ajax' ga_form_id='group_request{$uid}' ga_action='setgroups' ga_loader_id='group_request_loader' ga_message_id='group_request_message' admin_mode='1'>Save changes</button>";
 			$hidden_uid_input = "<input type='hidden' name='userid' value='".htmlspecialchars($this->openid)."' />" .
-				"<input type='hidden' name='refresh_tabs' value='#amu-tabs' />";
+				"<input type='hidden' name='refresh_tab' value='#amu-tabs' />";
 		}
 		
 /* --- groups: output page head --- */
@@ -436,8 +436,19 @@ BLOCK;
 				$("#group_request_submit").attr('disabled', 'true');
 				$(this).val("new group");
 				$(this).parent().prev().find("input[type=checkbox]").removeAttr('checked');
-			} else $(this).parent().prev().find("input[type=checkbox]").val($(this).val());
+			} else 
+				$(this).parent().prev().find("input[type=checkbox]").val($(this).val());
+		})
+		.keypress(function(e) {
+			if(e.which == 13) {
+				$(this).blur()
+					.parent().prev().find("input[type=checkbox]")
+						.attr('checked', 'checked');
+				$("#group_request_submit").click();
+			}
+			return e;
 		});
+
 		$("#grouplist{$uid}").mutateID().dataTable({ 'bJQueryUI': true, "bPaginate": false, "bSort": false, "bInfo": false, "bFilter": false});
 		group_request_enable();
 	});
@@ -575,11 +586,12 @@ $(".managebutton{$wikiid}").button({icons:{primary:'ui-icon-zoomin'}})
 <form id="mwf{$wikiid}">
 	<input type="hidden" name="wikiid" value="{$wikiid}" />
 	<input type="hidden" name="refresh_div" value="#amw-content" disabled>
+	<input type="hidden" name="refresh_tab" value="#tabs" disabled>
 {$groups_heading}
 	<table id="mwg{$wikiid}">
 		<thead><tr><th class="minwidth">&nbsp;</th><th>&nbsp;</th></tr></thead><tbody>
 BLOCK;
-/* Groups that feature this wiki: */  //~jer ^^
+/* Groups that feature this wiki: */
 		foreach ($this->getAllGroups() as $g) {
 			if ($g["groupid"] == "ADMIN") continue;
 			$checked = false === array_search ($g["groupid"], $groups) ? "" : "checked";
@@ -591,7 +603,7 @@ BLOCK;
 BLOCK;
 		}
 		if ($this->isAdmin()) $html .= <<<BLOCK
-			<tr><td class="minwidth"><input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_newgroup" name="mw{$wikiid}_groups[]" value="" refresh_tabs="#tabs" disabled="disabled" /></td>
+			<tr><td class="minwidth"><input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_newgroup" name="mw{$wikiid}_groups[]" value="" refresh_tab="#tabs" disabled="disabled" /></td>
 				<td class="minwidth"><input type=text value="new group"></td></tr>
 BLOCK;
 		$html .= "</tbody></table>" . 
@@ -640,16 +652,26 @@ BLOCK;
 		$("#mwg{$wikiid} input[type=text]")
 		.focus( function(){ 
 			if ($(this).val() == "new group") $(this).val("");
-			//$("#mwf{$wikiid} input[name=refresh_dialog]").attr('disabled', 'true');
+			if ($(this).parents('#amw-content').size())
+				$("#mwf{$wikiid} input[name=refresh_div]").removeAttr('disabled');
+			else
+				$("#mwf{$wikiid} input[name=refresh_tab]").removeAttr('disabled');
 			$(this).parent().prev().find("input[type=checkbox]").removeAttr('disabled');
 		})
 		.blur( function(){ 
 			if ($(this).val() == "" || $(this).val() == "new group") {
-				//$("#mwf{$wikiid} input[type=hidden]").first().next().removeAttr('disabled').val('test!');
+				$("#mwf{$wikiid} input[name|=refresh]").attr('disabled', 'true');
 				$(this).parent().prev().find("input[type=checkbox]").attr('disabled', 'true');
 				$(this).val("new group");
 			} else $(this).parent().prev().find("input[type=checkbox]").val($(this).val());
-		});				
+		})
+		.keypress(function(e) {
+			if(e.which == 13) {
+				$(this).blur()
+					.parent().prev().find("input[type=checkbox]").attr('checked', 'checked').click();
+			}
+			return e;
+		});
 	});
 	$("#mwg{$wikiid}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "bFilter": false, "bLengthChange": false, "bPaginate": false});
 	$("#mwu{$wikiid}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "bLengthChange": false});
@@ -682,7 +704,7 @@ BLOCK;
 		$('.admin-manage-button').click(function(){
 			var id = $(this).attr('wikiid');
 			$("#amw-content")
-				.attr("URL", '?tab=admin_managewiki&wikiid='+id)  // ~jer
+				.attr("URL", '?tab=admin_managewiki&wikiid='+id)
 				.hide()
 				.load('?tab=admin_managewiki&wikiid='+id, function() {
 					$('#amw-waiting').hide();
@@ -996,8 +1018,8 @@ EOT;
 		$uncheckus = array();
 		$enableus = array();
 		$disableus = array();
-		$refreshrule = isset($post["refresh_tabs"]) ? $post["refresh_tabs"] : "false";
-		$refreshdiv = isset($post["refresh_div"]) ? $post["refresh_div"] : "false";
+		$refreshrule = isset($post["refresh_tab"]) ? $post["refresh_tab"] : 0;
+		$refreshdiv = isset($post["refresh_div"]) ? $post["refresh_div"] : 0;
 		
 		// Note which users can view the wiki before we make changes
 		$read_via_group_before = array();
@@ -1168,13 +1190,13 @@ EOT;
 		foreach (array_diff( $post["group_request"], $all_groupids ) as $g)
 			$this->validate_groupid ($g);		
 		$this->setGroups ($post["group_request"]);
-		$tabs = $post['refresh_tabs'] ? $post['refresh_tabs'] : false;  // if tabs is set, reload this tab
+		$tabs = $post['refresh_tab'] ? $post['refresh_tab'] : false;  // if tabs is set, reload this tab
 		return $this->success(array("message" => "Changes saved.", "refreshtab" => $tabs));
 	}
 
 	function ajax_requestgroups ($post) {		
 		$this->requestGroup ($post["group_request"]);
-		return array ("success" => true, "refreshtab" => true);
+		return array ("success" => true, "refreshtab" => "#tabs");
 	}
 
 	function ajax_requestwiki ($post) {
@@ -1264,7 +1286,7 @@ EOT;
 			$response["redirect"] = "/";
 			$this->selfActivate();
 		} else if ($claimed["groups"])
-			$response["refreshtab"] = true;
+			$response["refreshtab"] = "#tabs";
 		return $this->success ($response);
 	}
 
@@ -1307,42 +1329,5 @@ EOT;
 
 }  // class ends
 
-
-
-
-// misc functions
-
-// usage: "Request pending since " . PMRelativeTime($grouplist['pending_since'][$i]);
-// output: "5 days ago", etc
-function PMRelativeTime($date) {
-	if ($date+0 == 0) $date = strtotime($date);
-	$diff = time() - $date;
-	if ($diff<60) {
-		$r = "$diff second";
-	} else {
-		$diff = round($diff/60);
-		if ($diff<60) {
-			$r = "$diff minute";
-		} else {
-			$diff = round($diff/60);
-			if ($diff<24) {
-				$r = "$diff hour";
-			} else {
-				$diff = round($diff/24);
-				if ($diff<7) {
-					$r = "$diff day";
-				} else {
-					$diff = round($diff/7);
-					if ($diff<4) {
-						$r = "$diff week";
-					} else {
-						return date("F j, Y", $date);
-					}
-				}
-			}
-		}
-	}
-	return $r . ($diff !=1 ? 's' : '') . " ago";
-}
 
 ?>

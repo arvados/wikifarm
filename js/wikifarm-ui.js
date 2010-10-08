@@ -1,11 +1,6 @@
 // adds $('element').exists();
-jQuery.fn.exists = function(){return jQuery(this).length>0;}
+jQuery.fn.exists = function(){return jQuery(this).length>0;};
 
-// returns a number that it's never returned before
-function wf_uid()
-{
-	return (++wf_uid.n);
-}
 // mutate an id until unique
 (function( $ ){
 	$.fn.mutateID = function() {
@@ -16,19 +11,20 @@ function wf_uid()
 	};
 })( jQuery );
 
-// move a dialog div outside of the tab elements (TODO: this might be pointless with ZE AUTODESTRUCTOR)
-(function( $ ){
-	$.fn.elevateDiv = function() {					
-		return $(this).appendTo('#dialog-container');
-	};
-})( jQuery );
-
 // reload (.load()) a div based on an internal URL attribute
 (function( $ ){
 	$.fn.reloadDiv = function() {
 		return $(this).load($(this).attr('URL'));
 	};
 })( jQuery );
+
+// find nearest ancestor that is a tab
+(function( $ ){
+	$.fn.parentTab = function() {
+		return $(this).parents('div.ui-tabs-panel').first();
+	};
+})( jQuery );
+
 
 function wf_tab_select (tabset, selecttab)
 {
@@ -45,10 +41,10 @@ function selectTabByName(tabs, tab) {
 
 function generic_ajax_success(data, textStatus, req, button)
 {
-//	var op = ''; //~jer
+//	var op = ''; //~jer (debug)
 //	for (i in data) op += i+' '; //'['+data[i]['name']+'='+data[i]['value']+'] ';
-//	alert ('refreshtab: '+data['refreshtab']);
-//	alert (op);
+//	alert ('success: '+op);
+//	alert ('refreshdiv: '+data['refreshdiv']+ '\n refreshtab: '+data['refreshtab']);
     if (button.disabled)
 	button.disabled = false;
     if (data.check)
@@ -89,14 +85,10 @@ function generic_ajax_success(data, textStatus, req, button)
 	alert (data.message);
     if (data.redirect)
 	window.location = data.redirect;
-//		if (data.refreshdiv && data.refreshdiv != false)
-//		alert (data.refreshdiv);
-//	$(data.refreshdiv).reloadDiv();  //~jer
-	  if (data.refreshtab)  // TODO: test this more
-			if ($(data.refreshtab).exists())
-	$(data.refreshtab).tabs('load', $(data.refreshtab).tabs('option', 'selected'));	
-			else
-  $('#tabs').tabs('load', $('#tabs').tabs('option', 'selected'));
+		if (data.refreshdiv)
+	$(data.refreshdiv).reloadDiv();
+	  if (data['refreshtab'])
+	$(data.refreshtab).tabs('load', $(data.refreshtab).tabs( "option", "selected" ));
     if (data.selecttab)
 	wf_tab_select('tabs', data.selecttab);
 }
@@ -116,9 +108,9 @@ function generic_ajax_submit()
     try {
 	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
 	var ga_loader_id = $(this).attr('ga_loader_id');
-//	var op = ''; //~jer
+//	var op = ''; //~jer (debug)
 //	for (i in postme) op += '['+postme[i]['name']+'='+postme[i]['value']+'] ';
-//	alert (op);
+//	alert ('submit: '+op);
 	postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
 		    {name: 'ga_loader_id', value: $(this).attr('ga_loader_id')},
 		    {name: 'ga_button_id', value: $(this).attr('id')},
