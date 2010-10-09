@@ -102,16 +102,23 @@ class WikifarmDriver {
 			$defaultmessage = "called by non-activated user.";
 		} elseif (preg_match("/admin/i", $access) && !$this->isAdmin()) {
 			$defaultmessage = "called by non-admin user.";
-		} elseif (preg_match("/r(ead)?/i", $access)) { // TODO finish this read/write/owner wiki privs
+		} elseif (preg_match("/read/i", $access)) { // TODO finish this read/write/owner wiki privs
 			$defaultmessage = "function unable to complete this!";
-		} elseif (preg_match("/w(rite)?/i", $access)) { // TODO finish this read/write/owner wiki privs
+		} elseif (preg_match("/write/i", $access)) { // TODO finish this read/write/owner wiki privs
 			$defaultmessage = "security function unable to complete this request!";
-		} elseif (preg_match("/o(wner)?/i", $access)) { // TODO finish this read/write/owner wiki privs
-			$defaultmessage = "security function unable to complete this request!";
+		} elseif (preg_match("/owner/i", $access)) { // ~jer
+			if ($wiki+0 == 0)			
+				$owner_userid = $this->querySingle ("SELECT userid FROM wikis WHERE wikiname= '". (SQLite3::escapeString ($wiki)) ."';" );
+			else
+				$owner_userid = $this->querySingle ("SELECT userid FROM wikis WHERE id=".($wiki+0) );
+			if ($this->openid === $owner_userid || ($or_admin && $this->isAdmin())) 
+				return true;			
+			$defaultmessage = "User doesn't own that wiki! User:{$this->openid} Wiki:{$wiki}";
 		} else {
 			return true;
-		}		
-		error_log ("(security) $method: ".(isset($message) ? $message : $defaultmessage) );
+		}
+		if (!isset($no_log))
+			error_log ("(security) $method: ".(isset($message) ? $message : $defaultmessage) );
 		return false;
 	}
 
@@ -369,7 +376,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 			$this->_cache['isadmin'] = $this->querySingle("SELECT 1 FROM usergroups WHERE usergroups.userid = '$id' AND groupname = 'ADMIN'" );
 		}
 		return $this->_cache['isadmin'];		
-	}
+	}		
 	
 	function getUserGroups() {
 		$id = $this->q_openid;
@@ -834,6 +841,22 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 				return $u;
 			}
 		return false;
+	}
+	
+	function wikiBackup($wiki) {
+		if (!$this->_security( array( 'access' => 'owner', 'wiki' => $wiki, 'or_admin' => true ))) {
+			header("location: /");
+			return false;
+		}
+		if (($wiki+=0) == 0)
+			return false;
+		$dbbackup = "/home/wikifarm/wikis/{$wiki}/private/wikidb{$wiki}.sql.gz";
+		if (!file_exists($dbbackup))
+			$dbbackup = "";		
+		header ("Content-type: application/gzip-compressed");
+		header ("Content-Disposition: attachment; filename=\"wiki{$wiki}-complete.tar.gz\"");
+		passthru("tar -czf - /home/wikifarm/wikis/{$wiki}/images/ {$dbbackup}");
+		return true;
 	}
 
 }  // WikifarmDriver class ends

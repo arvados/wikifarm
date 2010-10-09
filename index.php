@@ -32,6 +32,12 @@ if (preg_match ('{application/json}', $_SERVER["HTTP_ACCEPT"]) ||
 	exit;
 }
 
+// Push out a database backup
+if (isset($_GET["backup"])) {
+	$wf->wikiBackup($_GET["backup"]);
+	exit;
+}
+
 header('Content-Language: en');
 	
 // Would sir enjoy some tab content?

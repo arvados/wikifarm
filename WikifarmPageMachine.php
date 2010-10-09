@@ -573,14 +573,16 @@ BLOCK;
 		$html = <<<BLOCK
 <div style="float: right;">
 <a class="managebutton{$wikiid}" href="/$wikiname/">View wiki</a>
-<a class="managebutton{$wikiid}" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download backup</a>
+<a class="managebutton{$wikiid}" href="?backup={$wikiid}">Download full backup</a>
+<a class="managebutton{$wikiid}" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download database only</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/stats/awstats.$wikiid.html">Web stats</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/access_log.txt">Raw access log</a>
 </div>
 <script language="JavaScript">
 $(".managebutton{$wikiid}").button({icons:{primary:'ui-icon-zoomin'}})
 	.first().button({icons:{primary:'ui-icon-play'}})	
-	.next().button({icons:{primary:'ui-icon-suitcase'}});
+	.next().button({icons:{primary:'ui-icon-suitcase'}})
+	.next().button({icons:{primary:'ui-icon-suitcase'}});	
 </script>
 <div class="clear1em" />
 <form id="mwf{$wikiid}">
