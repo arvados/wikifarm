@@ -850,12 +850,16 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 		}
 		if (($wiki+=0) == 0)
 			return false;
-		$dbbackup = "/home/wikifarm/wikis/{$wiki}/private/wikidb{$wiki}.sql.gz";
-		if (!file_exists($dbbackup))
-			$dbbackup = "";		
+		$wiki = sprintf ("%02d", $wiki);
+		$wikidir = "/home/wikifarm/wikis/$wiki";
+		$dbbackup = "private/wikidb{$wiki}.sql.gz";
+		$stamp = preg_replace ('{^(.*?\..*?)\..*}', '${1}', $_SERVER['HTTP_HOST']);
+		$stamp = $stamp."_".$wiki."_".strftime("%Y-%m-%d");
+		if (!file_exists("$wikidir/$dbbackup"))
+			$dbbackup = "";
 		header ("Content-type: application/gzip-compressed");
-		header ("Content-Disposition: attachment; filename=\"wiki{$wiki}-complete.tar.gz\"");
-		passthru("tar -czf - /home/wikifarm/wikis/{$wiki}/images/ {$dbbackup}");
+		header ("Content-Disposition: attachment; filename=\"{$stamp}.tar.gz\"");
+		passthru("GZIP=--rsyncable tar -C $wikidir --owner=root --group=root --transform 's:^:{$stamp}/:' -chzf - $dbbackup images");
 		return true;
 	}
 
