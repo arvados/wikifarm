@@ -570,19 +570,29 @@ BLOCK;
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
 		$groups_heading = $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
+		$dumpfile = "/home/wikifarm/wikis/{$wikiid}/private/wikidb$wikiid.sql.gz";
+		$db_dump_stamp = null;
+		$hidebackups = "ui-helper-hidden";
+		if (file_exists ($dumpfile)) {
+		    $db_dump_stamp = strftime ("%b %e, %Y @ %H:%M %Z", filemtime($dumpfile));
+		    $db_dump_stamp = preg_replace ('{, '.strftime("%Y").'}', '', $db_dump_stamp);
+		    $hidebackups = "";
+		}
 		$html = <<<BLOCK
-<div style="float: right;">
+<div style="float: right; text-align: right;">
 <a class="managebutton{$wikiid}" href="/$wikiname/">View wiki</a>
-<a class="managebutton{$wikiid}" href="?backup={$wikiid}">Download full backup</a>
-<a class="managebutton{$wikiid}" href="/$wikiid/private/wikidb$wikiid.sql.gz">Download database only</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/stats/awstats.$wikiid.html">Web stats</a>
 <a class="managebutton{$wikiid}" href="/$wikiid/private/access_log.txt">Raw access log</a>
+<span style="$hidebackups">
+<a class="managebutton{$wikiid} $hidebackups" href="/$wikiid/private/wikidb$wikiid.sql.gz">Database dump</a>
+<a class="managebutton{$wikiid} $hidebackups" href="?backup={$wikiid}">Full backup</a><br />
+<span style="font-size: 9px;">Database dump (taken {$db_dump_stamp}) is included in full backup.</span>
+</span>
 </div>
 <script language="JavaScript">
-$(".managebutton{$wikiid}").button({icons:{primary:'ui-icon-zoomin'}})
-	.first().button({icons:{primary:'ui-icon-play'}})	
-	.next().button({icons:{primary:'ui-icon-suitcase'}})
-	.next().button({icons:{primary:'ui-icon-suitcase'}});	
+var buttons = $(".managebutton{$wikiid}").button({icons:{primary:'ui-icon-zoomin'}});
+buttons.first().button({icons:{primary:'ui-icon-play'}});
+buttons.slice(3,5).button({icons:{primary:'ui-icon-suitcase'}});
 </script>
 <div class="clear1em" />
 <form id="mwf{$wikiid}">
