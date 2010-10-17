@@ -299,7 +299,7 @@ $(function() {
 
 <tr><td class="formlabelleft nowrap">Wiki name: </td>
 <td class="minwidth"><input type=text name=wikiname size=32 maxlength=12></td>
-<td class="celltexttoppad">3 to 12 lower case letters.<br />your wiki will be http://{$_SERVER['HTTP_HOST']}/name</td>
+<td class="celltexttoppad">3 to 12 lower case letters.<br />your wiki will be https://{$_SERVER['HTTP_HOST']}/name</td>
 </tr>
 
 <tr><td class="formlabelleft nowrap celltexttoppad">Your username in the new wiki: </td>
