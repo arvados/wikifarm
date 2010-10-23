@@ -1,0 +1,27 @@
+--- src/net/psammead/mwapi/MediaWiki.java~	2009-09-29 13:01:40.000000000 -0700
++++ src/net/psammead/mwapi/MediaWiki.java	2010-10-23 14:25:10.000000000 -0700
+@@ -73,7 +73,7 @@
+ /** this is the main entry point, a facade to all configured MediaWiki sites */
+ public final class MediaWiki implements Disposable {
+ 	public static final String	DEFAULT_USER_AGENT	= "mwapi/0.0";
+-	public static final String	COOKIE_POLICY		= CookiePolicy.RFC_2109;	// BROWSER_COMPATIBILITY
++	public static final String	COOKIE_POLICY		= CookiePolicy.BROWSER_COMPATIBILITY;
+ 	
+ 	private Logger	logger;
+ 	
+@@ -105,6 +105,7 @@
+ 		managerParams.setStaleCheckingEnabled(true);
+ 		
+ 		client	= new HttpClient(manager);
++		client.getParams().setParameter("http.protocol.single-cookie-header", true);
+ 		// deprecated! client.State.CookiePolicy	= CookiePolicy.COMPATIBILITY;
+ 		//client.HostConfiguration.setHost(LOGON_SITE, LOGON_PORT, "http");
+ 	}
+@@ -652,6 +652,7 @@
+ 			connection	= new Connection(client, site);
+ 			connections.put(wiki, connection);
+ 		}
++		client.getState().addCookie(new org.apache.commons.httpclient.Cookie (configManager.getSite(wiki).hostName, "open_id_session_id", System.getenv("COMMONIST_OPENID_SESSION"), "/", -1, false));
+ 		return connection;
+ 	}
+ }
