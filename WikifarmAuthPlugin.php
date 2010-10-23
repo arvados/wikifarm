@@ -45,9 +45,30 @@ class WikifarmAuthPlugin extends AuthPlugin {
 	}
 
 	public function authenticate( $username, $password ) {
-		return isset ($this->mwusername) &&
-			$this->mwusername !== false &&
-			ucfirst($this->mwusername) == ucfirst($username);
+		if (!isset ($this->mwusername) ||
+		    $this->mwusername === false)
+			return false;
+		if (ucfirst($this->mwusername) == ucfirst($username))
+			return true;
+		// If given username is not the "current" autologin,
+		// but *is* in the autologin table, accept any password
+		$autologins = $this->db->query
+			 ("select mwusername, sysop from autologin where wikiid='"
+			  . getenv("WIKIID")
+			  . "' and userid='"
+			  . SQLite3::escapeString ($this->userid)
+			  . "' and mwusername like '"
+			  . SQLite3::escapeString (preg_replace('{ }','_',$username))
+			  . "'");
+		while ($autologins &&
+		       ($autologin = $autologins->fetchArray (SQLITE3_ASSOC))) {
+			if (preg_replace('{_}', ' ', ucfirst($autologin["mwusername"])) == ucfirst($username)) {
+				$this->mwusername = preg_replace('{_}', ' ', $autologin["mwusername"]);
+				$this->userid_is_owner += $autologin["sysop"];
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public function modifyUITemplate( &$template ) {
