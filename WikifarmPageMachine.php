@@ -83,6 +83,7 @@ BLOCK;
 		$q_mwusername = htmlspecialchars($this->getMWUsername());
 		$q_uota = $this->getWikiQuota();
 		$q_uota = $admin_mode ? "<input type=\"text\" name=\"quota\" size=\"4\" maxlength=\"3\" value=\"$q_uota\" />" : $q_uota;
+		$q_cookie = htmlspecialchars($_COOKIE["open_id_session_id"]);
 		$icon = "info";
 		$your = $admin_mode ? "this user's" : "your";
 		$Your = ucfirst ($your);
@@ -124,6 +125,8 @@ BLOCK;
 <thead></thead><tbody>
 <tr>
 <td class="minwidth formlabelleft">OpenID</td><td>$q_openid</td>
+</tr><tr>
+<td class="minwidth formlabelleft">Session cookie</td><td>$q_cookie</td>
 </tr><tr>
 <td class="minwidth formlabelleft">Wiki&nbsp;quota</td><td>$q_uota</td>
 </tr><tr>
