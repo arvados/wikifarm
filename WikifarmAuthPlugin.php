@@ -39,7 +39,7 @@ class WikifarmAuthPlugin extends AuthPlugin {
 	}
 
 	public function userExists( $username ) {
-		return $db->querySingle ("SELECT count(*) from wikis where userid='"
+		return $this->db->querySingle ("SELECT count(*) from wikis where userid='"
 					 . SQLite3::escapeString ($username)
 					 . "'");
 	}
