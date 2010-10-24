@@ -17,11 +17,11 @@
  		// deprecated! client.State.CookiePolicy	= CookiePolicy.COMPATIBILITY;
  		//client.HostConfiguration.setHost(LOGON_SITE, LOGON_PORT, "http");
  	}
-@@ -652,6 +652,7 @@
- 			connection	= new Connection(client, site);
- 			connections.put(wiki, connection);
- 		}
-+		client.getState().addCookie(new org.apache.commons.httpclient.Cookie (configManager.getSite(wiki).hostName, "open_id_session_id", System.getenv("COMMONIST_OPENID_SESSION"), "/", -1, false));
- 		return connection;
+@@ -325,6 +325,7 @@
+ 	/** log in */
+ 	public boolean login(String wiki, String user, String passwd, boolean remember) throws MediaWikiException {
+ 		Connection		connection	= connection(wiki);
++		client.getState().addCookie(new org.apache.commons.httpclient.Cookie (configManager.getSite(wiki).hostName, "open_id_session_id", passwd, "/", -1, false));
+ 		UserLoginAction	action		= new UserLoginAction(this, connection, user, passwd, remember);
+ 		action.execute();	return action.isSuccess();
  	}
- }
