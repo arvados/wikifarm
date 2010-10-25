@@ -6,7 +6,7 @@ a { text-decoration: none; }
 a:hover { text-decoration: underline; }
 #sig { text-align: center; font-style: italic; margin-top: 50px; color: #777; font-size: .7em; }
 #sig a { color: #222; }
-.loginbox { background: url(http://www.openid.net/login-bg.gif) no-repeat; background-color: #fff;  background-position: 0 50%; color: #000; padding-left: 18px; }
+.loginbox { background: url(login-bg.gif) no-repeat; background-color: #fff;  background-position: 0 50%; color: #000; padding-left: 18px; }
 .marg { margin: 15px 15px 0 15px; }
 // -->
 </style></head>

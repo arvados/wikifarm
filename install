@@ -22,6 +22,7 @@ install $SOURCEDIR/wikifarm-log-split.pl $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-create-wiki $INSTALLDIR/etc/
 install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
 install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
+install $SOURCEDIR/login-bg.gif $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmDriver.php $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmPageMachine.php $INSTALLDIR/wikis/
 install $SOURCEDIR/serverlogo.png $INSTALLDIR/wikis/
