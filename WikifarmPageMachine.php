@@ -588,7 +588,7 @@ BLOCK;
 <a class="managebutton{$wikiid}" href="/$wikiid/private/access_log.txt">Raw access log</a>
 <span style="$hidebackups">
 <a class="managebutton{$wikiid} $hidebackups" href="/$wikiid/private/wikidb$wikiid.sql.gz">Database dump</a>
-<a class="managebutton{$wikiid} $hidebackups" href="?backup={$wikiid}">Full backup</a><br />
+<a class="managebutton{$wikiid} $hidebackups" href="./?backup={$wikiid}">Full backup</a><br />
 <span style="font-size: 9px;">Database dump (taken {$db_dump_stamp}) is included in full backup.</span>
 </span>
 </div>

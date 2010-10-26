@@ -37,6 +37,10 @@ if (isset($_GET["backup"])) {
 	$wf->wikiBackup($_GET["backup"]);
 	exit;
 }
+if (isset($_GET["adminbackup"])) {
+	$wf->wikiFarmBackup(isset($_GET["withwikis"]));
+	exit;
+}
 
 header('Content-Language: en');
 	

@@ -9,3 +9,12 @@ h2. Your account has admin powers.
 * You get a "send me email about new accounts / group requests" checkbox on your "My Account" tab.
 
 * Your "Requests" tab shows any outstanding activation/group requests (along with any requests to read/edit your wikis).
+
+* You can download a backup of "the wikifarm state":./?adminbackup=1 (small) including the wikifarm database (users' names/emails, group memberships, wiki ownership, and wiki permissions) and MediaWiki configuration files.
+
+* You can download a backup of "all wiki contents":./?adminbackup=1&withwikis=1 (big) including:
+** the wikifarm state,
+** MediaWiki configuration files,
+** MediaWiki source code and extensions, and
+** each wiki's latest DB dump and current images directory.
+

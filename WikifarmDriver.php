@@ -843,6 +843,23 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 		return false;
 	}
 	
+	function wikiFarmBackup($with_wikis) {
+		if (!$this->_security('admin')) return false;
+		$wikibasedir = "/home/wikifarm";
+		$wikifiles = "wikis/FarmSettings.php wikis/DefaultFarmSettings.php wikis/*/LocalSettings.php";
+		if ($with_wikis)
+			$wikifiles .= " wikis/mediawiki/ /usr/share/mediawiki-extensions wikis/*/private/wikidb*.sql.gz wikis/*/images";
+		else
+			$wikifiles .= " wikis/mediawiki/extensions/LocalExtensions.php";
+		$stamp = preg_replace ('{^(.*?\..*?)\..*}', '${1}', $_SERVER['HTTP_HOST']);
+		
+		$stamp = $stamp."_".strftime("%Y-%m-%d", $with_wikis ? time() : filemtime("$wikibasedir/db/dump-wikis.db.sql")).($with_wikis ? "" : "-wikifarm-db-only");
+		header ("Content-type: application/gzip-compressed");
+		header ("Content-Disposition: attachment; filename=\"{$stamp}.tar.gz\"");
+		passthru("cd $wikibasedir && GZIP=--rsyncable tar --owner=root --group=root --transform 's:^:{$stamp}/:' -chzf - db/dump-wikis.db.sql $wikifiles");
+		return true;
+	}
+	
 	function wikiBackup($wiki) {
 		if (!$this->_security( array( 'access' => 'owner', 'wiki' => $wiki, 'or_admin' => true ))) {
 			header("location: /");

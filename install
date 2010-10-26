@@ -25,6 +25,7 @@ install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/w
 install $SOURCEDIR/login-bg.gif $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmDriver.php $INSTALLDIR/wikis/
 install $SOURCEDIR/WikifarmPageMachine.php $INSTALLDIR/wikis/
+install $SOURCEDIR/DefaultFarmSettings.php $INSTALLDIR/wikis/
 install $SOURCEDIR/serverlogo.png $INSTALLDIR/wikis/
 install $SOURCEDIR/favicon.ico $INSTALLDIR/wikis/
 
@@ -49,6 +50,7 @@ install $SOURCEDIR/style.css $INSTALLDIR/wikis/
 install $SOURCEDIR/GeSHiHighlight.php /usr/share/mediawiki-extensions/
 install $SOURCEDIR/WikifarmAuthPlugin.php /usr/share/mediawiki-extensions/
 ln -sf /usr/share/mediawiki-extensions/WikifarmAuthPlugin.php /etc/mediawiki-extensions/extensions-available/
+[ -e $INSTALLDIR/wikis/FarmSettings.php ] || touch $INSTALLDIR/wikis/FarmSettings.php
 install $SOURCEDIR/SimpleTable.php /usr/share/mediawiki-extensions/
 
 install /usr/share/doc/awstats/examples/awstats_buildstaticpages.pl $INSTALLDIR/etc/awstats_buildstaticpages.pl
