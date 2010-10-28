@@ -689,7 +689,7 @@ BLOCK;
 		});
 	});
 	$("#mwg{$wikiid}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "bFilter": false, "bLengthChange": false, "bPaginate": false});
-	$("#mwu{$wikiid}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "bLengthChange": false});
+	$("#mwu{$wikiid}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false});
 </script>
 BLOCK;
 		return $html;
