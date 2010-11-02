@@ -128,7 +128,6 @@ if (isset ($_GET["tabActive"]))
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
 		$("#pageheader a").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');
-		$("#pageheader a:first").hide(); // TODO: make a "what's new" page?
 	});	
 
 </script>
@@ -143,8 +142,11 @@ if (isset ($_GET["tabActive"]))
 
 <div id="pageheader"><div id="byline"><h3><?=$friendly_servername?></h3><?=$friendly_byline?></div>
 <div>
-<a href="logout.php">What's New?</a>
-<a href="logout.php">Log out</a></div>
+<a href="logout.php" class="logoutinfo">Log out</a>
+<? if (preg_match ('{^https?://(\w+\.)?google\.com/}i', $_SERVER["REMOTE_USER"])) { ?>
+<a href="logout.php?logout_google=1">Log out of here <strong>and</strong> Google</a>
+<? } ?>
+</div>
 </div>
 
 <div id="tabs">
@@ -161,3 +163,6 @@ if (isset ($_GET["tabActive"]))
 
 </body>
 </html>
+<script type="text/javascript" language="JavaScript">
+		$(".logoutinfo").live("click",function(){return confirm("You will be logged out of the wiki farm, but you may still be logged in to your OpenID provider.\n\nIf you are using a shared computer, after logging out of the wiki farm you should also log out of your OpenID provider, clear your cookies and quit your browser.");});
+</script>

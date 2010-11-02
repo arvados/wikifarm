@@ -25,7 +25,7 @@ CustomLog "|$ENV{INSTALLDIR}/etc/wikifarm-log-split.pl $ENV{INSTALLDIR}/wikis/{}
 # AuthOpenIDTrustRoot http://wikifarm-dev.freelogy.org/
   AuthOpenIDLoginPage /login.php
 </Location>
-<LocationMatch ^/login.*>
+<LocationMatch ^/log(in|out).*>
   AuthOpenIDEnabled Off
 </LocationMatch>
 
