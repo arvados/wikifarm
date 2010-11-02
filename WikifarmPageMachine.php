@@ -1022,6 +1022,7 @@ EOT;
 
 	function ajax_managewiki_groups ($post) {
 		$wikiid = $post["wikiid"];
+		$wikiid0 = sprintf ("%02d", $wikiid);
 		$wiki = $this->getWiki($wikiid);
 		if (!is_array ($wiki))
 			return $this->fail ("No wiki specified.");
@@ -1041,7 +1042,7 @@ EOT;
 			if ($u["read_via_group"])
 				$read_via_group_before[$u["userid"]] = true;
 
-		$want = $post["mw${wikiid}_groups"];
+		$want = $post["mw${wikiid0}_groups"];
 		foreach ($this->getAllGroups() as $g) {
 			if ($g["groupid"] == "ADMIN") continue;
 			if (!$want || false === array_search ($g["groupid"], $want)) {
@@ -1050,7 +1051,7 @@ EOT;
 			}
 			else {
 				$this->inviteGroup ($wikiid, $g["groupid"]);
-				$checkus[] = "mw${wikiid}_group_".$g["groupid"];
+				$checkus[] = "mw${wikiid0}_group_".$g["groupid"];
 			}
 		}
 		// An Admin might be trying to create a new group
@@ -1077,16 +1078,16 @@ EOT;
 		foreach ($read_via_group_before as $userid => $x)
 			if (!isset($read_via_group_after[$userid])) {
 				if (!isset($read_anyway_after[$userid])) {
-					$uncheckus[] = "mw${wikiid}_userview_".md5($userid);
-					$uncheckus[] = "mw${wikiid}_useredit_".md5($userid);
+					$uncheckus[] = "mw${wikiid0}_userview_".md5($userid);
+					$uncheckus[] = "mw${wikiid0}_useredit_".md5($userid);
 				}
-				$enableus[] = "mw${wikiid}_userview_".md5($userid);
+				$enableus[] = "mw${wikiid0}_userview_".md5($userid);
 			}
 
 		foreach ($read_via_group_after as $userid => $x)
 			if (!isset($read_via_group_before[$userid])) {
-				$disableus[] = "mw${wikiid}_userview_".md5($userid);
-				$checkus[] = "mw${wikiid}_userview_".md5($userid);
+				$disableus[] = "mw${wikiid0}_userview_".md5($userid);
+				$checkus[] = "mw${wikiid0}_userview_".md5($userid);
 			}
 
 		return array ("success" => true,
@@ -1100,6 +1101,7 @@ EOT;
 
 	function ajax_managewiki_users ($post) {
 		$wikiid = $post["wikiid"] + 0;
+		$wikiid0 = sprintf ("%02d", $wikiid);
 		$wiki = $this->getWiki($wikiid);
 		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
 			return $this->fail ("You are not allowed to do that.");
@@ -1122,11 +1124,11 @@ EOT;
 		foreach ($this->getAllActivatedUsers() as $u) {
 			if (isset ($read_via_group[$u["userid"]]))
 				continue;
-			$userview_param = "mw${wikiid}_userview_".md5($u["userid"]);
+			$userview_param = "mw${wikiid0}_userview_".md5($u["userid"]);
 			if (!(isset($post[$userview_param]) && $post[$userview_param])) {
 				$this->disinviteUser ($wikiid, $u["userid"]);
 				$uncheckus[] = $userview_param;
-				$uncheckus[] = "mw${wikiid}_useredit_".md5($u["userid"]);
+				$uncheckus[] = "mw${wikiid0}_useredit_".md5($u["userid"]);
 			}
 			else {
 				$this->inviteUser ($wikiid, $u["userid"]);
@@ -1142,7 +1144,7 @@ EOT;
 			if ($u["mwusername"])
 				if (!isset ($writeable[$u["userid"]])) {
 					$writeable[$u["userid"]] = true;
-					$checkus[] = "mw${wikiid}_useredit_".md5($u["userid"]);
+					$checkus[] = "mw${wikiid0}_useredit_".md5($u["userid"]);
 				}
 
 		return array ("success" => true,
@@ -1153,6 +1155,7 @@ EOT;
 	function ajax_managewiki_editor ($post) {
 		$checkus = array();
 		$wikiid = $post["wikiid"] + 0;
+		$wikiid0 = sprintf ("%02d", $wikiid);
 		$wiki = $this->getWiki($wikiid);
 		if ($wiki["userid"] != $this->openid && !$this->isAdmin())
 			return $this->fail ("You are not allowed to do that.");
@@ -1160,13 +1163,13 @@ EOT;
 			$this->validate_mwusername ($post["mwusername"]);
 			$this->inviteUser ($wikiid, $post["userid"], $post["mwusername"]);
 			$check = "check";
-			$checkus[] = "mw".$wikiid."_userview_".md5($post["userid"]);
+			$checkus[] = "mw${wikiid0}_userview_".md5($post["userid"]);
 		}
 		else {
 			$this->disinviteEditor ($wikiid, $post["userid"]);
 			$check = "uncheck";
 		}
-		$checkus[] = "mw".$wikiid."_useredit_".md5($post["userid"]);
+		$checkus[] = "mw${wikiid0}_useredit_".md5($post["userid"]);
 		return $this->success(array ($check => $checkus));
 	}
 
