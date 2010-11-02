@@ -122,8 +122,8 @@ if (isset ($_GET["tabActive"]))
 		$("#tabs").bind("tabsselect", function(event,ui){
 			if ($(ui.panel).parent().attr("id")!="tabs") return;
 			$("#tabs>div").empty();
-			$("body>div.wf-dialog").remove();
-			$("body>div.ui-dialog").remove();
+			$("body>div.wf-dialog").empty().remove();
+			$("body>div.ui-dialog").empty().remove();
 		});
 		mywikisLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
