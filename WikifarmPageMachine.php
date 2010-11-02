@@ -895,13 +895,12 @@ BLOCK;
 		$('#granteditdialog')
 			.attr('title','Invite user to edit your wiki')
 			.attr("ga_message_id", "grantmessage")
-			.dialog
-		({ modal: true,
-			 autoOpen: false,
-			 width: 400,
-			 buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
-				    "Cancel": function() { $(this).dialog("close"); } }
-		});
+			.dialog({ modal: true,
+				 autoOpen: false,
+				 width: 400,
+				 buttons: { "OK": function() { dialog_submit(this, "#granteditform"); },
+					    "Cancel": function() { $(this).dialog("close"); } }
+			});
 		$('.granteditbutton').live('click',function(){
 			$('#grantmessage').hide();
 			$('#grantwikiname').html($(this).attr('wikiname'));
