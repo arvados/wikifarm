@@ -6,5 +6,5 @@ setcookie ("open_id_session_id", "", 0, "/");
 if (isset($_REQUEST["logout_google"]))
     header ("Location: https://www.google.com/accounts/Logout");
 else
-    header ("Location: /");
+    header ("Location: /login.php");
 ?>
