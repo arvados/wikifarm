@@ -226,6 +226,11 @@ class WikifarmAuthPlugin extends AuthPlugin {
 		if ($title)
 			$wgSitename = $title;
 	}
+
+	function UserLogout() {
+		header ("Location: /");
+		exit;
+	}
 }
 
 if (getenv("WIKIID") && getenv("REMOTE_USER") != "") {
@@ -234,6 +239,7 @@ if (getenv("WIKIID") && getenv("REMOTE_USER") != "") {
 	$wgHooks['UserLoadFromSession'][] = array ($wgAuth, 'autoAuthenticate');
 	$wgHooks['UserLoginComplete'][] = array ($wgAuth, 'UserLoginComplete');
 	$wgHooks['UserGetRights'][] = array ($wgAuth, 'UserGetRights');
+	$wgHooks['UserLogout'][] = array ($wgAuth, 'UserLogout');
 	$wgAuth->setWikiTitle();
 	global $wgDisableCookieCheck;
 	$wgDisableCookieCheck = true;
