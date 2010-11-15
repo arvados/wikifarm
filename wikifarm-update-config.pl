@@ -28,6 +28,9 @@ CustomLog "|$ENV{INSTALLDIR}/etc/wikifarm-log-split.pl $ENV{INSTALLDIR}/wikis/{}
 <LocationMatch ^/log(in|out).*>
   AuthOpenIDEnabled Off
 </LocationMatch>
+<LocationMatch ^/mediawiki.*>
+  Deny from all
+</LocationMatch>
 
 SetEnv WIKIFARM_DB_FILE $WIKIFARM_DB_FILE
 SetEnv OPENID_DB_FILE $OPENID_DB_FILE
