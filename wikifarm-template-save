@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+. $(dirname $0)/env
+
+templatesettings=$WWW/00/LocalSettings.php
+sudo mv /var/lib/mediawiki/config/LocalSettings.php $templatesettings
+sudo tee -a $templatesettings <<'EOF'
+$wgArticlePath = "/xxx/$1";
+require_once(dirname(__FILE__)."/../DefaultFarmSettings.php");
+require_once(dirname(__FILE__)."/../FarmSettings.php");
+EOF
+perl -pi~ -e 's/^/#/ if /^define.*MW_INSTALL_PATH/' $templatesettings
+
+echo 'Deny from all' | sudo tee $WWW/00/.htaccess

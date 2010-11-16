@@ -1,3 +1,23 @@
+// Copyright 2010 President and Fellows of Harvard College
+//
+// Authors:
+// Tom Clegg <tom@clinicalfuture.com>
+// Jer Ratcliffe <jer@clinicalfuture.com>
+//
+// This file is part of wikifarm.
+//
+// Wikifarm is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License version 2 as
+// published by the Free Software Foundation.
+//
+// Wikifarm is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
+
 // adds $('element').exists();
 jQuery.fn.exists = function(){return jQuery(this).length>0;};
 
@@ -41,10 +61,6 @@ function selectTabByName(tabs, tab) {
 
 function generic_ajax_success(data, textStatus, req, button)
 {
-//	var op = ''; //~jer (debug)
-//	for (i in data) op += i+' '; //'['+data[i]['name']+'='+data[i]['value']+'] ';
-//	alert ('success: '+op);
-//	alert ('refreshdiv: '+data['refreshdiv']+ '\n refreshtab: '+data['refreshtab']);
     if (button.disabled)
 	button.disabled = false;
     if (data.check)
@@ -108,9 +124,6 @@ function generic_ajax_submit()
     try {
 	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
 	var ga_loader_id = $(this).attr('ga_loader_id');
-//	var op = ''; //~jer (debug)
-//	for (i in postme) op += '['+postme[i]['name']+'='+postme[i]['value']+'] ';
-//	alert ('submit: '+op);
 	postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
 		    {name: 'ga_loader_id', value: $(this).attr('ga_loader_id')},
 		    {name: 'ga_button_id', value: $(this).attr('id')},

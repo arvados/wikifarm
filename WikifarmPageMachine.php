@@ -1,4 +1,25 @@
 <?php	
+    ;
+
+// Copyright 2010 President and Fellows of Harvard College
+//
+// Authors:
+// Tom Clegg <tom@clinicalfuture.com>
+// Jer Ratcliffe <jer@clinicalfuture.com>
+//
+// This file is part of wikifarm.
+//
+// Wikifarm is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License version 2 as
+// published by the Free Software Foundation.
+//
+// Wikifarm is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once ('WikifarmDriver.php');
 require_once('classTextile.php');
@@ -573,7 +594,7 @@ BLOCK;
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
 		$groups_heading = $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
-		$dumpfile = "/home/wikifarm/wikis/{$wikiid}/private/wikidb$wikiid.sql.gz";
+		$dumpfile = getenv("WIKIFARM_WWW")."/{$wikiid}/private/wikidb$wikiid.sql.gz";
 		$db_dump_stamp = null;
 		$hidebackups = "ui-helper-hidden";
 		if (file_exists ($dumpfile)) {
@@ -1204,9 +1225,10 @@ EOT;
 		if (!$this->_security('admin')) return $this->fail ("You are not allowed to do that.");
 		$this->Focus ($post["userid"]);
 		$all_groupids = $this->getAllGroupIDs();
-		foreach (array_diff( $post["group_request"], $all_groupids ) as $g)
-			$this->validate_groupid ($g);		
-		$this->setGroups ($post["group_request"]);
+		$requested = isset ($post["group_request"]) ? $post["group_request"] : array();
+		foreach (array_diff ($requested, $all_groupids) as $g)
+			$this->validate_groupid ($g);
+		$this->setGroups ($requested);
 		$tabs = $post['refresh_tab'] ? $post['refresh_tab'] : false;  // if tabs is set, reload this tab
 		return $this->success(array("message" => "Changes saved.", "refreshtab" => $tabs));
 	}

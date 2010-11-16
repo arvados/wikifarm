@@ -1,0 +1,11 @@
+/etc/wikifarm
+/usr/share/wikifarm
+/var/lib/wikifarm
+/var/lib/wikifarm/db
+/var/lib/wikifarm/www
+/etc/apache2/sites-available
+/etc/php5/conf.d
+/etc/cron.d
+/etc/mediawiki-extensions
+/etc/mediawiki-extensions/extensions-available
+/etc/mediawiki-extensions/extensions-enabled

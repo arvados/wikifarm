@@ -1,0 +1,17 @@
+#!/bin/sh
+
+if [ "ok" != "$(sudo -u ubuntu sh -c 'sudo -k; sudo -n echo -n ok')" ]
+then
+  cat >&2 <<EOF
+***
+
+The wikifarm software requires a user account named 'ubuntu' which can
+run 'sudo' without a password.  Create this account and use visudo to
+add this line before installing this package:
+
+ubuntu  ALL=(ALL) NOPASSWD:ALL
+
+***
+EOF
+  exit 1
+fi

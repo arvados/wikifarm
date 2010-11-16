@@ -1,7 +1,8 @@
 <?php
      ;
-$home = getenv("INSTALLDIR");
-$db = new SQLite3 ("$home/db/wikis.db");
+$dbdir = getenv("DB");
+$etcdir = getenv("ETC");
+$db = new SQLite3 ("$dbdir/wikis.db");
 
 if (!$db->exec ('CREATE TABLE userpref (
  userid varchar(255),
@@ -83,8 +84,11 @@ if (!$db->exec ('CREATE TABLE autologin (
 if (!$db->exec ('CREATE UNIQUE INDEX wu ON autologin (wikiid,userid,mwusername)'))
     die ($db->lastErrorMsg());
 
+if (!file_exists ("$etcdir/legacy-wiki.list"))
+    exit (0);
+
 print "Importing wiki.list...";
-$fh = fopen ("$home/etc/wiki.list", "r");
+$fh = fopen ("$etcdir/legacy-wiki.list", "r");
 while ($row = fgets ($fh)) {
     $row = explode ("\t", trim($row, "\r\n"));
     foreach ($row as &$x) {
@@ -99,7 +103,7 @@ print "\n";
 
 
 print "Importing index.html...";
-$fh = fopen ("$home/wikis/index.html", "r");
+$fh = fopen ("$etcdir/legacy-index.html", "r");
 while ($row = fgets ($fh)) {
     if (!ereg ("<a href=\"(.*)/\">(.*)</a>", trim($row, "\r\n"), $regs))
 	continue;
@@ -114,7 +118,7 @@ print "\n";
 
 
 print "Importing users from .htpasswd...";
-$fh = fopen ("$home/etc/.htpasswd", "r");
+$fh = fopen ("$etcdir/legacy-htpasswd", "r");
 while ($row = fgets ($fh)) {
     $row = explode (":", trim($row, "\r\n"));
     foreach ($row as &$x)
@@ -127,7 +131,7 @@ print "\n";
 
 
 print "Importing groups from .htgroup...";
-$fh = fopen ("$home/etc/.htgroup", "r");
+$fh = fopen ("$etcdir/legacy-htgroup", "r");
 while ($row = fgets ($fh)) {
     $row = explode (":", trim($row, "\r\n"));
     $group = SQLite3::escapeString ($row[0]);
@@ -140,13 +144,3 @@ while ($row = fgets ($fh)) {
 }
 fclose ($fh);
 print "\n";
-
-
-
-print "Faking wiki permissions...";
-$db->exec ("insert into wikipermission (wikiid, userid_or_groupname) select id, 'labmembers' from wikis");
-$db->exec ("delete from wikipermission where wikiid in (64,65)");
-$db->exec ("insert into wikipermission (wikiid, userid_or_groupname) values (64,'joshilab')");
-$db->exec ("insert into wikipermission (wikiid, userid_or_groupname) values (65,'joshilab')");
-print "\n";
-

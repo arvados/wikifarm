@@ -3,76 +3,81 @@
 set -e
 set -x
 
+export DESTDIR=${DESTDIR:-}
 export INSTALLDIR=${INSTALLDIR:-/home/wikifarm}
+export WWW=${WWW:-$INSTALLDIR/wikis}
+export ETC=${ETC:-$INSTALLDIR/etc}
+export DB=${DB:-$INSTALLDIR/db}
+export SSL=${SSL:-$INSTALLDIR/etc/ssl}
 pwd=$(cd $(dirname $0)/. && pwd)
 export SOURCEDIR=${SOURCEDIR:-$pwd}
-export HOSTNAME="`hostname`"
 
-perl -pe 's/{{(.*?)}}/$ENV{$1}/g' < $SOURCEDIR/wikifarm-apache2.conf.in > /tmp/wikifarm-apache2.conf.tmp
-
-mkdir -p $INSTALLDIR
-install $SOURCEDIR/awstats.00.conf $INSTALLDIR/etc/
-install $SOURCEDIR/awstats.all.conf $INSTALLDIR/etc/
-install /tmp/wikifarm-apache2.conf.tmp /etc/apache2/sites-available/wikifarm
-install $SOURCEDIR/wikifarm-auth.pl $INSTALLDIR/etc/
-install $SOURCEDIR/wikifarm-update-config.pl $INSTALLDIR/etc/
-install $SOURCEDIR/wikifarm-update-stats.sh $INSTALLDIR/etc/
-install $SOURCEDIR/wikifarm-backup.sh $INSTALLDIR/etc/
-install $SOURCEDIR/wikifarm-log-split.pl $INSTALLDIR/etc/
-install $SOURCEDIR/wikifarm-create-wiki $INSTALLDIR/etc/
-install $SOURCEDIR/wikifarm-php.ini /etc/php5/conf.d/
-install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $INSTALLDIR/wikis/
-install $SOURCEDIR/login-bg.gif $INSTALLDIR/wikis/
-install $SOURCEDIR/WikifarmDriver.php $INSTALLDIR/wikis/
-install $SOURCEDIR/WikifarmPageMachine.php $INSTALLDIR/wikis/
-install $SOURCEDIR/DefaultFarmSettings.php $INSTALLDIR/wikis/
-install $SOURCEDIR/serverlogo.png $INSTALLDIR/wikis/
-install $SOURCEDIR/favicon.ico $INSTALLDIR/wikis/
+mkdir -p $DESTDIR$ETC
+install $SOURCEDIR/awstats.00.conf $DESTDIR$ETC/
+install $SOURCEDIR/awstats.all.conf $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-apache2.conf.in $DESTDIR/etc/apache2/sites-available/wikifarm
+install $SOURCEDIR/wikifarm-auth.pl $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-update-config.pl $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-update-stats.sh $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-backup.sh $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-log-split.pl $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-create-wiki $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-php.ini $DESTDIR/etc/php5/conf.d/
+install $SOURCEDIR/wikifarm-sudo-enable $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-sudo-disable $DESTDIR$ETC/
+install $SOURCEDIR/wikifarm-template-save $DESTDIR$ETC/
+install $SOURCEDIR/make_admin_user.php $DESTDIR$ETC/
+install $SOURCEDIR/{login,logout,index,claim-wiki-by-password}.php $DESTDIR$WWW/
+install $SOURCEDIR/login-bg.gif $DESTDIR$WWW/
+install $SOURCEDIR/WikifarmDriver.php $DESTDIR$WWW/
+install $SOURCEDIR/WikifarmPageMachine.php $DESTDIR$WWW/
+install $SOURCEDIR/DefaultFarmSettings.php $DESTDIR$WWW/
+install $SOURCEDIR/serverlogo.png $DESTDIR$WWW/
+install $SOURCEDIR/favicon.ico $DESTDIR$WWW/
 
 make -C $SOURCEDIR
-install $SOURCEDIR/textile-2.0.0/classTextile.php $INSTALLDIR/wikis/
-install $SOURCEDIR/help.textile $INSTALLDIR/wikis/
-install $SOURCEDIR/adminhelp.textile $INSTALLDIR/wikis/
-rsync -av $SOURCEDIR/help/ $INSTALLDIR/wikis/help/
+install $SOURCEDIR/textile-2.0.0/classTextile.php $DESTDIR$WWW/
+install $SOURCEDIR/help.textile $DESTDIR$WWW/
+install $SOURCEDIR/adminhelp.textile $DESTDIR$WWW/
+rsync -av $SOURCEDIR/help/ $DESTDIR$WWW/help/
 
-mkdir -p $INSTALLDIR/wikis/js
-install $SOURCEDIR/js/ajax-loader.gif $INSTALLDIR/wikis/js/
-install $SOURCEDIR/js/jquery-1.4.2.min.js $INSTALLDIR/wikis/js/
-install $SOURCEDIR/js/jquery-ui-1.8.4.custom.min.js $INSTALLDIR/wikis/js/
-install $SOURCEDIR/js/wikifarm-ui.js $INSTALLDIR/wikis/js/
+mkdir -p $DESTDIR$WWW/js
+install $SOURCEDIR/js/ajax-loader.gif $DESTDIR$WWW/js/
+install $SOURCEDIR/js/jquery-1.4.2.min.js $DESTDIR$WWW/js/
+install $SOURCEDIR/js/jquery-ui-1.8.4.custom.min.js $DESTDIR$WWW/js/
+install $SOURCEDIR/js/wikifarm-ui.js $DESTDIR$WWW/js/
 [ -d DataTables-1.7.1 ] || unzip DataTables-1.7.1.zip
-rsync -av $SOURCEDIR/DataTables-1.7.1/media/ $INSTALLDIR/wikis/js/DataTables/
+rsync -av $SOURCEDIR/DataTables-1.7.1/media/ $DESTDIR$WWW/js/DataTables/
 
-mkdir -p $INSTALLDIR/wikis/css
-cp -r $SOURCEDIR/css/* $INSTALLDIR/wikis/css/
-install $SOURCEDIR/style.css $INSTALLDIR/wikis/
+mkdir -p $DESTDIR$WWW/css
+cp -r $SOURCEDIR/css/* $DESTDIR$WWW/css/
+install $SOURCEDIR/style.css $DESTDIR$WWW/
 
-install $SOURCEDIR/GeSHiHighlight.php /usr/share/mediawiki-extensions/
-install $SOURCEDIR/WikifarmAuthPlugin.php /usr/share/mediawiki-extensions/
-ln -sf /usr/share/mediawiki-extensions/WikifarmAuthPlugin.php /etc/mediawiki-extensions/extensions-available/
-[ -e $INSTALLDIR/wikis/FarmSettings.php ] || touch $INSTALLDIR/wikis/FarmSettings.php
-install $SOURCEDIR/SimpleTable.php /usr/share/mediawiki-extensions/
+for ext in SimpleTable.php GeSHiHighlight.php WikifarmAuthPlugin.php
+do
+  install $SOURCEDIR/$ext $DESTDIR$ETC/
+  ln -sf $ETC/$ext $DESTDIR/etc/mediawiki-extensions/extensions-available/
+done
 
-install /usr/share/doc/awstats/examples/awstats_buildstaticpages.pl $INSTALLDIR/etc/awstats_buildstaticpages.pl
-perl -pi~ -e 's:2>&1:1>&2: if $.==372' $INSTALLDIR/etc/awstats_buildstaticpages.pl
-
-mkdir -p $INSTALLDIR/db
-php $SOURCEDIR/initialize_wikis_db.php
-chown -R www-data:adm $INSTALLDIR/db
-chmod -R o-rwx,g+rX $INSTALLDIR/db
-chmod 750 $INSTALLDIR/db
-
-$INSTALLDIR/etc/wikifarm-update-config.pl
-
-sudo tee /etc/cron.d/wikifarm-update-stats <<EOF
-30 4 * * * www-data $INSTALLDIR/etc/wikifarm-update-stats.sh >>/tmp/wikifarm-stats.log 2>&1
+install $SOURCEDIR/initialize_wikis_db.php $DESTDIR$ETC/
+install $SOURCEDIR/setup $DESTDIR$ETC/
+cat >$DESTDIR$ETC/env <<EOF
+export DB="$DB"
+export WWW="$WWW"
+export ETC="$ETC"
+export SSL="$SSL"
 EOF
-sudo tee /etc/cron.d/wikifarm-backup <<EOF
-30 1 * * * www-data $INSTALLDIR/etc/wikifarm-backup.sh >>/tmp/wikifarm-backup.log 2>&1
-EOF
-sudo chmod a+x /var/log/apache2
 
-a2ensite wikifarm
-a2enmod ssl
-a2enmod rewrite
-mwenext WikifarmAuthPlugin.php
+if [ -O $DESTDIR/etc/cron.d ]
+then
+  sudo=""
+else
+  sudo=sudo
+fi
+
+$sudo tee $DESTDIR/etc/cron.d/wikifarm-update-stats >/dev/null <<EOF
+30 4 * * * www-data $ETC/wikifarm-update-stats.sh $ETC >>/tmp/wikifarm-stats.log 2>&1
+EOF
+$sudo tee $DESTDIR/etc/cron.d/wikifarm-backup >/dev/null <<EOF
+30 1 * * * www-data $ETC/wikifarm-backup.sh $ETC >>/tmp/wikifarm-backup.log 2>&1
+EOF

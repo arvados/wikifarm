@@ -1,0 +1,13 @@
+Source: wikifarm
+Build-Depends: wget, awstats, php5-cli, php5-sqlite
+Maintainer: Tom Clegg <tom@clinicalfuture.com>
+
+Package: wikifarm
+Section: web
+Priority: optional
+Architecture: all
+Essential: no
+Depends: mediawiki, mediawiki-extensions, apache2, libapache2-mod-php5, awstats, imagemagick, mailutils, sqlite3, php5-sqlite, libclass-dbi-sqlite-perl, libapache-htpasswd-perl, libapache2-mod-auth-openid (>= 0.5), rsync, php5-mysql
+Recommends: mail-transport-agent
+Suggests: mediawiki-math
+Description: Private wiki farm with OpenID login and user- and group-level access controls

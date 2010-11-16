@@ -1,0 +1,368 @@
+wikifarm (0.1) UNRELEASED; urgency=low
+
+  [ Tom Clegg ]
+  * more permission stuff
+  * claim by password, check permissions properly
+  * protect /##/private/ (owner or admin only)
+  * claim user>wiki access rules along with owned wikis and groups
+  * disable special apache handlers in /{wiki}/images
+  * custom login page, rename some stuff
+  * keep server session alive until idle for 4 days, and keep cookie
+    until browser closes
+  * add "Log out"
+  * delete the session from the server db when logging out
+  * tweak login page
+  * store apache logs in wikis/{id}/private/access_log.txt
+  * turn off debug stuff, log "no particular wiki" in /var/log/apache2/
+  * make https://host/wikiname work
+  * hack yahoo login
+  * print all accesses to default log file, not just no-particular-wiki
+    accesses
+  * awstats
+  * add "all stats" report to wiki 01
+  * use sqlite db instead of wiki.list in wikifarm-update-config.pl
+  * fix sqlite output parsing
+  * redirect GET/HEAD reqs to primary hostname
+  * update config after initializing, fix apache conf tmp path, fix cron
+    install
+  * add GeSHiHighlight
+  * fix redirect-to-canonical-hostname rewriterule
+  * fix rewriterule
+  * make wikis.db adm-readable
+  * tweak wording to cater to non-wiki-owner users
+  * add unique constraints
+  * gracefully ignore duplicate group memberships and wiki permissions
+  * redirect to desired page after openid login
+  * add nightly db dump
+  * do not create sqlite dbs, wait for mod_auth_openid et al. to create
+    them
+  * go to index/claim page instead of referrer after logging in with
+    unprivileged openid
+  * move tutorial to docs/
+  * increase max upload to 384M
+  * add users.email column and autologin table
+  * first crack at MW autologin plugin
+  * support multiple mwusernames per oid user, confer sysop rights from
+    autologin
+  * fix autologin sysop check
+  * install WikifarmAuthPlugin
+  * add WikifarmDriver stub
+  * Add getUserGroups()
+
+  [ Jer Ratcliffe ]
+  * start fancy front page
+
+  [ Tom Clegg ]
+  * add table columns
+  * import realname and email address when claiming credentials
+  * add SimpleTable extension
+
+  [ Jer Ratcliffe ]
+  * Additional PageMachine Revisions
+  * added jQuery UI library
+  * added shells for missing WFDriver functions
+
+  [ Tom Clegg ]
+  * add exceptions for /css/ /js/ and /images/, add timing to debug
+    output
+  * do not install plugin if wikifarm apache env is missing
+  * index2 > index
+  * update js/css paths
+  * fix css and js install
+
+  [ Jer Ratcliffe ]
+  * made pretty
+
+  [ Tom Clegg ]
+  * more functioning
+  * add Requests tab if there are any pending requests
+  * use real data in fancy wiki list
+  * prevent unactivated users from requesting wiki list
+  * tweak group-membership stuff
+
+  [ Jer Ratcliffe ]
+  * ui update
+  * removed old script from install
+  * minor ui
+
+  [ Tom Clegg ]
+  * add ajax handler framework and samples
+  * schema page is now called debug
+  * obey tabActive query param
+  * move ajax tests from "tools" to "debug"
+  * add wikifarm-ui.js back to install
+  * more generic_ajax features
+  * add test_activated
+  * add ga_warning class
+  * remove second "create wiki" place
+
+  [ Jer Ratcliffe ]
+  * merge
+  * merge
+
+  [ Tom Clegg ]
+  * fix missing terminator
+  * include owner_realname in wiki lists, un-duplicate "get wikis" code
+  * add "create wiki"
+  * show spinner while waiting for generic_ajax
+  * fix "can not select group number 0"
+
+  [ Jer Ratcliffe ]
+  * page_wikis() updated
+
+  [ Tom Clegg ]
+  * disable button while ajax is in progress
+  * add spinner for "create wiki"
+  * use normal redirect
+  * set mediawiki title
+  * add "user list" page
+  * Add group-invite/disinvite table to "manage wiki" form
+
+  [ Jer Ratcliffe ]
+  * updated page_wikis()
+
+  [ Tom Clegg ]
+  * Add user-invite/disinvite table to "manage wiki" form
+
+  [ Jer Ratcliffe ]
+  * added request access dialog box
+
+  [ Tom Clegg ]
+  * remove 1-digit-not-readable hack
+  * implement "request access to wiki"
+  * implement "accept/reject requests" (and tweak request list a bit)
+  * fix "approve write access"
+  * show user list in a dataTable
+  * remove obsolete page_createwiki
+  * add "group/activation request" page
+  * tweak which tabs show up
+  * remove debug messages
+  * make "my account" tab functional
+  * prevent table rows from resizing when approving/rejecting requests
+  * remove debug stuff
+  * fix missing !
+  * fix wrong variable name
+  * make message boxes prettier
+  * make "create wiki" loader more pretty
+  * add wiki quota
+  * more "new user" flow
+  * do not show alert box if message area is available
+
+  [ Jer Ratcliffe ]
+  * now using datatables for page_allwikis
+
+  [ Tom Clegg ]
+  * fix up group/user interactions in "manage wiki"
+  * force even activated users to enter realname/email
+  * add links to backups, stats, logs
+
+  [ Jer Ratcliffe ]
+  * added claim account dialog
+
+  [ Tom Clegg ]
+  * add favicon
+  * mess with top-of-page stuff
+  * tweak icons
+  * remove debug stuff
+  * tweak favicon
+  * add php-apc patch
+
+  [ Jer Ratcliffe ]
+  * rearranged allwikis buttons for javascript manipulation
+  * fixed floating image problem in some browsers - it was bugging me
+  * made the login-as select box do something
+  * added view writable filter
+
+  [ Tom Clegg ]
+  * do not give owner/admin sysop privileges until actually logged in
+  * tweak logo display
+  * implement user preferences
+  * use real requested_autologin instead of example data
+  * make "request write access" really submit a request, and show/hide
+    pending/request buttons
+  * make "login as..." button work
+  * hack to make sure all activated users are in the users table
+  * use check mark as "success" icon
+  * fix "save preferences"
+  * remove debug info
+
+  [ Jer Ratcliffe ]
+  * added more javascript to mywikis
+
+  [ Tom Clegg ]
+  * fix some ereg() deprecation warnings
+  * firefox fix for "request write access"
+  * remove debug stuff, fix return value
+  * always mark wiki as readable by owner in getAllWikis()
+  * make "grant/revoke edit privileges" work
+  * disable regular form submit
+
+  [ Jer Ratcliffe ]
+  * managed to make it look terrible in firefox
+
+  [ Tom Clegg ]
+  * tweak "all wikis" content, style, and behavior
+  * right-align wiki#
+  * move "claim account" to groups page
+  * implement "claim old account"
+  * turn off new account creation in wikifarmauthplugin
+  * fix "get user prefs"
+  * stop recursive redirect
+  * add textile patch
+  * add textile
+  * concession for logrotate
+
+  [ Jer Ratcliffe ]
+  * added admin-manage-wiki stuff
+
+  [ Tom Clegg ]
+  * add Help tab, some bug fixes and display tweaks
+  * bug fixes
+  * bug fixes
+  * submit openid login form to main window, not tab
+
+  [ Jer Ratcliffe ]
+  * added admin-manage-user stuff
+
+  [ Tom Clegg ]
+  * Fix "redirected to bare tab instead of dashboard after openid login
+    expires"
+  * fix css so buttons look less horrid in ie
+  * use button() to turn anchors into buttons instead of trying to build
+    buttons in html
+  * more css tweaks, form-submit fixes, datatable searchable tweaks
+
+  [ Jer Ratcliffe ]
+  * ui bugfixes
+
+  [ Tom Clegg ]
+  * notify admin users about activation/group requests
+  * send email to wiki owner when someone requests access
+  * really fix "stray invisible dialogs hanging around after tab
+    switching"
+  * tweak dialog-remover
+  * fix some html quoting
+
+  [ Jer Ratcliffe ]
+  * interface fixes
+
+  [ Tom Clegg ]
+  * fix allwikis > admin > disinviteGroup
+  * make admin "user list > manage > set groups" work
+  * fix conflicting form ids
+  * fix "request groups" submit-enable/disable
+  * add q&d profiling
+  * tweak timing
+  * fix 0-padded ids in database
+  * refresh "all wikis" page after closing "manage wiki" dialog
+  * do not trigger "empty main tab" event when selecting sub-tabs
+  * add "how to disable notifications" note at the bottom of every email
+    notification
+  * allow admin to edit user quota
+  * tweak "manage wiki" dialog - solve "broken after Close button" by
+    removing Close button
+
+  [ Jer Ratcliffe ]
+  * reviewed cache and changed very little
+
+  [ Tom Clegg ]
+  * tweak jquery dialog/form/tab stuff
+  * allow admin to activate users from User List tab
+  * on dashboard, display first 2 parts of hostname in title
+  * hide Debug tab unless ?tabActive=debug was requested
+  * fix "request pending" icon position
+
+  [ Jer Ratcliffe ]
+  * changed some function names to frag_foo instead of textFoo
+  * added a view button to mywikis, added a ?view=(wikiid) shortcut in
+    case wiki-number urls are still bombing
+
+  [ Tom Clegg ]
+  * fix double-explanation on groups tab for new users
+
+  [ Jer Ratcliffe ]
+  * warning added to special groups on admin-a-user page
+
+  [ Tom Clegg ]
+  * update screen shots, add "groups pending" shot
+
+  [ Jer Ratcliffe ]
+  * added revokeedituser dialog to work around glitch
+
+  [ Tom Clegg ]
+  * fix "grant/revoke edit privileges"
+
+  [ Jer Ratcliffe ]
+  * added some feedback to approve/reject
+
+  [ Tom Clegg ]
+  * link directly to /wikiname/ instead of redirecting through index
+  * fix "allow requesting activation without selecting any groups"
+  * tweak approved/rejected icons
+  * tweak "groups" tab messages for accounts awaiting activation
+  * do not use email as substitute for missing realname
+  * Change default wiki title to "Notebook"
+  * tweak request/requestwrite button display logic
+  * add "Admin Help" tab
+  * change the icons around a bit
+  * be a little more painfully clear in the help
+  * turn off php garbage collection to quell warning messages
+  * give owner explicit read access to newly created wiki
+  * replace underscore with space in mw usernames... because MW does
+  * change php.ini comment char
+  * do not reject login sessions just because case does not match
+  * allow user to adjust page size of "invite user" table
+  * when switching tabs, remove dialogs even if they are not direct
+    descendents of body element (fixes "invite to edit")
+  * fix button styling in User List rows on pages >1
+  * add "show inactive wikis" checkbox, default=off
+
+  [ Jer Ratcliffe ]
+  * create new group functionality added to userlist admin dialog
+  * duplicate function
+
+  [ Tom Clegg ]
+  * set up WikifarmAuthPlugin symlink
+
+  [ Jer Ratcliffe ]
+  * use wyss logo
+
+  [ Tom Clegg ]
+  * use wyss logo
+  * fix logout button style
+  * put cron logs in /tmp instead of mail
+
+  [ Jer Ratcliffe ]
+  * logo tweaks, addgroup tweaks
+  * add-group functionality continued
+  * added images folder to backups
+
+  [ Tom Clegg ]
+  * fix http > https in docs
+  * include timestamp in tar name and contents
+  * tweak backup buttons, show last dump time, hide buttons if no dump
+    available
+  * add commonist 0.3.43 with openid auth patch
+  * show session cookie on "my account" tab
+  * allow Special:UserLogin regardless of password if mwusername is in
+    autologin
+  * get session id from commonist password field instead of env var
+  * fix "no such user" crash
+  * use local copy of login-bg.gif to prevent "insecure items" warning
+  * add admin-only backups: wikifarm state only, and all wikis
+  * allow bLengthChange (show X entries) on manage-wiki -> users table
+  * extend session expiry to 2w
+  * extend session_expire and gc_maxlifetime to 2w
+  * fix "invite to edit" by removing stray newline [interpreted by js as
+    end-of-statement]
+  * empty() dialog divs before remove()ing them
+  * fix "invite editor" check/uncheck for single-digit wiki#s
+  * Add "log out of google" button for google users, and attach
+    educational alert() to the regular
+  * redirect straight to login page after logout, instead of bouncing
+    through index
+  * wiki "log out" link redirect to dashboard
+
+  [ Tom ]
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Sun, 14 Nov 2010 16:45:57 -0800

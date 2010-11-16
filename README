@@ -1,0 +1,128 @@
+===================================================================
+Copyright 2010 President and Fellows of Harvard College
+
+Authors:
+Tom Clegg <tom@clinicalfuture.com>
+Jer Ratcliffe <jer@clinicalfuture.com>
+
+This file is part of wikifarm.
+
+Wikifarm is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+Wikifarm is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
+===================================================================
+
+NOTE: This file documents how to set up a wikifarm on a plain Linux
+system, like the Ubuntu Lucid image available on AWS.
+
+An even quicker method is to use a pre-built AMI -- see README.ami.
+
+===================================================================
+
+Installing on AWS
+=================
+
+Create instance
+
+* use ami-714ba518
+* Select a suitable private key, so you can log in
+* Select a security policy with ports 22, 80, and 443 open
+
+Update your OS
+
+  sudo aptitude update && sudo aptitude full-upgrade
+
+Add the wikifarm repository to your apt sources
+
+  wget -q -O- http://apt.clinicalfuture.com/clinicalfuture-key.gpg | sudo apt-key add -
+  echo deb http://apt.clinicalfuture.com/wikifarm lucid main | sudo tee /etc/apt/sources.list.d/wikifarm.list
+  sudo apt-get update
+
+Install and enable wikifarm
+
+  sudo apt-get install wikifarm
+  sudo a2dissite default
+  sudo a2ensite wikifarm
+  sudo /etc/init.d/apache2 restart
+
+Create an administrator account
+
+* Visit http://{your.wiki.farm}
+* Log in with your OpenID
+* Copy your OpenID from the "my account" screen
+* Run:
+ /etc/wikifarm/make_admin_user.php http://YOUR.OPENID.HERE
+* Provide your email address and real name on the "my account" page
+* Click "Save changes"
+
+Create the base wiki config and database
+
+* Visit http://{your.wiki.farm}/00 and click "set up the wiki".  Fill in the form:
+* wiki name: Wiki (won't be used)
+* random password for WikiSysop (won't be used)
+* database name "wikidb00"
+* db username "wikiuser"
+* db password "wikipass"
+* yes, use superuser account.
+* provide the MySQL root password you used when installing mysql-server.
+* Click "Install MediaWiki!"
+
+Copy the config file to the template wiki and lock it down
+
+  /etc/wikifarm/wikifarm-template-save
+
+Create wiki number 01 for yourself
+
+* Visit http://{your.wiki.farm}
+* Click "My Wikis"
+* Complete the form and click "Create new wiki".
+* You have Sysop privileges in your new wiki, so you can protect pages, edit the MediaWiki:Sidebar page, etc.
+
+Configure your server so it can send email notifications
+
+* If you are using AWS, use a smarthost or attach an elastic IP address to your instance.
+* Example:
+  sudo dpkg-reconfigure exim4-config
+
+Optional: switch to SSL
+
+* Create/obtain a signed site certificate
+* Enable ssl:
+  sudo a2enmod ssl
+  sudo /etc/init.d/apache2 restart
+
+Optional: install mediawiki-math
+
+  sudo apt-get install mediawiki-math
+
+Optional: install other mediawiki extensions
+
+* see README.extensions
+
+Optional: improve performance
+
+* see README.performance
+
+Optional: fix PHP session garbage collection
+
+* Run /usr/lib/php5/maxlifetime
+* If it reports "24" it is not reading the wikifarm.ini.
+* Edit /usr/lib/php5/maxlifetime as follows:
+  -for ini in /etc/php5/*/php.ini; do
+  +for ini in /etc/php5/*/*.ini; do
+
+Turn off deleteOnTermination attribute on your EBS volume
+
+* Make sure your workstation is >= lucid
+* Determine your instance id, EBS volume id, and root filesystem device
+  (perhaps using "ec2-describe-instances -v")
+* Turn off deleteOnTermination flag:
+  ec2-modify-instance-attribute i-ef5eb785 -b /dev/sda1=vol-9a1980f3:false -v

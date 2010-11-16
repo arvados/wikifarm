@@ -1,0 +1,31 @@
+The extensions in the mediawiki-extensions package can be added to all
+wikis at once using the "mwenext" script:
+
+  sudo mwenext Cite.php
+
+"mwenext" also works with some extensions that are included with this
+package:
+
+  sudo mwenext SimpleTable.php
+  sudo mwenext GeSHiHighlight.php
+
+To add other extensions:
+
+* Install the extension files in /var/lib/wikifarm/www/mediawiki/extensions/
+* Add relevant code to /var/lib/wikifarm/www/FarmSettings.php
+  This usually looks like:
+  require_once("extensions/ExtensionName/ExtensionName.php");
+
+Example: Labeled Section Transclusion
+
+  sudo mwenext ParserFunctions.php
+  (
+  set -e
+  sudo apt-get install subversion
+  cd /var/lib/wikifarm/www/mediawiki/extensions
+  svn co http://svn.wikimedia.org/svnroot/mediawiki/trunk/extensions/LabeledSectionTransclusion \
+    || (cd LabeledSectionTransclusion && svn update)
+  cd /var/lib/wikifarm/www
+  echo 'require_once("extensions/LabeledSectionTransclusion/lst.php");' | tee -a FarmSettings.php
+  echo 'require_once("extensions/LabeledSectionTransclusion/lsth.php");' | tee -a FarmSettings.php
+  )

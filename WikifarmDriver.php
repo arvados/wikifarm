@@ -1,7 +1,26 @@
 <?php
+    ;
 
+// Copyright 2010 President and Fellows of Harvard College
+//
+// Authors:
+// Tom Clegg <tom@clinicalfuture.com>
+// Jer Ratcliffe <jer@clinicalfuture.com>
+//
+// This file is part of wikifarm.
+//
+// Wikifarm is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License version 2 as
+// published by the Free Software Foundation.
+//
+// Wikifarm is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
 
-# $wdb = new WikifarmDriver ( getenv("WIKIFARM_DB_FILE") );
 class WikifarmDriver {
 	private $DB, $DBresult;
 	protected $_cache;
@@ -334,7 +353,8 @@ class WikifarmDriver {
 		$this->inviteUser ($wikiid, $this->openid, $mwusername);
 
 		$wikiid = sprintf ("%02d", $wikiid);
-		if (false === system ("sudo -u ubuntu /home/wikifarm/etc/wikifarm-create-wiki "
+		$etc = getenv("WIKIFARM_ETC");
+		if (false === system ("sudo -u ubuntu $etc/wikifarm-create-wiki "
 				      .escapeshellarg($wikiid)." "
 				      .escapeshellarg($wikiname)." "
 				      .escapeshellarg($realname)." "
@@ -845,18 +865,21 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 	
 	function wikiFarmBackup($with_wikis) {
 		if (!$this->_security('admin')) return false;
+		$dbdir = getenv("WIKIFARM_DB");
+		$etcdir = getenv("WIKIFARM_ETC");
+		$wwwdir = getenv("WIKIFARM_WWW");
 		$wikibasedir = "/home/wikifarm";
-		$wikifiles = "wikis/FarmSettings.php wikis/DefaultFarmSettings.php wikis/*/LocalSettings.php";
+		$wikifiles = "$wwwdir/FarmSettings.php $wwwdir/DefaultFarmSettings.php $wwwdir/*/LocalSettings.php";
 		if ($with_wikis)
-			$wikifiles .= " wikis/mediawiki/ /usr/share/mediawiki-extensions wikis/*/private/wikidb*.sql.gz wikis/*/images";
+			$wikifiles .= " $wwwdir/mediawiki/ /usr/share/mediawiki-extensions /etc/mediawiki-extensions $wwwdir/*/private/wikidb*.sql.gz $wwwdir/*/images";
 		else
-			$wikifiles .= " wikis/mediawiki/extensions/LocalExtensions.php";
+			$wikifiles .= " $wwwdir/mediawiki/extensions/ /etc/mediawiki-extensions";
 		$stamp = preg_replace ('{^(.*?\..*?)\..*}', '${1}', $_SERVER['HTTP_HOST']);
 		
-		$stamp = $stamp."_".strftime("%Y-%m-%d", $with_wikis ? time() : filemtime("$wikibasedir/db/dump-wikis.db.sql")).($with_wikis ? "" : "-wikifarm-db-only");
+		$stamp = $stamp."_".strftime("%Y-%m-%d", $with_wikis ? time() : filemtime("$dbdir/dump-wikis.db.sql")).($with_wikis ? "" : "-wikifarm-db-only");
 		header ("Content-type: application/gzip-compressed");
 		header ("Content-Disposition: attachment; filename=\"{$stamp}.tar.gz\"");
-		passthru("cd $wikibasedir && GZIP=--rsyncable tar --owner=root --group=root --transform 's:^:{$stamp}/:' -chzf - db/dump-wikis.db.sql $wikifiles");
+		passthru("cd /tmp && GZIP=--rsyncable tar --owner=root --group=root --transform 's:^:{$stamp}/:' -chzf - $dbdir/dump-wikis.db.sql $wikifiles");
 		return true;
 	}
 	
@@ -868,7 +891,7 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 		if (($wiki+=0) == 0)
 			return false;
 		$wiki = sprintf ("%02d", $wiki);
-		$wikidir = "/home/wikifarm/wikis/$wiki";
+		$wikidir = getenv("WIKIFARM_WWW")."/$wiki";
 		$dbbackup = "private/wikidb{$wiki}.sql.gz";
 		$stamp = preg_replace ('{^(.*?\..*?)\..*}', '${1}', $_SERVER['HTTP_HOST']);
 		$stamp = $stamp."_".$wiki."_".strftime("%Y-%m-%d");

@@ -1,0 +1,51 @@
+Restoring / importing an existing wiki to a wikifarm
+
+Requirements:
+
+* A full backup tarball, downloaded from a wikifarm using the "Full
+  backup" button on the "My Wikis" page.
+
+  (If you have your "images" directory and a database dump in some
+  other form, just modify these instructions to suit.)
+
+* Administrator access to the new wikifarm.
+
+First, log in to the new wikifarm dashboard and create a new wiki.
+When asked for a MediaWiki username to use, enter the one you used in
+the wiki you're restoring.  Note the number assigned to your wiki.
+
+Log in to the (new) wikifarm server.
+
+Set a variable $wikiid to your *new* wiki number.  Zero-pad it to 2
+digits if it's a 1-digit number.  For example, if the fresh wiki you
+just created is number 9 then set:
+
+  wikiid=09
+
+Set a variable $restore the basename of your tarball.  For example, if
+your tarball is called "old.farm_44_2010-11-12.tar.gz" then set:
+
+  restore=old.farm_44_2010-11-12
+
+Extract the backup tarball in /tmp.
+
+  cd /tmp
+  tar xzf /path/to/tarball/$restore.tar.gz
+
+Import the database (you will be prompted to enter your root
+password).
+
+  zcat $restore/private/wikidb*.sql.gz | mysql -u root -p wikidb$wikiid
+
+Copy the images directory.
+
+  webroot=$(source /etc/wikifarm/env; echo $WWW)
+  sudo -u www-data rsync -a $restore/images/ $webroot/$wikiid/images/
+
+Install MediaWiki extensions on the new server as needed.
+
+Run the MediaWiki upgrade script if the new server runs a new version
+of MediaWiki.
+
+  cd $webroot/mediawiki/maintenance
+  php update.php --conf $webroot/$wikiid/LocalSettings.php --aconf ../AdminSettings.php

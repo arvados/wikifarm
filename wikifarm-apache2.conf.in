@@ -2,37 +2,61 @@ RewriteLock /tmp/rewritelock
 
 <VirtualHost *:80>
   ServerName {{HOSTNAME}}
-  Redirect / https://{{HOSTNAME}}/
-</VirtualHost>
-<VirtualHost *:443>
-  ServerName {{HOSTNAME}}
-  DocumentRoot {{INSTALLDIR}}/wikis
-  SSLEngine on
-  SSLCertificateFile    {{INSTALLDIR}}/ssl/server.crt
-  SSLCertificateKeyFile {{INSTALLDIR}}/ssl/server.key
-  SSLOptions +StdEnvVars
-  BrowserMatch "MSIE [2-6]" \
-	  nokeepalive ssl-unclean-shutdown \
-	  downgrade-1.0 force-response-1.0
-  BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+  <IfModule mod_ssl.c>
+    Redirect / https://{{HOSTNAME}}/
+  </IfModule>
+  DocumentRoot {{WWW}}
+
   php_flag register_globals off
 
   RewriteEngine On
-  RewriteMap wikifarm_auth prg:{{INSTALLDIR}}/etc/wikifarm-auth.pl
-
-  <Limit GET HEAD>
-    RewriteCond %{HTTP_HOST} !{{HOSTNAME}}
-    RewriteRule (.*) https://{{HOSTNAME}}$1 [R,L]
-  </Limit>
+  RewriteMap wikifarm_auth prg:{{ETC}}/wikifarm-auth.pl
 
   DirectoryIndex index.php index.html
 
-  Include {{INSTALLDIR}}/etc/apache2.conf.inc
+  Include {{DB}}/apache2.conf.inc
 
-  <Directory {{INSTALLDIR}}/wikis>
+  <Directory {{WWW}}>
     AllowOverride FileInfo
   </Directory>
-  <Directory {{INSTALLDIR}}/wikis/*/images>
+  <Directory {{WWW}}/*/images>
+    php_admin_value engine Off
+    AllowOverride none
+    SetHandler None
+  </Directory>
+</VirtualHost>
+
+<VirtualHost *:443>
+  ServerName {{HOSTNAME}}
+  DocumentRoot {{WWW}}
+  <IfModule mod_ssl.c>
+    SSLEngine on
+    SSLCertificateFile    {{SSL}}/server.crt
+    SSLCertificateKeyFile {{SSL}}/server.key
+    SSLOptions +StdEnvVars
+    BrowserMatch "MSIE [2-6]" \
+	    nokeepalive ssl-unclean-shutdown \
+	    downgrade-1.0 force-response-1.0
+    BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+    <Limit GET HEAD>
+      RewriteCond %{HTTP_HOST} !{{HOSTNAME}}
+      RewriteRule (.*) https://{{HOSTNAME}}$1 [R,L]
+    </Limit>
+  </IfModule>
+
+  php_flag register_globals off
+
+  RewriteEngine On
+  RewriteMap wikifarm_auth prg:{{ETC}}/wikifarm-auth.pl
+
+  DirectoryIndex index.php index.html
+
+  Include {{DB}}/apache2.conf.inc
+
+  <Directory {{WWW}}>
+    AllowOverride FileInfo
+  </Directory>
+  <Directory {{WWW}}/*/images>
     php_admin_value engine Off
     AllowOverride none
     SetHandler None

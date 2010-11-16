@@ -1,0 +1,59 @@
+#!/bin/sh
+
+set -e
+
+export ETC=$(cd $(dirname $0)/. && pwd)
+. $ETC/env
+
+export HOSTNAME="`hostname`"
+if fgrep '{{' /etc/apache2/sites-available/wikifarm
+then
+  perl -pi~ -e 's/{{(.*?)}}/$ENV{$1}/g' /etc/apache2/sites-available/wikifarm
+fi
+
+install /usr/share/doc/awstats/examples/awstats_buildstaticpages.pl $ETC/awstats_buildstaticpages.pl
+perl -pi~ -e 's:2>&1:1>&2: if $.==372' $ETC/awstats_buildstaticpages.pl
+
+if [ ! -e $DB/wikis.db ]
+then
+  mkdir -m 750 -p $DB
+  php $ETC/initialize_wikis_db.php
+fi
+chown -R www-data:adm $DB
+chmod -R o-rwx,g+rwX $DB
+
+sudo chmod a+x /var/log/apache2
+
+if [ ! -e /etc/apache2/mods-available/auth_openid.load ]
+then
+  echo "LoadModule authopenid_module /usr/lib/apache2/modules/mod_auth_openid.so" >/etc/apache2/mods-available/auth_openid.load
+fi
+
+a2ensite wikifarm
+[ -e /etc/apache2/mods-enabled/rewrite.load ] || a2enmod rewrite
+[ -e /etc/apache2/mods-enabled/auth_openid.load ] || a2enmod auth_openid
+mwenext WikifarmAuthPlugin.php
+
+WIKIFARM_ETC="$ETC" $ETC/wikifarm-update-config.pl
+VISUAL="$ETC/wikifarm-sudo-enable" visudo
+
+if [ ! -e $WWW/mediawiki ]
+then
+  rsync -a --exclude AdminSettings.php /usr/share/mediawiki/ $WWW/mediawiki/
+  rootuser=$(perl -ne 'do { print $1; exit 0 } if /^ *user *= *(.*)/' </etc/mysql/debian.cnf)
+  rootpw=$(perl -ne 'do { print $1; exit 0 } if /^ *password *= *(.*)/' </etc/mysql/debian.cnf)
+  cat >$WWW/mediawiki/AdminSettings.php <<EOF
+<?php
+\$wgDBadminuser = '$rootuser';
+\$wgDBadminpassword = '$rootpw';
+EOF
+fi
+
+chown ubuntu:ubuntu $WWW
+chown -R ubuntu:ubuntu $WWW/mediawiki
+[ -e $WWW/FarmSettings.php ] || sudo -u ubuntu touch $WWW/FarmSettings.php
+
+if [ ! -e $WWW/00 ]
+then
+  $ETC/wikifarm-create-wiki 00 blank Wiki
+fi
