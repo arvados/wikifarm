@@ -23,7 +23,7 @@ along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
 NOTE: This file documents how to set up a wikifarm on a plain Linux
 system, like the Ubuntu Lucid image available on AWS.
 
-An even quicker method is to use a pre-built AMI -- see README.ami.
+An even quicker method is to use a pre-built AMI -- see README-ami.
 
 ===================================================================
 
@@ -79,45 +79,36 @@ Copy the config file to the template wiki and lock it down
 
   /etc/wikifarm/wikifarm-template-save
 
-Create wiki number 01 for yourself
-
-* Visit http://{your.wiki.farm}
-* Click "My Wikis"
-* Complete the form and click "Create new wiki".
-* You have Sysop privileges in your new wiki, so you can protect pages, edit the MediaWiki:Sidebar page, etc.
-
 Configure your server so it can send email notifications
 
 * If you are using AWS, use a smarthost or attach an elastic IP address to your instance.
 * Example:
   sudo dpkg-reconfigure exim4-config
 
-Optional: switch to SSL
-
-* Create/obtain a signed site certificate
-* Enable ssl:
-  sudo a2enmod ssl
-  sudo /etc/init.d/apache2 restart
-
-Optional: install mediawiki-math
-
-  sudo apt-get install mediawiki-math
-
-Optional: install other mediawiki extensions
-
-* see README.extensions
-
-Optional: improve performance
-
-* see README.performance
-
-Optional: fix PHP session garbage collection
+Fix PHP session garbage collection
 
 * Run /usr/lib/php5/maxlifetime
 * If it reports "24" it is not reading the wikifarm.ini.
 * Edit /usr/lib/php5/maxlifetime as follows:
   -for ini in /etc/php5/*/php.ini; do
   +for ini in /etc/php5/*/*.ini; do
+
+(Optional) install mediawiki-math
+
+  sudo apt-get install mediawiki-math
+
+(Optional) create an AMI
+
+* Delete any OpenID accounts you created during testing/setup:
+  sqlite /var/lib/wikifarm/db/wikis.db 'delete from users; delete from usergroups;'
+* Delete some history, cache, etc.
+  sudo apt-get clean
+  rm -rf ~/.*_history ~/.cache ~/.sudo_as*
+  unset HISTFILE
+  exit
+* Shut down (not terminate) your instance
+* Create an AMI from your instance (takes ~ 1/2 hour)
+* Start an instance using the new AMI and test it (see README-ami)
 
 Turn off deleteOnTermination attribute on your EBS volume
 
@@ -126,3 +117,44 @@ Turn off deleteOnTermination attribute on your EBS volume
   (perhaps using "ec2-describe-instances -v")
 * Turn off deleteOnTermination flag:
   ec2-modify-instance-attribute i-ef5eb785 -b /dev/sda1=vol-9a1980f3:false -v
+
+(Optional) switch to SSL
+
+* Create/obtain a signed site certificate
+* Enable ssl:
+  sudo a2enmod ssl
+  sudo /etc/init.d/apache2 restart
+
+Ensure your users always access your server with the same hostname.
+
+* Some OpenID providers (including Google) do not supply the same
+  OpenID URL when the same user signs in to different OpenID consumer
+  sites.  This means your users must always access your wikifarm using
+  the same domain name (i.e., only one of "http://example.com",
+  "https://secure.example.com", "http://1.2.3.4").  The following code
+  can be used in /etc/apache2/sites-available/wikifarm to accomplish
+  this.
+
+    <Limit GET HEAD>
+      RewriteCond %{HTTP_HOST} !your.canonical.host.name
+      RewriteRule (.*) https://your.canonical.host.name$1 [R,L]
+    </Limit>
+
+Create wiki number 01 for yourself
+
+* Visit http://{your.wiki.farm}.
+* Click "My Wikis"
+* Complete the form
+  (Name this wiki "docs" so the link to "/docs/Wiki_Tutorial" on the
+  Help tab will work)
+* Click "Create new wiki"
+* You have Sysop privileges in your new wiki, so you can protect
+  pages, edit the MediaWiki:Sidebar page, etc.
+
+(Optional) install other mediawiki extensions
+
+* see README-extensions
+
+(Optional) improve performance
+
+* see README-performance

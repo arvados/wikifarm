@@ -1,11 +1,11 @@
-wikifarm (0.2) UNRELEASED; urgency=low
+wikifarm (0.2) testing; urgency=low
 
   [ Tom Clegg ]
   * debianize
 
  -- Tom Clegg <tom@clinicalfuture.com>  Tue, 16 Nov 2010 00:13:22 -0800
 
-wikifarm (0.1) UNRELEASED; urgency=low
+wikifarm (0.1) testing; urgency=low
 
   [ Tom Clegg ]
   * more permission stuff

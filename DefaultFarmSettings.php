@@ -7,6 +7,7 @@ $wgGroupPermissions['*']['createaccount'] = false;
 
 $wgVerifyMimeType = false;
 $wgEnableUploads = true;
+$wgUseTeX = file_exists ("/usr/bin/texvc");
 
 $wgFileExtensions = array_merge ($wgFileExtensions, array('tar', 'gz', 'png', 'gif', 'jpg', 'jpeg', 'ogg', 'zip', 'ai', 'xls', 'doc', 'docx', 'py', 'pl', 'sh', 'tiff', 'bmp', 'txt', 'csv', 'pdf', 'ppt', 'key', 'mov', 'mpg', 'mpeg', 'avi', 'wmv', 'xvid', 'svg', 'svgz', 'json', 'ma', 'mb', 'xml', 'm'));
 $wgVerifyMimeType = false;

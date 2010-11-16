@@ -23,6 +23,10 @@ Update packages.
 
 Give your OpenID administrator privileges for the wikifarm.
 
+* Visit http://{your.wiki.farm}
+* Log in with your OpenID
+* Copy your OpenID from the "my account" screen
+* Run:
   /etc/wikifarm/make_admin_user.php http://{your.openid.url}
 
 Configure your instance so it can send email notifications.
@@ -38,14 +42,6 @@ Go back to your browser, fill in your user details on the "My Account"
 tab, and click "Save changes".  The "Admin Help" tab will appear,
 indicating that you have admin powers.
 
-Turn off the deleteOnTermination attribute on your EBS volume.
 
-* Make sure your workstation is >= lucid
-* Determine your instance id, EBS volume id, and root filesystem device
-  (perhaps using "ec2-describe-instances -v")
-* Turn off deleteOnTermination flag:
-  ec2-modify-instance-attribute i-1234abcd -b /dev/sda1=vol-bcda1230:false -v
-
-Optional: install other mediawiki extensions
-
-* see README.extensions
+Now, go back to the main README and continue from "turn off
+the deleteOnTermination attribute".

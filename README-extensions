@@ -29,3 +29,5 @@ Example: Labeled Section Transclusion
   echo 'require_once("extensions/LabeledSectionTransclusion/lst.php");' | tee -a FarmSettings.php
   echo 'require_once("extensions/LabeledSectionTransclusion/lsth.php");' | tee -a FarmSettings.php
   )
+
+For more examples, see https://github.com/tomclegg/wikifarm/wiki

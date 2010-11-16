@@ -51,9 +51,17 @@ fi
 
 chown ubuntu:ubuntu $WWW
 chown -R ubuntu:ubuntu $WWW/mediawiki
-[ -e $WWW/FarmSettings.php ] || sudo -u ubuntu touch $WWW/FarmSettings.php
+if [ ! -s $WWW/FarmSettings.php ]
+then
+  echo '<?php' | sudo -u ubuntu tee $WWW/FarmSettings.php >/dev/null
+fi
 
 if [ ! -e $WWW/00 ]
 then
   $ETC/wikifarm-create-wiki 00 blank Wiki
+fi
+
+if apache2ctl configtest
+then
+  /etc/init.d/apache2 restart
 fi

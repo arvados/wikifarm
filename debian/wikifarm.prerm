@@ -5,3 +5,8 @@ set -e
 a2dissite wikifarm
 mwdisext WikifarmAuthPlugin.php
 VISUAL="/etc/wikifarm/wikifarm-sudo-disable" visudo
+
+if apache2ctl configtest
+then
+  /etc/init.d/apache2 restart || true
+fi

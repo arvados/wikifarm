@@ -8,9 +8,12 @@ error_reporting(E_ALL);
 require_once('WikifarmDriver.php');
 require_once('WikifarmPageMachine.php');
 
+$wikifarmConfig = array("servername" => $_SERVER["HTTP_HOST"],
+			"byline" => "a wiki farm");
+if (file_exists ($configfile = getenv("WIKIFARM_ETC") . "/config.php"))
+   include_once($configfile);
+
 $wf = new WikifarmPageMachine();
-$friendly_servername = $_SERVER['HTTP_HOST'];  // displayed in the title area
-$friendly_byline = "wikis for researchers";
 
 if (isset($_GET["modauthopenid_referrer"]) &&
     $wf->isActivated() &&
@@ -140,7 +143,7 @@ if (isset ($_GET["tabActive"]))
 </head>
 <body>
 
-<div id="pageheader"><div id="byline"><h3><?=$friendly_servername?></h3><?=$friendly_byline?></div>
+<div id="pageheader"><div id="byline"><h3><?=$wikifarmConfig["servername"]?></h3><?=$wikifarmConfig["byline"]?></div>
 <div>
 <a href="logout.php" class="logoutinfo">Log out</a>
 <? if (preg_match ('{^https?://(\w+\.)?google\.com/}i', $_SERVER["REMOTE_USER"])) { ?>

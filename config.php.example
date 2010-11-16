@@ -1,0 +1,7 @@
+<?php
+    ;
+
+// Save this as config.php and edit to suit your installation.
+
+$wikifarmConfig["servername"] = "wikifarm.example.com";
+$wikifarmConfig["byline"] = "\"i can haz wiki\"";

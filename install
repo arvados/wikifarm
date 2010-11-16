@@ -32,8 +32,9 @@ install $SOURCEDIR/login-bg.gif $DESTDIR$WWW/
 install $SOURCEDIR/WikifarmDriver.php $DESTDIR$WWW/
 install $SOURCEDIR/WikifarmPageMachine.php $DESTDIR$WWW/
 install $SOURCEDIR/DefaultFarmSettings.php $DESTDIR$WWW/
-install $SOURCEDIR/serverlogo.png $DESTDIR$WWW/
-install $SOURCEDIR/favicon.ico $DESTDIR$WWW/
+install $SOURCEDIR/serverlogo.png $DESTDIR$WWW/serverlogo.png.example
+install $SOURCEDIR/favicon.ico $DESTDIR$WWW/favicon.ico.example
+install $SOURCEDIR/config.php.example $DESTDIR$ETC/
 
 make -C $SOURCEDIR
 install $SOURCEDIR/textile-2.0.0/classTextile.php $DESTDIR$WWW/
