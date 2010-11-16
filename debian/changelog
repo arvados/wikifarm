@@ -1,3 +1,10 @@
+wikifarm (0.2) UNRELEASED; urgency=low
+
+  [ Tom Clegg ]
+  * debianize
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Tue, 16 Nov 2010 00:13:22 -0800
+
 wikifarm (0.1) UNRELEASED; urgency=low
 
   [ Tom Clegg ]
@@ -362,7 +369,5 @@ wikifarm (0.1) UNRELEASED; urgency=low
   * redirect straight to login page after logout, instead of bouncing
     through index
   * wiki "log out" link redirect to dashboard
-
-  [ Tom ]
 
  -- Tom Clegg <tom@clinicalfuture.com>  Sun, 14 Nov 2010 16:45:57 -0800
