@@ -38,7 +38,7 @@ Uncompress the database:
 
 It might be necessary to convert character encodings like this:
 
-  perl -ni~ -e '
+  perl -pi~ -e '
     do { s/latin1_bin/utf8_unicode_ci/g; s/latin1/utf8/g }
     unless /^INSERT/
     ' $restore/private/wikidb*.sql
