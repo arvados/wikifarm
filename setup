@@ -65,3 +65,14 @@ if apache2ctl configtest
 then
   /etc/init.d/apache2 restart
 fi
+
+if [ ! -e /etc/mysql/conf.d/utf8.cnf ]
+then
+  cat <<EOF
+
+*** I recommend installing $ETC/mysql-utf8.cnf into
+*** /etc/mysql/conf.d/utf8.cnf and restarting mysql before creating
+*** any databases.
+
+EOF
+fi

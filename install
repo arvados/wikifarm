@@ -35,6 +35,7 @@ install $SOURCEDIR/DefaultFarmSettings.php $DESTDIR$WWW/
 install $SOURCEDIR/serverlogo.png $DESTDIR$WWW/serverlogo.png.example
 install $SOURCEDIR/favicon.ico $DESTDIR$WWW/favicon.ico.example
 install $SOURCEDIR/config.php.example $DESTDIR$ETC/
+install $SOURCEDIR/mysql-utf8.cnf $DESTDIR$ETC/
 
 make -C $SOURCEDIR
 install $SOURCEDIR/textile-2.0.0/classTextile.php $DESTDIR$WWW/

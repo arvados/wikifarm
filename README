@@ -53,6 +53,11 @@ Install and enable wikifarm
   sudo a2ensite wikifarm
   sudo /etc/init.d/apache2 restart
 
+Change your default mysql character set to utf8
+
+  sudo cp /etc/wikifarm/mysql-utf8.cnf /etc/mysql/conf.d/utf8.cnf
+  sudo /etc/init.d/mysql restart
+
 Create an administrator account
 
 * Visit http://{your.wiki.farm}
