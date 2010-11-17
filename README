@@ -158,3 +158,12 @@ Create wiki number 01 for yourself
 (Optional) improve performance
 
 * see README-performance
+
+(Optional) customize site appearance
+
+* Set site slogain in /etc/wikifarm/config.php
+  (see /etc/wikifarm/config.php.example)
+* Install logo graphic in /var/lib/wikifarm/www/serverlogo.png
+  (64 pixels high for best results)
+* Install favicon in /var/lib/wikifarm/www/favicon.ico
+  (16x16 pixels for best results)
