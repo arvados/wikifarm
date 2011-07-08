@@ -282,6 +282,10 @@ BLOCK;
 			$tabs .= "\t\t<li><a tab_id='tab_$wikiname' href=\"#tab_$wikiname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> <u>$wikiname</u>: $q_realname</a></li>\n";
 			$content .= "<div id=\"tab_$wikiname\">" . $this->frag_managewiki ($row) . "</div>\n";
 		}
+		$newwikitab = '';
+		if (count($wikiArray) < $this->getWikiQuota())
+			$newwikitab = '<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a new wiki</a></li>';
+
 		$groups_options = "";
 		foreach ($this->getAllGroups() as $g) {
 			$groupid = htmlspecialchars($g["groupid"]);
@@ -309,7 +313,7 @@ $(function() {
 <div id="mywikistabs">
 	<ul>
 {$tabs}
-		<li><a href="#newwikitab"><span class="ui-icon ui-icon-arrowreturnthick-1-s" style="float: left; margin-right: .3em;"></span>Create a new wiki</a></li>
+{$newwikitab}
 	</ul>
 {$content}
 <div id="newwikitab">
