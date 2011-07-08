@@ -105,7 +105,7 @@ Fix PHP session garbage collection
 (Optional) create an AMI
 
 * Delete any OpenID accounts you created during testing/setup:
-  sqlite /var/lib/wikifarm/db/wikis.db 'delete from users; delete from usergroups;'
+  sqlite3 /var/lib/wikifarm/db/wikis.db 'delete from users; delete from usergroups;'
 * Delete some history, cache, etc.
   sudo apt-get clean
   rm -rf ~/.*_history ~/.cache ~/.sudo_as*
