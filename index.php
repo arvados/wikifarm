@@ -1,4 +1,4 @@
-<?php
+<?php ; // -*- mode: java; c-basic-indent: 4; tab-width: 4; indent-tabs-mode: nil; -*-
 
 $GLOBALS["microtime0"] = microtime(true);
 
@@ -80,14 +80,18 @@ if (!$wf->getUserRealname() || !$wf->getUserEmail()) {
 	$tabTitles = array ($tabActive => $tabTitles[$tabActive],
 			    'help' => $tabTitles['help']);
 }
-else if ($wf->isActivated())
-	$tabActive = "wikis";
-else {
+else if (!$wf->isActivated()) {
 	$tabActive = "groups";
 	$tabTitles = array ($tabActive => $tabTitles[$tabActive],
 			    'myaccount' => $tabTitles['myaccount'],
 			    'help' => $tabTitles['help']);
 }
+else {
+	$tabActive = "wikis";
+    if (!$wf->getWikiQuota() && !count($wf->getMyWikis()))
+        unset ( $tabTitles['mywikis'] );
+}
+
 if (0 == count($wf->getAllRequests()))
 	unset ($tabTitles['requests']);
 
