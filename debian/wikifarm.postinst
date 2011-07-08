@@ -8,6 +8,7 @@ cat >/etc/wikifarm/env <<EOF
 export DB=/var/lib/wikifarm/db
 export WWW=/var/lib/wikifarm/www
 export ETC=/etc/wikifarm
+export SSL=/var/lib/wikifarm/ssl
 EOF
 
 /etc/wikifarm/setup

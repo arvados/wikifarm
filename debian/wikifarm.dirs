@@ -2,6 +2,7 @@
 /usr/share/wikifarm
 /var/lib/wikifarm
 /var/lib/wikifarm/db
+/var/lib/wikifarm/ssl
 /var/lib/wikifarm/www
 /etc/apache2/sites-available
 /etc/php5/conf.d
