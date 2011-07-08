@@ -187,6 +187,7 @@ function req_response_click ()
     var action_icon = (ga_action == 'approve' ? 'check' : 'close');
     var requestid = $(this).attr('requestid');
     if (!requestid) return false;
+    var initial_quota = $('#initial_quota_for_'+requestid).attr('value');
 
     $.ajax({
 	    url: '/',
@@ -194,6 +195,7 @@ function req_response_click ()
 		dataType: 'json',
 		cache: false,
 		data: [{name: 'ga_action', value: ga_action+'_request' },
+		       {name: 'initial_quota', value: initial_quota },
 		       {name: 'requestid', value: requestid }],
 		success: function (d,t,r)
 		{
@@ -203,6 +205,8 @@ function req_response_click ()
 				.first().parent().prepend('<span class="ui-icon ui-icon-'+action_icon+' wf-message-icon" style="float: left" />');
 			if (d.request.ga_action == 'reject_request')
 			    $('[requestid='+requestid+']').css('text-decoration','line-through');
+			else
+			    $('input#initial_quota_for_'+requestid).replaceWith(initial_quota);
 		    }
 		    else if (d.alert) alert(d.alert);
 		    else if (d.message) alert(d.message);

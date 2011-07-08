@@ -729,7 +729,7 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 		return false;
 	}
 	
-	function approveRequestId($requestid) {
+	function approveRequestId($requestid, $initial_quota) {
 		$req = $this->canApproveRequest ($requestid);
 		if (!$req)
 			throw new Exception ("You are not allowed to do that.");
@@ -744,6 +744,12 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 			$this->DB->exec ("insert or replace into usergroups (userid, groupname) values ('".SQLite3::escapeString($req["userid"])."', '".SQLite3::escapeString($req["groupname"])."')");
 		else
 			throw new Exception ("approveRequestId: unknown request type: ".print_r($req,true));
+
+		if ($req["groupname"] == 'users' &&
+		    preg_match ('{^\d+$}', $initial_quota)) {
+			$this->Focus ($req["userid"]);
+			$this->setWikiQuota ($initial_quota);
+		}
 
 		$this->DB->exec ("delete from request where requestid=$requestid");
 		return true;

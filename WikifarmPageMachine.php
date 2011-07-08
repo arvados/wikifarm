@@ -550,11 +550,16 @@ BLOCK;
 			$wikiname = null;
 			$mwusername = null;
 			extract ($req);
+			$quotainput = '';
 			$q_wikiname = htmlspecialchars(isset($wikiname) ? $wikiname : "");
 			$q_mwusername = htmlspecialchars(isset($mwusername) ? $mwusername : "");
 			$q_groupname = htmlspecialchars(isset($groupname) ? $groupname : "");
-			if (!$wikiid && $groupname == "users")
+			if (!$wikiid && $groupname == "users") {
 				$request = "Activate account";
+				$quotainput = <<<BLOCK
+&nbsp;with quota <input type="number" name="initial_quota_for_$requestid" id="initial_quota_for_{$requestid}" value="5" size="4" maxlength="2" />
+BLOCK;
+			}
 			else if (!$wikiid)
 				$request = "Join \"$q_groupname\" group";
 			else if ($mwusername)
@@ -567,7 +572,7 @@ BLOCK;
 			$q_openid = htmlspecialchars($userid);
 			$html .= <<<BLOCK
 <tr id="req_row_$requestid">
-<td><button class="req_response_button approve" requestid="$requestid">Approve</button></td>
+<td><button class="req_response_button approve" requestid="$requestid">Approve</button>{$quotainput}</td>
 <td><button class="req_response_button reject" requestid="$requestid">Reject</button></td>
 <td requestid="$requestid">$request</td>
 <td>$q_name</td>
@@ -1295,7 +1300,7 @@ EOT;
 	}
 
 	function ajax_approve_request ($post) {
-		$this->approveRequestId ($post["requestid"]+0);
+		$this->approveRequestId ($post["requestid"]+0, $post["initial_quota"]);
 		return $this->success();
 	}
 
