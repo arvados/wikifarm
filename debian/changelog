@@ -1,3 +1,24 @@
+wikifarm (0.4) unstable; urgency=low
+
+  [ Tom Clegg ]
+  * document "customize site appearance"
+  * fix preg delimiters in DefaultFarmSettings
+  * character set fixes
+  * fix perl command
+  * add screenshot
+  * fix AMI cleanup instructions
+  * add ssl dir to debian install scripts
+  * fix up ownership/permissions in "save template wiki" script
+  * hide "my wikis" tab if user has no wikis and quota=0
+  * fix redirect loop opportunity
+  * do not show "create a new wiki" tab if user has already reached wiki
+    quota
+  * let admin specify initial wiki quota when activating a new account
+
+  [ Tom Clegg ]
+
+ -- Tom <tom@clinicalfuture.com>  Fri, 08 Jul 2011 16:40:39 -0700
+
 wikifarm (0.3) unstable; urgency=low
 
   * Update install/setup docs
