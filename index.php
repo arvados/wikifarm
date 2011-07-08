@@ -16,6 +16,7 @@ if (file_exists ($configfile = getenv("WIKIFARM_ETC") . "/config.php"))
 $wf = new WikifarmPageMachine();
 
 if (isset($_GET["modauthopenid_referrer"]) &&
+    strlen($_GET["modauthopenid_referrer"]) &&
     $wf->isActivated() &&
     !preg_match ('{modauthopenid_referrer}', $_GET["modauthopenid_referrer"]) &&
     !preg_match ('{\?tab=}', $_GET["modauthopenid_referrer"])) {
