@@ -706,17 +706,27 @@ BLOCK;
 		if (!array_key_exists ("getAllRequests", $this->_cache)) {
 			$reqs = $this->getUserRequests ($this->openid);
 			if (!$this->isAdmin()) {
-				$this->_cache['getAllRequests'] = $reqs;
+				$group_reqs = $this->getGroupAdminRequests();
 			} else {
 				$group_reqs = $this->getAdminRequests();
-				$this->_cache['getAllRequests'] = array_merge ($group_reqs, $reqs);
 			}
+            $this->_cache['getAllRequests'] = array_merge ($group_reqs, $reqs);
 		}
 		return $this->_cache['getAllRequests'];
 	}
 
 	function getAdminRequests() {
 		return $this->query ("SELECT request.*, email, realname FROM request LEFT JOIN users ON users.userid=request.userid WHERE wikiid IS NULL ORDER BY request.userid");
+	}
+
+	function getGroupAdminRequests() {
+        // Pending requests to join groups for which I am an admin
+		return $this->query ("SELECT request.*, email, realname
+ FROM request
+ LEFT JOIN users ON users.userid=request.userid
+ LEFT JOIN usergroups ON usergroups.groupname=request.groupname AND usergroups.userid='{$this->q_openid}' AND usergroups.isadmin>0
+ WHERE wikiid IS NULL AND usergroups.isadmin>0
+ ORDER BY request.userid");
 	}
 
 	function getUserRequests($userid) {
@@ -747,8 +757,17 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 		// admin can approve any request
 		if ($this->isAdmin()) return $req[0];
 
-		// non-admin can only approve a request concerning a wiki she actually owns
-		if ($this->querySingle("select 1 from wikis where id=".$req[0]["wikiid"]." and userid='".$this->q_openid."'"))
+        // user can approve a request to join a group, if she is an
+        // admin of that group
+        $groupname = $req[0]['groupname'];
+        if (!$req[0]['wikiid'] &&
+            $this->querySingle("select 1 from usergroups where userid='{$this->q_openid}' and groupname='{$groupname}' and isadmin>0"))
+            return $req[0];
+
+		// non-admin can approve access requests for a wiki she
+		// actually owns
+		if ($req[0]["wikiid"] &&
+            $this->querySingle("select 1 from wikis where id=".$req[0]["wikiid"]." and userid='{$this->q_openid}'"))
 			return $req[0];
 
 		error_log ("canApproveRequest: user ".$this->openid." cannot do ".print_r($req[0],true));
