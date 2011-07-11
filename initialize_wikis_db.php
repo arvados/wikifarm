@@ -4,6 +4,8 @@ $dbdir = getenv("DB");
 $etcdir = getenv("ETC");
 $db = new SQLite3 ("$dbdir/wikis.db");
 
+$db->exec ('ALTER TABLE usergroups ADD isadmin INTEGER DEFAULT 0');
+
 if (!$db->exec ('CREATE TABLE userpref (
  userid varchar(255),
  prefid varchar(64),
@@ -55,7 +57,8 @@ if (!$db->exec ('CREATE TABLE users (
 
 if (!$db->exec ('CREATE TABLE usergroups (
  userid varchar(255),
- groupname varchar(255)
+ groupname varchar(255),
+ isadmin INTEGER DEFAULT 0
  )'))
     die ($db->lastErrorMsg());
 

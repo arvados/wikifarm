@@ -1,5 +1,4 @@
-<?php
-    ;
+<?php ; // -*- mode: java; c-basic-indent: 4; tab-width: 4; indent-tabs-mode: nil; -*-
 
 // Copyright 2010 President and Fellows of Harvard College
 //
@@ -272,7 +271,7 @@ class WikifarmDriver {
 		return $wikis;
 	}
 
-	# returns true if the focus user owns any wikis
+	// returns true if the focus user owns any wikis
 	function hasWikis() {
 		$id = $this->q_openid;
 		$ci = "user:$id:".__FUNCTION__;
@@ -282,13 +281,22 @@ class WikifarmDriver {
 		return $this->_cache[$ci];
 	}
 
-	# returns wikis owned by the focus user
+	// returns wikis owned by the focus user
 	function getMyWikis() {
 		$wikis = array();
 		foreach ($this->getAllWikis() as $w)
 			if ($w["owner_userid"] == $this->openid)
 				$wikis[] = $w;
 		return $wikis;
+	}
+
+	// returns groups managed by the focus user
+	function getMyGroups() {
+		$id = $this->q_openid;
+        if ($this->isAdmin())
+            return $this->getAllGroups();
+        else
+            return $this->query("SELECT groupname FROM usergroups WHERE userid='$id' AND isadmin>0 ORDER BY groupname");
 	}
 
 	function getWiki ($wikiid) {
@@ -415,7 +423,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	}
 		
 	function getAllGroups($with_admin=false) {
-		if (!array_key_exists ("allgroups", $this->_cache)) {
+		if (!array_key_exists ("allgroups:$with_admin", $this->_cache)) {
 			$this->_preloadMyRequests();
 			$skipadmin = ($this->isAdmin() || $with_admin) ? "" : "WHERE groupname <> 'ADMIN'";
 			$this->_cache["allgroups"] = $this->query("SELECT groupname as groupid, groupname as groupname FROM usergroups $skipadmin GROUP BY groupname UNION SELECT 'users', 'users'");
@@ -434,6 +442,11 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 			$all_groupids = array_map( function ($g) { return $g["groupid"]; }, $this->getAllGroups() );
 		return $all_groupids;
 	}
+
+    function getGroupMembers($groupname) {
+        $q_groupname = SQLite3::escapeString($groupname);
+        return $this->query("SELECT users.*, usergroups.isadmin FROM usergroups LEFT JOIN users ON users.userid=usergroups.userid WHERE usergroups.groupname='{$q_groupname}' AND users.userid IS NOT NULL");
+    }
 	
 	// Has this user been added to one or more groups, i.e.,
 	// sanctioned as a legitimate user?  If not, we have no idea
@@ -537,6 +550,19 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		return true;
 	}
 
+	function setGroupMembership($group, $userid, $ismember, $isadmin=false) {
+		$q_group = SQLite3::escapeString ($group);
+		$q_userid = SQLite3::escapeString ($userid);
+        if ($ismember) {
+            $this->DB->exec ("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES ('{$q_userid}', '{$q_group}')");
+            $isadmin = $isadmin ? 1 : 0;
+            $this->DB->exec ("UPDATE usergroups SET isadmin={$isadmin} WHERE userid='{$q_userid}' AND groupname='{$q_group}'");
+        }
+        else
+            $this->DB->exec ("DELETE FROM usergroups WHERE userid='{$q_userid}' AND groupname='{$q_group}'");
+		return true;
+	}
+	
 	function joinGroup($group) {
 		$q_group = SQLite3::escapeString ($group);
 		$this->DB->exec ("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES ('{$this->q_openid}', '{$q_group}')");

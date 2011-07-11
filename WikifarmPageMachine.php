@@ -1,5 +1,4 @@
-<?php	
-    ;
+<?php ; // -*- mode: java; c-basic-indent: 4; tab-width: 4; indent-tabs-mode: nil; -*-
 
 // Copyright 2010 President and Fellows of Harvard College
 //
@@ -486,9 +485,7 @@ BLOCK;
 		if ($admin_mode) $this->Focus(); // return to admin
 		return $output;
 	}
-/* --- END: groups ---*/
 
-/* --- function page_users() --- */
 	function page_users() {
 		if (!$this->isActivated()) return "";
 		$adminrow = ($this->isAdmin() ? "\n<th style='width: 30'>Admin</th>" : '');
@@ -531,6 +528,60 @@ $("#userlist").dataTable({'bJQueryUI': true, "iDisplayLength": 25});
 </script>
 BLOCK;
 		return $html;
+	}
+
+
+	function page_mygroups() {
+        if (!$this->isActivated()) return "";
+		$content = "";
+		$tabs = "";
+		foreach ($this->getMyGroups() as $g) {
+            extract ($g);
+			$tabs .= "\t\t<li><a tab_id='tab_$groupname' href=\"#tab_$groupname\"><span class=\"ui-icon ui-icon-triangle-1-e wf-button-icon\" /> {$groupname} </a></li>\n";
+			$content .= "<div id=\"tab_$groupname\">" . $this->frag_managegroup ($groupname) . "</div>\n";
+		}
+		$newgrouptab = '';
+		if ($this->isAdmin())
+			$newgrouptab = '<li><a href="#newgrouptab"><span class="ui-icon ui-icon-person" style="float: left; margin-right: .3em;"></span>Create a new group</a></li>';
+
+		return <<<BLOCK
+<div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-wrench" />Manage your groups: invite users, grant/revoke administrator privileges.</p></div><div class="clear1em" />
+<script language="JavaScript">
+$(function() {
+	$('#mygroupstabs').tabs({show: function(event,ui){window.location.hash="";}});
+	if (mygroupsLoadTabOnce != '') {
+		selectTabByName ('#mygroupstabs','tab_'+mygroupsLoadTabOnce);
+		mygroupsLoadTabOnce = '';
+	}		
+});
+</script>
+<div id="mygroupstabs">
+	<ul>
+{$tabs}
+{$newgrouptab}
+	</ul>
+{$content}
+<div id="newgrouptab">
+<form id="creategroupform" action="#">
+<table>
+
+<tr><td class="formlabelleft nowrap">Group name:</td>
+<td class="minwidth"><input type=text name=groupname size=32 maxlength=16></td>
+<td>3 to 16 lower case letters.</td>
+</tr>
+
+<tr><td></td>
+<td class="minwidth"><button class="generic_ajax" ga_form_id="creategroupform" ga_loader_id="creategroup_loader" ga_message_id="creategroup_message" ga_action="creategroup">Create new group</button></td>
+<td></td>
+</tr>
+</table>
+
+<div style="min-height:40px"><div id="creategroup_loader" /><div id="creategroup_message" /></div>
+
+</form>
+</div>
+</div>
+BLOCK;
 	}
 
 	function page_requests() {
@@ -596,9 +647,62 @@ BLOCK;
 		return "<pre>".htmlspecialchars(print_r($x,true))."</pre>";
 	}
 
-// ********* page fragments ************ //
+	// ********* page fragments ************ //
 
-// Admin "Manage A Wiki" dialog box Content
+	// Admin "Manage A Wiki" dialog box Content
+	function frag_managegroup ($groupname) {
+        $html = <<<BLOCK
+<form id="mgf{$groupname}">
+	<input type="hidden" name="groupname" value="{$groupname}" />
+	<input type="hidden" name="refresh_div" value="#amw-content" disabled>
+	<input type="hidden" name="refresh_tab" value="#tabs" disabled>
+BLOCK;
+		$member_users = $this->getGroupMembers ($groupname);
+		$member_userid = array();
+		$member_userid_adm = array();
+		foreach ($member_users as $u) {
+			$member_userid[$u["userid"]] = true;
+			if ($u["isadmin"])
+				$member_userid_adm[$u["userid"]] = true;
+		}
+		$html .= $this->textHighlight ("Select members/administrators of the <strong>$groupname</strong> group.", "person");
+		$html .= "<table id=\"mgu${groupname}\">";
+		$html .= "<thead><tr><th class=\"minwidth\"></th><th></th><th>&nbsp;</th></tr></thead><tbody>";
+		foreach ($this->getAllActivatedUsers() as $u) {
+			$html .= "<tr>";
+			$checked = isset ($member_userid[$u["userid"]]) ? "checked" : "";
+            $html .= "<input type=\"hidden\" name=\"mg${groupname}_listed_".md5($u["userid"])."\" value=\"1\" />";
+
+            $memberlabel = $groupname == 'ADMIN' ? 'site admin' : 'member';
+
+			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mgf$groupname\" ga_action=\"managegroup_members\" id=\"mg${groupname}_member_".md5($u["userid"])."\" name=\"mg${groupname}_member_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked />{$memberlabel}</td>";
+
+            if ($groupname == 'ADMIN') {
+                $html .= '<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>';
+            }
+            else {
+                $checked = isset ($member_userid_adm[$u["userid"]]) ? "checked" : "";
+                $html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mgf$groupname\" ga_action=\"managegroup_members\" id=\"mg${groupname}_admin_".md5($u["userid"])."\" name=\"mg${groupname}_admin_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked />admin&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>";
+            }
+
+			$comma_email = $u["email"] ? ", ".$u["email"] : "";
+			$html .= "<td>".htmlspecialchars($u["realname"].$comma_email." (".$u["userid"].")")."</td>";
+			$html .= "</tr>";
+		}
+		$html .= "</tbody></table>";
+
+		$html .= "<br /><div style=\"min-height: 12px;\" /><br />";
+
+		$html .= "</form>";
+		$html .= <<<BLOCK
+<script language="JavaScript">
+            $("#mgu{$groupname}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "aoColumnDefs": [{'aTargets': [0,1], 'bSearchable': false}] });
+</script>
+BLOCK;
+		return $html;
+    }
+
+	// Admin "Manage A Wiki" dialog box Content
 	function frag_managewiki ($wiki) {
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
@@ -772,7 +876,7 @@ $('#reqwriteaccess').live('click', function(){ if(!$('#reqwriteaccess').attr('di
 BLOCK;
 	}
 
-// ajax loaded dialog box content 
+// ajax loaded dialog box content
 	function page_admin_manageuser() {
 		if (!$this->_security( array('access'=>'admin' ))) return page_adminonly();
 		$user = $this->getUser($_GET['userid']);
@@ -1049,6 +1153,63 @@ EOT;
 				      "message" => "Only an Admin can do that.");
 		}
 	}
+
+	function ajax_managegroup_members ($post) {
+        // $adminflag == what to set "admin" and "member" flags to if
+        // "admin" is ticked and "member" is not ticked.  I.e., was
+        // the "admin" checkbox the one that was clicked?
+        $adminflag = preg_match ('{_admin_[0-9a-f]+$}', $post['ga_button_id'])
+            ? true : false;
+
+        $groupname = $post['groupname'];
+        $ok = false;
+        foreach ($this->getMyGroups() as $g)
+            if ($g['groupname'] == $groupname)
+                $ok = true;
+        if (!$ok)
+            return array ('success' => false, 'message' => 'Only an Admin can do that.');
+
+        $checkus = array();
+        $uncheckus = array();
+		$refreshrule = isset($post["refresh_tab"]) ? $post["refresh_tab"] : 0;
+		$refreshdiv = isset($post["refresh_div"]) ? $post["refresh_div"] : 0;
+
+		foreach ($this->getAllActivatedUsers() as $u) {
+			$listed_param = "mg${groupname}_listed_".md5($u["userid"]);
+            if (!isset($post[$listed_param]))
+                continue;
+            if ($u["userid"] == $this->openid &&
+                ($groupname == 'ADMIN' || !$this->isAdmin()))
+                // You are not allowed to surrender your own
+                // group-admin privileges (unless you are a site
+                // admin), and you are not allowed to surrender your
+                // own site admin privileges.
+                continue;
+			$member_param = "mg${groupname}_member_".md5($u["userid"]);
+			$admin_param = "mg${groupname}_admin_".md5($u["userid"]);
+            $member = isset($post[$member_param]);
+            $admin = isset($post[$admin_param]);
+            if ($admin && !$member) {
+                $admin = $adminflag;
+                $member = $adminflag;
+            }
+            $this->setGroupMembership($groupname, $u['userid'], $member, $admin);
+            if ($member)
+                $checkus[] = $member_param;
+            else
+                $uncheckus[] = $member_param;
+
+            if ($admin)
+                $checkus[] = $admin_param;
+            else
+                $uncheckus[] = $admin_param;
+        }
+		return array ("success" => true,
+                      "check" => $checkus,
+                      "uncheck" => $uncheckus,
+                      "refreshtab" => $refreshrule,
+                      "refreshdiv" => $refreshdiv);
+    }
 
 	function ajax_managewiki_groups ($post) {
 		$wikiid = $post["wikiid"];

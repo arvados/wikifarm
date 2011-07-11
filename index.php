@@ -61,6 +61,7 @@ $tabTitles = array(
 			'wikis'=>'All Wikis',
 			'mywikis'=>'My Wikis',
 			'groups'=>'Groups',
+			'mygroups'=>'Manage Groups',
 			'myaccount'=>'My Account',
 			'users'=>'User List',
 			'debug'=>'Debug',
@@ -72,6 +73,8 @@ if (!$wf->isAdmin()) {
 	unset ( $tabTitles['debug'] );
 	unset ( $tabTitles['settings'] );
 	unset ( $tabTitles['adminhelp'] );
+    if (!count($wf->getMyGroups()))
+        unset ( $tabTitles['mygroups'] );
 } elseif (!(isset ($_GET["tabActive"]) && $_GET["tabActive"] == "debug")) {
 	unset ( $tabTitles['debug'] );
 }
@@ -121,6 +124,7 @@ if (isset ($_GET["tabActive"]))
 <script type="text/javascript" src="js/DataTables/js/jquery.dataTables.js" language="JavaScript"></script>
 <script type="text/javascript" language="JavaScript">
 	var mywikisLoadTabOnce = '';
+	var mygroupsLoadTabOnce = '';
 	$(function() {
 		$("#tabs").tabs({
 			selected: <?=$tabActiveId?>,
@@ -134,6 +138,7 @@ if (isset ($_GET["tabActive"]))
 			$("body>div.ui-dialog").empty().remove();
 		});
 		mywikisLoadTabOnce = '';
+		mygroupsLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
 		$("#pageheader a").button().removeClass('ui-corner-all').addClass('ui-corner-tr').addClass('ui-corner-tl').css('padding', '0px');
 	});	
