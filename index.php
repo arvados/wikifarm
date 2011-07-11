@@ -120,8 +120,8 @@ if (isset ($_GET["tabActive"]))
 <link type="text/css" href="css/smoothness/jquery-ui-1.8.4.custom.css" rel="Stylesheet">
 <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.4.custom.min.js"></script>
-<script type="text/javascript" src="js/wikifarm-ui.js" language="JavaScript"></script>
 <script type="text/javascript" src="js/DataTables/js/jquery.dataTables.js" language="JavaScript"></script>
+<script type="text/javascript" src="js/wikifarm-ui.js" language="JavaScript"></script>
 <script type="text/javascript" language="JavaScript">
 	var mywikisLoadTabOnce = '';
 	var mygroupsLoadTabOnce = '';

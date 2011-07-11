@@ -175,7 +175,7 @@ BLOCK;
 		if ($this->isAdmin()) $output .= $this->frag_admin_managewiki();
 		$output .= <<<BLOCK
 <script type='text/javascript'>
-$.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
+var wikilist_filterer = function(oSettings, aData, iDataIndex) {
 	var nTr = oSettings.aoData[iDataIndex].nTr;
 	if (nTr.className.match(/inactive/) && !$('#viewinactive').attr('checked'))
 	    return false;
@@ -184,7 +184,7 @@ $.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
 	if (nTr.className.match(/nonwritable/) && $('#viewwritableselected').attr('checked'))
 	    return false;
 	return true;
-});
+}
 $(function() {
 	$('#viewallradio').buttonset();
 	$('.editbutton').click(function(){ mywikisLoadTabOnce = $(this).attr('wikiname'); wf_tab_select('tabs', 'mywikis'); });
@@ -192,7 +192,7 @@ $(function() {
 	$('.loginselect').change( function() { if ($(this).val()!='') { $(this).addClass('generic_ajax'); $(this).click(); $(this).removeClass('generic_ajax'); } $(this).val(''); return false; } );
 	\$('#allwikis a[icon]').each(function(){\$(this).button({icons:{primary:\$(this).attr('icon')}});});
 	\$('#allwikis a.ui-helper-hidden[icon]').hide();
-	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100, 'aoColumnDefs': [ { 'bSearchable': false, 'aTargets': [ 2, 5, 6, 7 ] } ] });
+	var oTable = $('#allwikis').dataTable({'bJQueryUI': true, 'iDisplayLength': 100, 'aoColumnDefs': [ { 'bSearchable': false, 'aTargets': [ 2, 5, 6, 7 ] } ], 'aFilterers': [wikilist_filterer] });
 	$('#viewallradio input').change( function(){ oTable.fnDraw(); } );
 	$('#viewinactive').change( function(){ oTable.fnDraw(); } );
 });
@@ -541,7 +541,8 @@ BLOCK;
 			$content .= "<div id=\"tab_$groupname\">" . $this->frag_managegroup ($groupname) . "</div>\n";
 		}
 		$newgrouptab = '';
-		if ($this->isAdmin())
+		if ($this->isAdmin() && false)
+            // Not implemented
 			$newgrouptab = '<li><a href="#newgrouptab"><span class="ui-icon ui-icon-person" style="float: left; margin-right: .3em;"></span>Create a new group</a></li>';
 
 		return <<<BLOCK
@@ -561,25 +562,25 @@ $(function() {
 {$newgrouptab}
 	</ul>
 {$content}
+
+<!--
 <div id="newgrouptab">
 <form id="creategroupform" action="#">
 <table>
-
 <tr><td class="formlabelleft nowrap">Group name:</td>
 <td class="minwidth"><input type=text name=groupname size=32 maxlength=16></td>
 <td>3 to 16 lower case letters.</td>
 </tr>
-
 <tr><td></td>
 <td class="minwidth"><button class="generic_ajax" ga_form_id="creategroupform" ga_loader_id="creategroup_loader" ga_message_id="creategroup_message" ga_action="creategroup">Create new group</button></td>
 <td></td>
 </tr>
 </table>
-
 <div style="min-height:40px"><div id="creategroup_loader" /><div id="creategroup_message" /></div>
-
 </form>
 </div>
+-->
+
 </div>
 BLOCK;
 	}
@@ -666,6 +667,27 @@ BLOCK;
 				$member_userid_adm[$u["userid"]] = true;
 		}
 		$html .= $this->textHighlight ("Select members/administrators of the <strong>$groupname</strong> group.", "person");
+        $selectorid = "selectusers_{$groupname}";
+        $html .= <<<BLOCK
+<table><tr>
+<td><div align=right id='{$selectorid}'>
+<input type='radio' id='{$selectorid}_all' name='{$selectorid}' value='all' checked='checked' /><label for='{$selectorid}_all'>Show all users</label>
+BLOCK;
+        if ($groupname != 'ADMIN')
+            $html .= <<<BLOCK
+<input type='radio' id='{$selectorid}_members' name='{$selectorid}' value='members' checked /><label for='{$selectorid}_members'>Show members</label>
+BLOCK;
+        $checked = $groupname == 'ADMIN' ? 'checked' : '';
+        $html .= <<<BLOCK
+<input type='radio' id='{$selectorid}_admins' name='{$selectorid}' value='admins' $checked /><label for='{$selectorid}_admins'>Show admins</label>
+</div></td></tr></table>
+<script language="JavaScript">
+$(function() {
+	$('#{$selectorid}').buttonset();
+	$('#{$selectorid} input').change( function(){ mgTable_{$groupname}.fnDraw(); } );
+});
+</script>
+BLOCK;
 		$html .= "<table id=\"mgu${groupname}\">";
 		$html .= "<thead><tr><th class=\"minwidth\"></th><th></th><th>&nbsp;</th></tr></thead><tbody>";
 		foreach ($this->getAllActivatedUsers() as $u) {
@@ -675,14 +697,14 @@ BLOCK;
 
             $memberlabel = $groupname == 'ADMIN' ? 'site admin' : 'member';
 
-			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mgf$groupname\" ga_action=\"managegroup_members\" id=\"mg${groupname}_member_".md5($u["userid"])."\" name=\"mg${groupname}_member_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked />{$memberlabel}</td>";
+			$html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax membercheckbox\" ga_form_id=\"mgf$groupname\" ga_action=\"managegroup_members\" id=\"mg${groupname}_member_".md5($u["userid"])."\" name=\"mg${groupname}_member_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked />{$memberlabel}</td>";
 
             if ($groupname == 'ADMIN') {
                 $html .= '<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>';
             }
             else {
                 $checked = isset ($member_userid_adm[$u["userid"]]) ? "checked" : "";
-                $html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax\" ga_form_id=\"mgf$groupname\" ga_action=\"managegroup_members\" id=\"mg${groupname}_admin_".md5($u["userid"])."\" name=\"mg${groupname}_admin_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked />admin&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>";
+                $html .= "<td class=\"minwidth nowrap\"><input type=\"checkbox\" class=\"generic_ajax admincheckbox\" ga_form_id=\"mgf$groupname\" ga_action=\"managegroup_members\" id=\"mg${groupname}_admin_".md5($u["userid"])."\" name=\"mg${groupname}_admin_".md5($u["userid"])."\" value=\"".htmlspecialchars($u["userid"])."\" $checked />admin&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>";
             }
 
 			$comma_email = $u["email"] ? ", ".$u["email"] : "";
@@ -696,7 +718,20 @@ BLOCK;
 		$html .= "</form>";
 		$html .= <<<BLOCK
 <script language="JavaScript">
-            $("#mgu{$groupname}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "aoColumnDefs": [{'aTargets': [0,1], 'bSearchable': false}] });
+var mgu{$groupname}_filterer = function(oSettings, aData, iDataIndex) {
+    // implement "Show all users", "Show members", "Show admins" radio buttons
+	var nTr = oSettings.aoData[iDataIndex].nTr;
+	if (!$(nTr).find('input:checked').length &&
+        !$('#{$selectorid}_all').attr('checked'))
+	    return false;
+	if ($(nTr).find('input.admincheckbox').length && // not a "site admin" row
+        !$(nTr).find('input.admincheckbox:checked').length &&
+        $('#{$selectorid}_admins').attr('checked'))
+	    return false;
+	return true;
+}
+var mgTable_{$groupname} = $("#mgu{$groupname}").mutateID().dataTable({'bJQueryUI': true, "bAutoWidth": false, "bInfo": false, "bSort": false, "aoColumnDefs": [{'aTargets': [0,1], 'bSearchable': false}], "aFilterers": [mgu{$groupname}_filterer] });
+$(function() { mgTable_{$groupname}.fnDraw(); });
 </script>
 BLOCK;
 		return $html;

@@ -18,6 +18,16 @@
 // You should have received a copy of the GNU General Public License
 // along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
 
+(function( $ ){
+    $.fn.dataTableExt.afnFiltering.push (function(oSettings,aData,iDataIndex) {
+	    if (oSettings.oInit.aFilterers)
+		for (var i in oSettings.oInit.aFilterers)
+		    if (!oSettings.oInit.aFilterers[i](oSettings,aData,iDataIndex))
+			return false;
+	    return true;
+	});
+})( jQuery );
+
 // adds $('element').exists();
 jQuery.fn.exists = function(){return jQuery(this).length>0;};
 
