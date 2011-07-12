@@ -137,6 +137,12 @@ if (isset ($_GET["tabActive"]))
 			$("body>div.wf-dialog").empty().remove();
 			$("body>div.ui-dialog").empty().remove();
 		});
+        // If session times out, reload the whole page instead of
+        // showing the login form inside a tab.
+		$("#tabs").bind("tabsload", function(event,ui){
+                if ($(ui.panel).find('form.openidloginform').length)
+                    window.location='./';
+            });
 		mywikisLoadTabOnce = '';
 		mygroupsLoadTabOnce = '';
 		$(".needhelp").css('font-size', '.8em');
