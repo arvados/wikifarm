@@ -40,12 +40,20 @@ class WikifarmDriver {
 		$this->Focus();  // $_SERVER["REMOTE_USER"] by default, the user in focus is the currently signed-in one.
 	}
 
-	function getAdminEmails() {
-		$ret = array();
-		foreach ($this->query ("SELECT email FROM usergroups LEFT JOIN users ON users.userid=usergroups.userid LEFT JOIN userpref ON users.userid=userpref.userid AND userpref.prefid='admin_notify_requests' WHERE groupname='ADMIN' AND userpref.value") as $g)
-			if (!array_search ($g["email"], $ret))
-				$ret[] = $g["email"];
-		return $ret;
+	function getAdminNotificationAddress($userid) {
+		$q_openid = SQLite3::escapeString ($userid);
+		return $this->querySingle ("SELECT
+ CASE WHEN userpref.value OR (userpref.prefid IS NULL AND pref.defaultvalue)
+        THEN email
+      ELSE null
+      END
+ FROM users
+ LEFT JOIN userpref
+ ON users.userid=userpref.userid
+    AND userpref.prefid='admin_notify_requests'
+ LEFT JOIN pref
+ ON pref.prefid='admin_notify_requests'
+ WHERE users.userid='{$q_openid}'");
 	}
 
 	function __destruct () { $this->DB->close(); }  // !!! We should change this if we want to keep the handle later
@@ -404,7 +412,11 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 			$this->_cache['isadmin'] = $this->querySingle("SELECT 1 FROM usergroups WHERE usergroups.userid = '$id' AND groupname = 'ADMIN'" );
 		}
 		return $this->_cache['isadmin'];		
-	}		
+	}
+
+    function isGroupAdmin() {
+        return 0 < $this->querySingle ("SELECT COUNT(*) FROM usergroups WHERE userid='{$this->q_openid}' AND isadmin>0");
+    }
 	
 	function getUserGroups() {
 		$id = $this->q_openid;
@@ -488,8 +500,8 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 	}
 
 	function getUserPrefs() {
-		$noadmin = $this->isAdmin() ? "" : "WHERE pref.prefid NOT LIKE 'admin_%'";
-		return $this->query ("SELECT pref.prefid, type, description, value FROM pref LEFT JOIN userpref ON userpref.userid='{$this->q_openid}' AND pref.prefid=userpref.prefid $noadmin");
+		$noadmin = ($this->isAdmin() || $this->isGroupAdmin()) ? "" : "WHERE pref.prefid NOT LIKE 'admin_%'";
+		return $this->query ("SELECT pref.prefid, type, description, CASE WHEN userpref.prefid IS NULL THEN defaultvalue ELSE value END value FROM pref LEFT JOIN userpref ON userpref.userid='{$this->q_openid}' AND pref.prefid=userpref.prefid $noadmin");
 	}
 
 	function setUserPrefs($prefs) {
@@ -588,7 +600,9 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		if (!is_array($groups))
 			$groups = array($groups);
 
-		$admin_requests_before = $this->getAdminRequests();
+        $admin_requests_before = array();
+        foreach ($this->query("SELECT DISTINCT userid FROM usergroups WHERE groupname='ADMIN' OR isadmin>0") as $u)
+            $admin_requests_before[$u['userid']] = $this->getAdminRequests($u['userid']);
 
 		$allgroups =& $this->getAllGroups();
 		foreach (array_merge ($groups, array ("users")) as $group) {
@@ -612,15 +626,18 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 				error_log ("requestGroup nonexistent group: $group");
 		}
 
-		if (count($admin_requests_before) == 0) {
-			$admin_requests_after = $this->getAdminRequests();
-			if (count($admin_requests_after) > 0) {
-				$requests_text = "";
-				foreach ($admin_requests_after as $r)
-					$requests_text .= "\n* Join '{$r['groupname']}' group - {$r['realname']} <{$r['email']}>, {$r['userid']}\n";
-				$requests_text = preg_replace ("{Join 'users' group}", "Activate account", $requests_text);
-				$subject = "[Wikifarm] Requests need administrator approval";
-				$message = <<<BLOCK
+        foreach ($admin_requests_before as $userid => $before) {
+            if (count($before) > 0)
+                continue;       // This user already had admin requests pending
+			$admin_requests_after = $this->getAdminRequests($userid);
+			if (count($admin_requests_after) == 0)
+                continue;       // This user still has no admin requests pending
+            $requests_text = "";
+            foreach ($admin_requests_after as $r)
+                $requests_text .= "\n* Join '{$r['groupname']}' group - {$r['realname']} <{$r['email']}>, {$r['userid']}\n";
+            $requests_text = preg_replace ("{Join 'users' group}", "Activate account", $requests_text);
+            $subject = "[Wikifarm] Requests need administrator approval";
+            $message = <<<BLOCK
 Hi,
 
 This is the wikifarm at https://{$_SERVER['HTTP_HOST']} .
@@ -629,11 +646,11 @@ Administrator approval is needed for the following requests.
 {$requests_text}
 No more of these notifications will be sent until all outstanding requests are cleared.
 BLOCK;
-				foreach ($this->getAdminEmails() as $e) {
-					$this->Mail ($e,
+			$e = $this->getAdminNotificationAddress($userid);
+            if ($e) {
+                $this->Mail ($e,
 						     $subject,
 						     wordwrap($message));
-				}
 			}
 		}
 	}
@@ -702,30 +719,29 @@ BLOCK;
 	}
 
 	// Responding to requests
-	function getAllRequests() {
+	function getAllRequests($userid=false) {
+        if (!$userid)
+            $userid = $this->openid;
 		if (!array_key_exists ("getAllRequests", $this->_cache)) {
-			$reqs = $this->getUserRequests ($this->openid);
-			if (!$this->isAdmin()) {
-				$group_reqs = $this->getGroupAdminRequests();
-			} else {
-				$group_reqs = $this->getAdminRequests();
-			}
+			$reqs = $this->getUserRequests ($userid);
+            $group_reqs = $this->getAdminRequests($userid);
             $this->_cache['getAllRequests'] = array_merge ($group_reqs, $reqs);
 		}
 		return $this->_cache['getAllRequests'];
 	}
 
-	function getAdminRequests() {
-		return $this->query ("SELECT request.*, email, realname FROM request LEFT JOIN users ON users.userid=request.userid WHERE wikiid IS NULL ORDER BY request.userid");
-	}
-
-	function getGroupAdminRequests() {
-        // Pending requests to join groups for which I am an admin
-		return $this->query ("SELECT request.*, email, realname
+	function getAdminRequests($userid) {
+        // Pending requests to join groups for which this user is an
+        // admin (or, if this is a site admin, *all* requests to join
+        // groups)
+		$q_openid = SQLite3::escapeString ($userid);
+		return $this->query ("SELECT DISTINCT request.*, email, realname
  FROM request
  LEFT JOIN users ON users.userid=request.userid
- LEFT JOIN usergroups ON usergroups.groupname=request.groupname AND usergroups.userid='{$this->q_openid}' AND usergroups.isadmin>0
- WHERE wikiid IS NULL AND usergroups.isadmin>0
+ LEFT JOIN usergroups ON usergroups.userid='{$q_openid}' AND
+   (usergroups.groupname='ADMIN' OR
+     (usergroups.groupname=request.groupname AND usergroups.isadmin>0))
+ WHERE wikiid IS NULL AND usergroups.userid IS NOT NULL
  ORDER BY request.userid");
 	}
 

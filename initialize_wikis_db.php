@@ -5,6 +5,9 @@ $etcdir = getenv("ETC");
 $db = new SQLite3 ("$dbdir/wikis.db");
 
 $db->exec ('ALTER TABLE usergroups ADD isadmin INTEGER DEFAULT 0');
+if($db->exec ('ALTER TABLE pref ADD defaultvalue varchar(255)')) {
+    $db->exec ('UPDATE pref SET defaultvalue=1 WHERE prefid="admin_notify_requests"');
+}
 
 if (!$db->exec ('CREATE TABLE userpref (
  userid varchar(255),
@@ -16,10 +19,11 @@ if (!$db->exec ('CREATE UNIQUE INDEX up ON userpref (userid,prefid)'))
 if (!$db->exec ('CREATE TABLE pref (
  prefid varchar(64) primary key,
  type varchar(64),
- description varchar(255))'))
+ description varchar(255),
+ defaultvalue varchar(255))'))
     die ($db->lastErrorMsg());
 $db->exec ('INSERT INTO pref (prefid,type,description) VALUES ("notify_requests", "checkbox", "Notify me by email when someone requests access to my wikis")');
-$db->exec ('INSERT INTO pref (prefid,type,description) VALUES ("admin_notify_requests", "checkbox", "Notify me by email about account activation and group membership requests")');
+$db->exec ('INSERT INTO pref (prefid,type,description,defaultvalue) VALUES ("admin_notify_requests", "checkbox", "Notify me by email about account activation and group membership requests", "1")');
 
 if (!$db->exec ('CREATE TABLE request (
  requestid integer primary key autoincrement,
