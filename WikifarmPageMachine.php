@@ -1,4 +1,4 @@
-<?php ; // -*- mode: java; c-basic-indent: 4; tab-width: 4; indent-tabs-mode: nil; -*-
+<?php ; // -*- mode: java; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: nil; -*-
 
 // Copyright 2010 President and Fellows of Harvard College
 //
