@@ -666,7 +666,12 @@ BLOCK;
 			if ($u["isadmin"])
 				$member_userid_adm[$u["userid"]] = true;
 		}
-		$html .= $this->textHighlight ("Select members/administrators of the <strong>$groupname</strong> group.", "person");
+        $explaingroup = '';
+        if ($groupname == 'ADMIN')
+            $explaingroup = '<br/><br/><strong>Members of this group can create groups, activate/deactivate users, control membership in all groups, edit user details, and view all wikis.</strong>';
+        else if ($groupname == 'users')
+            $explaingroup = '<br/><br/><strong>Members</strong> of this group (i.e., activated users) can create wikis (subject to quota) and see the list of wikis and users.<br/><br/><strong>Administrators</strong> of this group can activate/deactivate users, and set initial wiki quota during account activation.';
+		$html .= $this->textHighlight ("Select members/administrators of the <strong>$groupname</strong> group.  $explaingroup", "person");
         $selectorid = "selectusers_{$groupname}";
         $html .= <<<BLOCK
 <table><tr>
