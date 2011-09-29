@@ -18,6 +18,9 @@ if [ ! -e $DB/wikis.db ]
 then
   mkdir -m 750 -p $DB
   php $ETC/initialize_wikis_db.php
+else
+  # upgrade existing tables, then give up on first "create table" failure (!)
+  php $ETC/initialize_wikis_db.php || true
 fi
 chown -R www-data:adm $DB
 chmod -R o-rwx,g+rwX $DB
