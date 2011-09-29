@@ -1,3 +1,20 @@
+wikifarm (0.5) stable; urgency=low
+
+  [ Tom Clegg ]
+  * add "group administrator" role and "manage groups" tab
+  * add "show all users / show members / show admins" radio buttons on
+    "manage groups" tab
+  * allow group admins to approve requests to join respective groups
+  * avoid showing login form inside a dashboard tab
+  * add explanations for special groups on "manage groups" tab
+  * notify group admins about requests to join their groups
+  * fix emacs modeline
+  * upgrade tables during setup if sqlite db already exists
+
+  [ Tom ]
+
+ -- Tom <tom@clinicalfuture.com>  Wed, 28 Sep 2011 22:43:42 -0700
+
 wikifarm (0.4) unstable; urgency=low
 
   [ Tom Clegg ]
