@@ -4,6 +4,7 @@ set -e
 set -x
 
 . $1/env
+export HOSTNAME=`hostname`
 
 builder=$ETC/awstats_buildstaticpages.pl
 
