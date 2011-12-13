@@ -1,4 +1,4 @@
-// Copyright 2010 President and Fellows of Harvard College
+// Copyright 2011 President and Fellows of Harvard College
 //
 // Authors:
 // Tom Clegg <tom@clinicalfuture.com>
@@ -69,7 +69,7 @@ function selectTabByName(tabs, tab) {
 	$(tabs).tabs('select', tabIndexByName(tab));
 }
 
-function generic_ajax_success(data, textStatus, req, button)
+function generic_ajax_success(data, textStatus, req, button, ajaxoptions)
 {
     if (button.disabled)
 	button.disabled = false;
@@ -93,7 +93,7 @@ function generic_ajax_success(data, textStatus, req, button)
 	msg = $('#'+data.request.ga_message_id);
     else if ($(button).attr('ga_message_id'))
 	msg = $('#'+$(button).attr('ga_message_id'));
-    if (data.message && msg) {
+    if (data.message && msg && msg.length) {
 	msg.addClass('ui-widget ui-state-highlight ui-corner-all wf-message-box');
 	msg.removeClass('ui-state-error ui-state-highlight');
 	msg.addClass(data.success ? 'ui-state-highlight' : 'ui-state-error');
@@ -105,6 +105,11 @@ function generic_ajax_success(data, textStatus, req, button)
 	if (data.alert && (data.redirect || data.refreshtab || data.selecttab))
 	    alert (data.alert);
     }
+    else if (data.confirm)
+	if (window.confirm(data.confirm)) {
+	    ajaxoptions.data.push({'name': 'confirm', 'value': '1'});
+	    $.ajax(ajaxoptions);
+	}
     else if (data.alert)
 	alert (data.alert);
     else if (data.message)
@@ -117,9 +122,11 @@ function generic_ajax_success(data, textStatus, req, button)
 	$(data.refreshtab).tabs('load', $(data.refreshtab).tabs( "option", "selected" ));
     if (data.selecttab)
 	wf_tab_select('tabs', data.selecttab);
+    ajaxoptions.success = null;
+    ajaxoptions.error = null;
 }
 
-function generic_ajax_error(req, textStatus, errorThrown, button)
+function generic_ajax_error(req, textStatus, errorThrown, button, ajaxoptions)
 {
     if (button.disabled)
 	button.disabled = false;
@@ -127,10 +134,13 @@ function generic_ajax_error(req, textStatus, errorThrown, button)
     if (loader_id && $('#'+loader_id))
 	$('#'+loader_id).hide();
     alert (textStatus);
+    ajaxoptions.error = null;
+    ajaxoptions.success = null;
 }
 
 function generic_ajax_submit()
 {
+    var ajaxoptions;
     try {
 	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
 	var ga_loader_id = $(this).attr('ga_loader_id');
@@ -148,15 +158,16 @@ function generic_ajax_submit()
 	}
 	var button = this;
 	$(':button').each(function(){if(this==button) button.disabled=true;});
-	$.ajax({
-		url: '/',
-		    type: 'POST',
-		    dataType: 'json',
-		    data: postme,
-		    success: function(d,t,r) { return generic_ajax_success(d,t,r,button); },
-		    error: function(r,t,e) { return generic_ajax_error(r,t,e,button); },
-		    cache: false
-	    });
+	ajaxoptions = {
+	    url: '/',
+	    type: 'POST',
+	    dataType: 'json',
+	    data: postme,
+	    success: function(d,t,r) { return generic_ajax_success(d,t,r,button,ajaxoptions); },
+	    error: function(r,t,e) { return generic_ajax_error(r,t,e,button,ajaxoptions); },
+	    cache: false
+	};
+	$.ajax(ajaxoptions);
     } catch(e) {
 	alert ("Browser compatibility problem: " + e.name + " (" + e.message + ")");
     }
@@ -165,25 +176,26 @@ function generic_ajax_submit()
 
 function dialog_submit(dialog, form)
 {
-    $.ajax({
-	    url: '/',
-		type: 'POST',
-		dataType: 'json',
-		data: (typeof(form)=="object" ? form : $(dialog).find(form)).serializeArray(),
-		success: function(d,t,r)
-		{
-		    if (d && (d.success || d.refreshtab || d.redirect || d.selecttab)) {
-			$(dialog).dialog("close");
-			d.request.ga_message_id = null;
-		    }
-		    generic_ajax_success (d,t,r,dialog);
-		},
-		error: function(r,t,e)
-		{
-		    generic_ajax_error (r,t,e,dialog);
-		},
-		cache: false
-		});
+    var ajaxoptions = {
+	url: '/',
+	type: 'POST',
+	dataType: 'json',
+	data: (typeof(form)=="object" ? form : $(dialog).find(form)).serializeArray(),
+	success: function(d,t,r)
+	{
+	    if (d && (d.success || d.refreshtab || d.redirect || d.selecttab)) {
+		$(dialog).dialog("close");
+		d.request.ga_message_id = null;
+	    }
+	    return generic_ajax_success (d,t,r,dialog,ajaxoptions);
+	},
+	error: function(r,t,e)
+	{
+	    return generic_ajax_error (r,t,e,dialog,ajaxoptions);
+	},
+	cache: false
+    };
+    $.ajax(ajaxoptions);
     return false;
 }
 

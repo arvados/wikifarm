@@ -1,5 +1,4 @@
-<?php
-;
+<?php ; // -*- mode: java; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: nil; -*-
 
 // Copyright 2010 President and Fellows of Harvard College
 //
@@ -43,6 +42,44 @@ class WikifarmAuthPlugin extends AuthPlugin {
 			$this->mwusername = preg_replace('{_}',' ',$autologin["mwusername"]);
 			$this->userid_is_owner = $autologin["sysop"];
 		}
+        else {
+            // Try login via group
+            $this->userid_is_owner = false;
+            $autologin = $this->db->querySingle
+                ($sql = "select mwusername, 0 as sysop from users "
+                 . "left join usergroups on usergroups.userid=users.userid "
+                 . "left join wikipermission on wikiid='"
+                 . getenv("WIKIID")
+                 . "' and groupname=userid_or_groupname and readonly=0 "
+                 . "where users.userid='"
+                 . SQLite3::escapeString ($this->userid)
+                 . "' and wikipermission.readonly is not null", true);
+
+            // Check whether this MW username is already used in this
+            // wiki by a different user
+            if ($autologin) {
+                $conflict = $this->db->querySingle
+                    ("select * from autologin where wikiid='"
+                     . getenv("WIKIID")
+                     . "' and lower(mwusername)=lower('"
+                     . SQLite3::escapeString ($autologin["mwusername"])
+                     . "') and userid<>'"
+                     . SQLite3::escapeString ($this->userid)
+                     . "'");
+                if ($conflict)
+                    $autologin = false; // Must be resolved via dashboard
+            }
+
+            if ($autologin) {
+                $this->mwusername = preg_replace('{_}',' ',$autologin["mwusername"]);
+                $this->db->query
+                    ("insert into autologin "
+                     . "(wikiid, userid, mwusername, sysop) values ('"
+                     . getenv("WIKIID") . "', '"
+                     . SQLite3::escapeString ($this->userid) . "', '"
+                     . SQLite3::escapeString ($this->mwusername) . "', '0')");
+            }
+        }
 
 		$this->userrow = $this->db->querySingle
 			("select * from users where userid='"

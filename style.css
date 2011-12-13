@@ -28,7 +28,7 @@ th { text-align: left; border-bottom: 1px solid black; padding-bottom: 3px; }
 th.noborder { border-bottom: none; }
 table { border-collapse: true; border-spacing: 0; width: 100%; }
 td.formlabelleft { height: 3em; text-align: right; padding-right: 1em; }
-.minwidth { width: 1; }
+.minwidth { width: 1px; }
 .nowrap { white-space: nowrap; }
 .celltexttoppad { padding-top: 12px; padding-bottom: 12px; vertical-align: top; }
 .dataTables_wrapper { min-height: 0; }

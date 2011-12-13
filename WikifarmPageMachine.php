@@ -1,6 +1,6 @@
 <?php ; // -*- mode: java; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: nil; -*-
 
-// Copyright 2010 President and Fellows of Harvard College
+// Copyright 2011 President and Fellows of Harvard College
 //
 // Authors:
 // Tom Clegg <tom@clinicalfuture.com>
@@ -746,7 +746,7 @@ BLOCK;
 	function frag_managewiki ($wiki) {
 		extract ($wiki);
 		$wikiid = sprintf ("%02d", $wikiid);
-		$groups_heading = $this->textHighlight ("All members of these groups can <strong>view</strong> the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
+		$groups_heading = $this->textHighlight ("All members of these groups can view/edit the <a href=\"/$wikiname/\">$wikiname</a> wiki.", "person");
 		$dumpfile = getenv("WIKIFARM_WWW")."/{$wikiid}/private/wikidb$wikiid.sql.gz";
 		$db_dump_stamp = null;
 		$hidebackups = "ui-helper-hidden";
@@ -778,22 +778,25 @@ buttons.slice(3,5).button({icons:{primary:'ui-icon-suitcase'}});
 	<input type="hidden" name="refresh_tab" value="#tabs" disabled>
 {$groups_heading}
 	<table id="mwg{$wikiid}">
-		<thead><tr><th class="minwidth">&nbsp;</th><th>&nbsp;</th></tr></thead><tbody>
+		<thead><tr><th class="minwidth">&nbsp;</th></tr></thead><tbody>
 BLOCK;
 /* Groups that feature this wiki: */
 		foreach ($this->getAllGroups() as $g) {
 			if ($g["groupid"] == "ADMIN") continue;
-			$checked = false === array_search ($g["groupid"], $groups) ? "" : "checked";
+			$view_checked = false === array_search ($g["groupid"], $groups) ? "" : "checked";
+			$edit_checked = false === array_search ($g["groupid"], $editgroups) ? "" : "checked";
 			$groupid = htmlspecialchars($g["groupid"]);
 			$groupname = htmlspecialchars($g["groupname"]);
 			$html .= <<<BLOCK
-			<tr><td class="minwidth"><input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_group_{$groupid}" name="mw{$wikiid}_groups[]" value="{$groupid}" {$checked}></td>
-				<td>{$groupname}</td></tr>
+                <tr><td class="minwidth"><input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_groups_view_{$groupid}" name="mw{$wikiid}_groups_view[]" value="{$groupid}" {$view_checked}>view
+                <input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_groups_edit_{$groupid}" name="mw{$wikiid}_groups_edit[]" value="{$groupid}" {$edit_checked}>edit
+                &nbsp;&nbsp; {$groupname}</td></tr>
 BLOCK;
 		}
 		if ($this->isAdmin()) $html .= <<<BLOCK
-			<tr><td class="minwidth"><input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_newgroup" name="mw{$wikiid}_groups[]" value="" refresh_tab="#tabs" disabled="disabled" /></td>
-				<td class="minwidth"><input type=text value="new group"></td></tr>
+            <tr><td class="minwidth"><input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_newgroup_view" name="mw{$wikiid}_groups_view[]" value="" refresh_tab="#tabs" disabled="disabled" />view
+                <input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_groups" id="mw{$wikiid}_newgroup_edit" name="mw{$wikiid}_groups_edit[]" value="" refresh_tab="#tabs" disabled="disabled" />edit
+				&nbsp;&nbsp; <input type=text value="new group"></td></tr>
 BLOCK;
 		$html .= "</tbody></table>" . 
 			"<div class=\"clear1em\" />";
@@ -845,14 +848,14 @@ BLOCK;
 				$("#mwf{$wikiid} input[name=refresh_div]").removeAttr('disabled');
 			else
 				$("#mwf{$wikiid} input[name=refresh_tab]").removeAttr('disabled');
-			$(this).parent().prev().find("input[type=checkbox]").removeAttr('disabled');
+			$(this).parent().parent().find("input[type=checkbox]").removeAttr('disabled');
 		})
 		.blur( function(){ 
 			if ($(this).val() == "" || $(this).val() == "new group") {
 				$("#mwf{$wikiid} input[name|=refresh]").attr('disabled', 'true');
-				$(this).parent().prev().find("input[type=checkbox]").attr('disabled', 'true');
+				$(this).parent().parent().find("input[type=checkbox]").attr('disabled', 'true');
 				$(this).val("new group");
-			} else $(this).parent().prev().find("input[type=checkbox]").val($(this).val());
+			} else $(this).parent().parent().find("input[type=checkbox]").val($(this).val());
 		})
 		.keypress(function(e) {
 			if(e.which == 13) {
@@ -1273,38 +1276,67 @@ EOT;
 			if ($u["read_via_group"])
 				$read_via_group_before[$u["userid"]] = true;
 
-		$want = $post["mw${wikiid0}_groups"];
+		$want_view = @$post["mw${wikiid0}_groups_view"];
+		$want_edit = @$post["mw${wikiid0}_groups_edit"];
+        if (!$want_view) $want_view = array();
+        if (!$want_edit) $want_edit = array();
+
 		foreach ($this->getAllGroups() as $g) {
-			if ($g["groupid"] == "ADMIN") continue;
-			if (!$want || false === array_search ($g["groupid"], $want)) {
+			if ($g["groupid"] == "ADMIN")
+                continue;
+            if ($want_edit &&
+                false !== array_search ($g['groupid'], $want_edit) &&
+                $post['ga_button_id'] == "mw${wikiid0}_groups_edit_".$g['groupid']) {
+                $this->inviteGroup ($wikiid, $g['groupid'], false);
+				$checkus[] = "mw${wikiid0}_groups_view_".$g["groupid"];
+				$checkus[] = "mw${wikiid0}_groups_edit_".$g["groupid"];
+            }
+            else if (!($want_edit &&
+                       false !== array_search ($g['groupid'], $want_edit)) &&
+                     $post['ga_button_id'] == "mw${wikiid0}_groups_edit_".$g['groupid']) {
+                $this->disinviteGroup ($wikiid, $g['groupid'], true);
+				$uncheckus[] = "mw${wikiid0}_groups_edit_".$g["groupid"];
+            }
+			else if (!$want_view ||
+                false === array_search ($g["groupid"], $want_view)) {
 				$this->disinviteGroup ($wikiid, $g["groupid"]);
-				$uncheckus[] = "mw${wikiid}_group_".$g["groupid"];
+				$uncheckus[] = "mw${wikiid}_groups_view_".$g["groupid"];
+				$uncheckus[] = "mw${wikiid}_groups_edit_".$g["groupid"];
 			}
 			else {
 				$this->inviteGroup ($wikiid, $g["groupid"]);
-				$checkus[] = "mw${wikiid0}_group_".$g["groupid"];
+				$checkus[] = "mw${wikiid0}_groups_view_".$g["groupid"];
 			}
 		}
 		// An Admin might be trying to create a new group
 		if ($this->isAdmin()) {
 			$all_groupids = $this->getAllGroupIDs();
-			foreach (array_diff( $want, $all_groupids ) as $g) {
-				$this->newGroup($g);
-				$this->inviteGroup($wikiid, $g);
-			}
+            if (($diff = array_diff($want_view, $all_groupids)))
+                foreach ($diff as $g) {
+                    $this->newGroup($g);
+                    $this->inviteGroup($wikiid, $g);
+                }
 		}
 
-		// Check which users can view the wiki now, and
-		// check/uncheck "view" checkboxes in the "invite
-		// users" table to show the change
+		// Check which users can view/edit the wiki now, and
+		// check/uncheck view/edit checkboxes in the "invite users"
+		// table to show the change
 
 		$read_via_group_after = array();
+		$edit_via_group_after = array();
 		$read_anyway_after = array();
-		foreach ($this->getInvitedUsers ($wikiid) as $u)
-			if ($u["read_via_group"])
-				$read_via_group_after[$u["userid"]] = true;
-			else
-				$read_anyway_after[$u["userid"]] = true;
+		$edit_anyway_after = array();
+		foreach ($this->getInvitedUsers ($wikiid) as $u) {
+			if ($u['read_via_group']) {
+                if ($u['edit_via_group'])
+                    $edit_via_group_after[$u['userid']] = true;
+				$read_via_group_after[$u['userid']] = true;
+            }
+			else {
+				$read_anyway_after[$u['userid']] = true;
+				$edit_anyway_after[$u['userid']] = !!$u['mwusername'];
+            }
+        }
 
 		foreach ($read_via_group_before as $userid => $x)
 			if (!isset($read_via_group_after[$userid])) {
@@ -1313,13 +1345,23 @@ EOT;
 					$uncheckus[] = "mw${wikiid0}_useredit_".md5($userid);
 				}
 				$enableus[] = "mw${wikiid0}_userview_".md5($userid);
+                $enableus[] = "mw${wikiid0}_useredit_".md5($userid);
 			}
+            else if (!isset ($edit_via_group_after[$userid])) {
+				if (!isset($edit_anyway_after[$userid])) {
+					$uncheckus[] = "mw${wikiid0}_useredit_".md5($userid);
+				}
+                $enableus[] = "mw${wikiid0}_useredit_".md5($userid);
+            }
 
-		foreach ($read_via_group_after as $userid => $x)
-			if (!isset($read_via_group_before[$userid])) {
-				$disableus[] = "mw${wikiid0}_userview_".md5($userid);
-				$checkus[] = "mw${wikiid0}_userview_".md5($userid);
-			}
+		foreach ($read_via_group_after as $userid => $x) {
+            $disableus[] = "mw${wikiid0}_userview_".md5($userid);
+            $checkus[] = "mw${wikiid0}_userview_".md5($userid);
+            if (isset($edit_via_group_after[$userid])) {
+                $disableus[] = "mw${wikiid0}_useredit_".md5($userid);
+                $checkus[] = "mw${wikiid0}_useredit_".md5($userid);
+            }
+        }
 
 		return array ("success" => true,
 			      "check" => $checkus,
@@ -1516,8 +1558,14 @@ EOT;
 		$uri = "/";
 		if ($post[$matches[0]] == "0")
 			$uri = "/Special:Userlogin";
-		else if (!$this->setAutologin ($matches[1], $post[$matches[0]]))
-			return $this->fail ("Invalid request: no matching autologin");
+		else if (!$this->setAutologin ($matches[1], $post[$matches[0]],
+                                       isset($post['confirm']) && $post['confirm'])) {
+            if ($this->haveEditPermissionViaGroup($matches[1], $post[$matches[0]]) &&
+                ($already = $this->haveAutologinNameConflict($matches[1], $post[$matches[0]])))
+                return $this->confirm ("The username \"".$post[$matches[0]]."\" is already being used in this wiki by $already.  If you proceed, you and the other user(s) will share a MediaWiki account (edit history, etc).\n\nAre you sure you want to do this?");
+            else
+                return $this->fail ("Invalid request: no matching autologin");
+        }
 		$w = $this->getWiki ($matches[1]);
 		return $this->success (array ("redirect" => "/".$w["wikiname"].$uri));
 	}
@@ -1566,14 +1614,20 @@ EOT;
 
 	function fail($message="Server side error.") {
 		return array ("success" => false,
-			      "message" => $message,
-			      "alert" => $message);
+                      "message" => $message,
+                      "alert" => $message);
 	}
+
+	function confirm($message="Are you sure?") {
+		return array ("success" => false,
+                      "confirm" => $message);
+	}
+
 	function success($message="OK") {
 		if (is_array ($message))
 			return array_merge (array ("success" => true), $message);
 		return array ("success" => true,
-			      "message" => $message);
+                      "message" => $message);
 	}
 
 }  // class ends

@@ -1,6 +1,6 @@
 <?php ; // -*- mode: java; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: nil; -*-
 
-// Copyright 2010 President and Fellows of Harvard College
+// Copyright 2011 President and Fellows of Harvard College
 //
 // Authors:
 // Tom Clegg <tom@clinicalfuture.com>
@@ -231,17 +231,21 @@ class WikifarmDriver {
 			ORDER BY wikis.id" );
 
 		$readable = array();
+		$groupwriteable = array();
 		$x = $this->query ("SELECT * FROM usergroups
 			LEFT JOIN wikipermission ON (userid_or_groupname=groupname OR groupname = 'ADMIN' OR userid_or_groupname=userid)
 			WHERE userid='".$this->q_openid."' AND userid_or_groupname IS NOT NULL
 			GROUP BY wikiid");
-		foreach ($x as &$row)
+		foreach ($x as &$row) {
 			$readable[$row["wikiid"]] = true;
+            if ($row["readonly"] == 0)
+                $groupwriteable[$row["wikiid"]] = true;
+        }
 
 		$wikigroup = array();
 		$x = $this->query ("SELECT * FROM wikipermission LEFT JOIN usergroups ON groupname=userid_or_groupname WHERE groupname IS NOT NULL GROUP BY wikiid, groupname");
-		foreach ($x as &$row)
-			$wikigroup[$row["wikiid"]][] = $row["groupname"];
+		foreach ($x as $row)
+			$wikigroup[$row["wikiid"]][] = $row;
 
 		$this->_preloadMyRequests();
 		$autologin = array();
@@ -249,30 +253,38 @@ class WikifarmDriver {
 		foreach ($x as &$row)
 			$autologin[$row["wikiid"]][] = $row["mwusername"];
 
+        $mwusername = $this->getMWUsername();
+        foreach ($groupwriteable as $wikiid => $true)
+            $autologin[$wikiid][] = $mwusername;
+
 		foreach ($wikis as &$row) {
 		    $row["wikiid"] = $row["id"];
 		    $row["readable"] = false;
 		    $row["requested_readable"] = false;
 		    if ($row["userid"] == $this->openid)
-			$row["readable"] = true;
+                $row["readable"] = true;
 		    else if (array_key_exists ($row["id"], $readable))
-			$row["readable"] = true;
+                $row["readable"] = true;
 		    else if (array_key_exists ($row["id"], $this->_cache["requested_readable"]))
 			$row["requested_readable"] = true;
 
 		    if (array_key_exists ($row["id"], $autologin))
-			$row["autologin"] = $autologin[$row["id"]];
+                $row["autologin"] = array_unique ($autologin[$row["id"]]);
 		    else
-			$row["autologin"] = false;
+                $row["autologin"] = false;
 		    if (array_key_exists ($row["id"], $this->_cache["requested_autologin"]))
-			$row["requested_autologin"] = $this->_cache["requested_autologin"][$row["id"]];
+                $row["requested_autologin"] = $this->_cache["requested_autologin"][$row["id"]];
 		    else
 			$row["requested_autologin"] = false;
 
-		    if (array_key_exists ($row["id"], $wikigroup))
-			    $row["groups"] = $wikigroup[$row["id"]];
-		    else
-			    $row["groups"] = array();
+            $row['groups'] = array();
+            $row['editgroups'] = array();
+		    if (array_key_exists ($row['id'], $wikigroup))
+                foreach ($wikigroup[$row['id']] as $wg) {
+                    $row['groups'][] = $wg['groupname'];
+                    if (!$wg['readonly'])
+                        $row['editgroups'][] = $wg['groupname'];
+                }
 		}
 
 		$this->_cache["allwikis"] = $wikis;
@@ -380,20 +392,25 @@ class WikifarmDriver {
 	}
 
 	// Affects a group's relationship with a wiki
-	function inviteGroup ($wikiid, $groupid) {
-		$wikiid += 0;		
-		$this->DB->exec ("INSERT OR IGNORE INTO wikipermission (wikiid, userid_or_groupname) values ($wikiid, '".SQLite3::escapeString($groupid)."')");
+	function inviteGroup ($wikiid, $groupid, $readonly=true) {
+		$wikiid += 0;
+		$this->DB->exec ("INSERT OR IGNORE INTO wikipermission (wikiid, userid_or_groupname, readonly) values ($wikiid, '".SQLite3::escapeString($groupid)."', 1)");
+        if (!$readonly)
+            $this->DB->exec ("UPDATE wikipermission SET readonly=0 WHERE wikiid=$wikiid AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
 	}
 
-	function disinviteGroup ($wikiid, $groupid) {
+	function disinviteGroup ($wikiid, $groupid, $disinvite_write_only=false) {
 		$wikiid += 0;
-		$this->DB->exec ("DELETE FROM wikipermission WHERE wikiid=$wikiid AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
+        if ($disinvite_write_only)
+            $this->DB->exec ("UPDATE wikipermission SET readonly=1 WHERE wikiid=$wikiid AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
+        else
+            $this->DB->exec ("DELETE FROM wikipermission WHERE wikiid=$wikiid AND userid_or_groupname='".SQLite3::escapeString($groupid)."'");
 	}
 
 	function getInvitedUsers ($wikiid) {
 		$this->DB->exec ("INSERT OR IGNORE INTO users (userid) SELECT DISTINCT userid FROM usergroups");
 		$u = $this->query ("
-SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN usergroups.groupname ELSE NULL END AS read_via_group, autologin.mwusername, autologin.sysop
+SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN usergroups.groupname ELSE NULL END AS read_via_group, autologin.mwusername, autologin.sysop, wikipermission.readonly <> 1 AS edit_via_group
  FROM wikis
  LEFT JOIN users
  LEFT JOIN usergroups ON users.userid = usergroups.userid
@@ -512,9 +529,45 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		}
 	}
 
-	function setAutologin($wikiid, $mwusername) {
-		$this->DB->exec ("UPDATE autologin SET lastlogintime=strftime('%s','now') WHERE wikiid=".($wikiid+0)." AND userid='".$this->q_openid."'");
-		return $this->DB->changes() > 0;
+    function haveAutologinNameConflict($wikiid, $mwusername) {
+        $id = $this->q_openid;
+        $mwu = SQLite3::escapeString($mwusername);
+        $conflict = $this->query ("SELECT users.userid, realname FROM autologin LEFT JOIN users ON autologin.userid=users.userid WHERE wikiid='$wikiid' AND autologin.userid<>'$id' AND autologin.mwusername='$mwu'");
+        if (!$conflict) return false;
+        $s = array();
+        foreach ($conflict as $c)
+            $s[] = $c['realname'] . " (" . $c['userid'] . ")";
+        return join (" and ", $s);
+    }
+
+    function haveEditPermissionViaGroup($wikiid, $mwusername) {
+        $mwu = SQLite3::escapeString($mwusername);
+        return $this->query
+            ("SELECT 1 FROM users "
+             . "left join usergroups on usergroups.userid=users.userid "
+             . "left join wikipermission on wikiid='$wikiid' "
+             . "and groupname=userid_or_groupname and readonly=0 "
+             . "where users.userid='{$this->q_openid}' "
+             . "and users.mwusername='$mwu' "
+             . "and wikipermission.readonly is not null");
+    }
+
+	function setAutologin($wikiid, $mwusername, $override_conflict=false) {
+        $wikiid = $wikiid + 0;
+        $mwu = SQLite3::escapeString($mwusername);
+		$this->DB->exec ("UPDATE autologin SET lastlogintime=strftime('%s','now') WHERE wikiid=$wikiid AND userid='{$this->q_openid}'");
+		if ($this->DB->changes() > 0)
+            return true;
+        else if ($this->haveEditPermissionViaGroup($wikiid, $mwusername)) {
+            // user does not have an autologin entry, but does have
+            // edit permission via "group edit".
+            if ($override_conflict ||
+                !$this->haveAutologinNameConflict($wikiid, $mwusername)) {
+                $this->DB->exec ("INSERT INTO autologin (lastlogintime, wikiid, userid, mwusername, sysop) VALUES (strftime('%s','now'), $wikiid, '{$this->q_openid}', '$mwu', 0)");
+                return true;
+            }
+        }
+        return false;
 	}
 
 	function getUserByEmail($email) {		
@@ -594,7 +647,7 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		foreach ($this->getAllGroups() as $g)
 			$this->newGroup($g['groupid']);
 		return true;
-	}		
+	}
 
 	function requestGroup($groups) {
 		if (!is_array($groups))

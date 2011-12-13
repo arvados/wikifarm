@@ -1,8 +1,36 @@
-<?php
-     ;
+<?php ; // -*- mode: java; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: nil; -*-
+
+// Copyright 2011 President and Fellows of Harvard College
+//
+// Author:
+// Tom Clegg <tom@clinicalfuture.com>
+//
+// This file is part of wikifarm.
+//
+// Wikifarm is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License version 2 as
+// published by the Free Software Foundation.
+//
+// Wikifarm is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
+
 $dbdir = getenv("DB");
 $etcdir = getenv("ETC");
 $db = new SQLite3 ("$dbdir/wikis.db");
+
+$db->exec ('CREATE TABLE sitepref (
+ prefid varchar(64),
+ value varchar(255),
+ description varchar(255))');
+if ($db->exec ('CREATE UNIQUE INDEX sp ON sitepref (prefid)')) {
+    $db->exec ('INSERT INTO sitepref (prefid, value) VALUES ("allow_mw_native_login", "0")');
+    $db->exec ('INSERT INTO sitepref (prefid, value) VALUES ("unreadable_wikis_visible", "1")');
+}
 
 $db->exec ('ALTER TABLE usergroups ADD isadmin INTEGER DEFAULT 0');
 if($db->exec ('ALTER TABLE pref ADD defaultvalue varchar(255)')) {
