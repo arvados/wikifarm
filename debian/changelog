@@ -1,3 +1,13 @@
+wikifarm (0.6) stable; urgency=low
+
+  [ Tom Clegg ]
+  * use awstats environment variable feature instead of $ENV{VAR} in
+    conf templates
+  * remove hardcoded host name from awstats config templates
+  * add "group editable" feature. refs #767
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Mon, 12 Dec 2011 19:37:00 -0800
+
 wikifarm (0.5) stable; urgency=low
 
   [ Tom Clegg ]
