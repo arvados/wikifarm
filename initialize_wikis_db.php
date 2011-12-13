@@ -32,12 +32,12 @@ if ($db->exec ('CREATE UNIQUE INDEX sp ON sitepref (prefid)')) {
     $db->exec ('INSERT INTO sitepref (prefid, value) VALUES ("unreadable_wikis_visible", "1")');
 }
 
-$db->exec ('ALTER TABLE usergroups ADD isadmin INTEGER DEFAULT 0');
-if($db->exec ('ALTER TABLE pref ADD defaultvalue varchar(255)')) {
+@$db->exec ('ALTER TABLE usergroups ADD isadmin INTEGER DEFAULT 0');
+if(@$db->exec ('ALTER TABLE pref ADD defaultvalue varchar(255)')) {
     $db->exec ('UPDATE pref SET defaultvalue=1 WHERE prefid="admin_notify_requests"');
 }
 
-if (!$db->exec ('CREATE TABLE userpref (
+if (!@$db->exec ('CREATE TABLE userpref (
  userid varchar(255),
  prefid varchar(64),
  value varchar(255))'))

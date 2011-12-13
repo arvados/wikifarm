@@ -20,7 +20,7 @@ then
   php $ETC/initialize_wikis_db.php
 else
   # upgrade existing tables, then give up on first "create table" failure (!)
-  php $ETC/initialize_wikis_db.php || true
+  php $ETC/initialize_wikis_db.php || echo
 fi
 chown -R www-data:adm $DB
 chmod -R o-rwx,g+rwX $DB
