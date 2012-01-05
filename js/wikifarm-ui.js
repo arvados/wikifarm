@@ -143,10 +143,12 @@ function generic_ajax_submit()
     var ajaxoptions;
     try {
 	var postme = $('#'+$(this).attr('ga_form_id')).serializeArray();
+	var visible_inputs = $('#'+$(this).attr('ga_form_id')+' input[name]:visible').map(function(){return $(this).attr('name')}).get().join(' ');
 	var ga_loader_id = $(this).attr('ga_loader_id');
 	postme.push({name: 'ga_message_id', value: $(this).attr('ga_message_id')},
 		    {name: 'ga_loader_id', value: $(this).attr('ga_loader_id')},
 		    {name: 'ga_button_id', value: $(this).attr('id')},
+		    {name: 'ga_visible_inputs', value: visible_inputs},
 		    {name: 'ga_action', value: $(this).attr('ga_action')});
 	if ($(this).attr('ga_message_id') &&
 	    $('#'+$(this).attr('ga_message_id'))) {
