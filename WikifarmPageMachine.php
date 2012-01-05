@@ -1398,14 +1398,23 @@ EOT;
 			if (isset ($read_via_group[$u["userid"]]))
 				continue;
 			$userview_param = "mw${wikiid0}_userview_".md5($u["userid"]);
-			if (!(isset($post[$userview_param]) && $post[$userview_param])) {
+			if ($post['ga_button_id'] != $userview_param)
+                // Unless this was the button clicked to initiate the
+                // ajax request, heeding its "checked" state might
+                // cause us to erroneously override a concurrent
+                // unfinished request.  (This also keeps us safe from
+                // thinking checkboxes are turned off when they're
+                // really just not submitted because they're
+                // invisible.)
+                continue;
+			if (isset($post[$userview_param]) && $post[$userview_param]) {
+				$this->inviteUser ($wikiid, $u["userid"]);
+				$checkus[] = $userview_param;
+			}
+            else {
 				$this->disinviteUser ($wikiid, $u["userid"]);
 				$uncheckus[] = $userview_param;
 				$uncheckus[] = "mw${wikiid0}_useredit_".md5($u["userid"]);
-			}
-			else {
-				$this->inviteUser ($wikiid, $u["userid"]);
-				$checkus[] = $userview_param;
 			}
 		}
 
