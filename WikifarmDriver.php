@@ -40,6 +40,15 @@ class WikifarmDriver {
 		$this->Focus();  // $_SERVER["REMOTE_USER"] by default, the user in focus is the currently signed-in one.
 	}
 
+	function getSitePref($prefid, $defaultvalue=false) {
+        $q_prefid = SQLite3::escapeString ($prefid);
+		$val = $this->querySingle ("SELECT value FROM sitepref WHERE prefid='{$q_prefid}'");
+        if ($val === null)
+            return $defaultvalue;
+        else
+            return $val;
+    }
+
 	function getAdminNotificationAddress($userid) {
 		$q_openid = SQLite3::escapeString ($userid);
 		return $this->querySingle ("SELECT

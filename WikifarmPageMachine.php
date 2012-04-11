@@ -608,8 +608,9 @@ BLOCK;
 			$q_groupname = htmlspecialchars(isset($groupname) ? $groupname : "");
 			if (!$wikiid && $groupname == "users") {
 				$request = "Activate account";
+                $default_wiki_quota = $this->getSitePref('default_wiki_quota', 5);
 				$quotainput = <<<BLOCK
-&nbsp;with quota <input type="number" name="initial_quota_for_$requestid" id="initial_quota_for_{$requestid}" value="5" size="4" maxlength="2" />
+&nbsp;with quota <input type="number" name="initial_quota_for_$requestid" id="initial_quota_for_{$requestid}" value="{$default_wiki_quota}" size="4" maxlength="2" />
 BLOCK;
 			}
 			else if (!$wikiid)

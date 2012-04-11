@@ -31,6 +31,7 @@ if ($db->exec ('CREATE UNIQUE INDEX sp ON sitepref (prefid)')) {
     $db->exec ('INSERT INTO sitepref (prefid, value) VALUES ("allow_mw_native_login", "0")');
     $db->exec ('INSERT INTO sitepref (prefid, value) VALUES ("unreadable_wikis_visible", "1")');
 }
+$db->exec ('INSERT OR IGNORE INTO sitepref (prefid, value) VALUES ("default_wiki_quota", 5)');
 
 @$db->exec ('ALTER TABLE usergroups ADD isadmin INTEGER DEFAULT 0');
 if(@$db->exec ('ALTER TABLE pref ADD defaultvalue varchar(255)')) {
