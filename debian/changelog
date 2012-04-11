@@ -1,3 +1,11 @@
+wikifarm (0.8) stable; urgency=low
+
+  * add textile release tarball (thresholdstate has been offline for a long time)
+  * get default_wiki_quota from sitepref. refs #883
+  * update login page text, add "servertitle" config knob. refs #882
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Wed, 11 Apr 2012 15:22:39 -0400
+
 wikifarm (0.7) stable; urgency=low
 
   [ Tom Clegg ]
