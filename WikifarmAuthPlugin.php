@@ -212,7 +212,10 @@ class WikifarmAuthPlugin extends AuthPlugin {
 				if (strncmp ($k, $wgCookiePrefix, strlen($wgCookiePrefix)) == 0)
 					unset ($_COOKIE[$k]);
 			}
-			User::SetupSession();
+            if(function_exists('wfSetupSession'))
+                wfSetupSession(); // MediaWiki >= 1.17
+            else
+                User::SetupSession(); // Old versions
 			$freshlogin = true;
 		}
 		$user = User::newFromName($this->mwusername);
