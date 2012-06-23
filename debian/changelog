@@ -1,3 +1,9 @@
+wikifarm (0.9) stable; urgency=low
+
+  * use wfSetupSession() instead of User::SetupSession() in newer MW
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Fri, 22 Jun 2012 23:10:09 -0400
+
 wikifarm (0.8) stable; urgency=low
 
   * add textile release tarball (thresholdstate has been offline for a long time)
