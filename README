@@ -68,6 +68,12 @@ Create an administrator account
 * Provide your email address and real name on the "my account" page
 * Click "Save changes"
 
+Create /var/lib/wikifarm/www/mediawiki/AdminSettings.php
+
+ <?
+ $wgDBadminuser = 'root';
+ $wgDBadminpassword = 'YOUR.MYSQL.ROOT.PW';
+
 Create the base wiki config and database
 
 * Visit http://{your.wiki.farm}/00 and click "set up the wiki".  Fill in the form:
@@ -79,6 +85,11 @@ Create the base wiki config and database
 * yes, use superuser account.
 * provide the MySQL root password you used when installing mysql-server.
 * Click "Install MediaWiki!"
+
+If MediaWiki provided LocalSettings.php via browser download, copy it
+to /home/ubuntu/00-LocalSettings.php on the server now.
+
+  scp ~/Downloads/LocalSettings.php ubuntu@WIKIFARM:00-LocalSettings.php
 
 Copy the config file to the template wiki and lock it down
 
