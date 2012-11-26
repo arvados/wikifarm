@@ -21,7 +21,8 @@
 // along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once ('WikifarmDriver.php');
-require_once('classTextile.php');
+require_once ('classTextile.php');
+@require_once ('/etc/wikifarm/config.php');
 
 class WikifarmPageMachine extends WikifarmDriver {
 	public $tabNames, $js_tabNames, $textile;
@@ -387,8 +388,10 @@ BLOCK;
 				$hidden_uid_input = "<input type='hidden' name='userid' value='".htmlspecialchars($this->openid)."' />".
 					"<input type='hidden' name='refresh_tab' value='#tabs' />";
 			}
-			$claim_alert = $this->textHighlight ("If you had a username and password on the pub.med server, enter them here to regain access to your wiki and group memberships.<blockquote><button class='claimaccountbutton'>Claim pre-OpenID account</button></blockquote>", "lightbulb");
-			$hidden_claim_dialog = $this->frag_claim_account();
+            if (@$wikifarmConfig["enable_claim_by_password"]) {
+                $claim_alert = $this->textHighlight ("If you have been given a username and password, enter them here to attach your wiki and group memberships to your new account.<blockquote><button class='claimaccountbutton'>Claim account</button></blockquote>", "lightbulb");
+                $hidden_claim_dialog = $this->frag_claim_account();
+            }
 			
 		} else { // Admin-a-user mode stuff
 			$explanation_alert = $this->textHighlight ("Editing group memberships for $q_openid");
