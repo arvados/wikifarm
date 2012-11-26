@@ -137,6 +137,12 @@ BLOCK;
 				$preferences .= "<input type=\"checkbox\" name=\"pref_$prefid\" value=\"1\" $checked /> $description";
 		}
 		if ($admin_mode) $this->Focus(); // return to admin
+
+        if (!$this->isActivated() && !$this->isActivationRequested() && count($this->getRegularGroups()) == 0)
+            $save_button_label = "Save and request account activation";
+        else
+            $save_button_label = "Save changes";
+
 		return <<<BLOCK
 <div class="ui-widget ui-state-highlight ui-corner-all wf-message-box"><p><span class="ui-icon wf-message-icon ui-icon-$icon" />$activation_status</p></div>
 <div class="clear1em" />
@@ -159,7 +165,7 @@ BLOCK;
 </tr><tr>
 <td class="minwidth formlabelleft">Preferences</td><td>$preferences</td>
 </tr><tr>
-<td class="minwidth formlabelleft"></td><td><button class="generic_ajax" ga_form_id="maf{$uid}" ga_action="myaccount_save" ga_message_id="myaccount_message" ga_loader_id="myaccount_loader">Save changes</button><span id="myaccount_loader" class="ui-helper-hidden"></span></td>
+<td class="minwidth formlabelleft"></td><td><button class="generic_ajax" ga_form_id="maf{$uid}" ga_action="myaccount_save" ga_message_id="myaccount_message" ga_loader_id="myaccount_loader">{$save_button_label}</button><span id="myaccount_loader" class="ui-helper-hidden"></span></td>
 </tr></tbody></table>
 <div id="myaccount_message" class="ui-helper-hidden" />
 </form>
@@ -373,9 +379,14 @@ BLOCK;
 		$hidden_uid_input = '';
 		$extra_col_name = '';
 		if (!$admin_mode) {
-			if (!$this->isActivated() && !$this->isActivationRequested())
-				$explanation_alert = $this->textHighlight("<p>Please select any groups your account should belong to, then click the \"submit\" button.  Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>") .
+			if (!$this->isActivated() && !$this->isActivationRequested()) {
+                if (0 == count($this->getRegularGroups()))
+                    $select_groups_first = "";
+                else
+                    $select_groups_first = "Please select any groups your account should belong to, then click the \"submit\" button.  ";
+				$explanation_alert = $this->textHighlight("<p>{$select_groups_first}Your account will have to be activated by a site administrator before you can create, view, or edit any wikis.</p>") .
 					"<input type=hidden name=\"group_request[]\" value=\"users\" />";
+            }
 			elseif (!$this->isActivated())
 				$explanation_alert = $this->textHighlight ("Your request for account activation has been submitted.", "comment");
 			else
@@ -414,6 +425,7 @@ BLOCK;
 </tr></thead>
 <tbody>
 BLOCK;
+        $listed_any_groups = false;
 /* --- groups: table body ---- */
 		foreach ($this->getAllGroups($admin_mode) as $g) {
 			$extra = "";
@@ -435,6 +447,7 @@ BLOCK;
 <td>$extra</td>
 </tr>
 BLOCK;
+            $listed_any_groups = true;
 		}
 		// Input box to create a new group
 		if ($admin_mode || $this->isAdmin())  $output .= <<<BLOCK
@@ -442,12 +455,19 @@ BLOCK;
 <td class="minwidth"><input type=text value="new group"></td>
 <td>&nbsp</td></tr>
 BLOCK;
-/* --- groups: tail --- */ 
+/* --- groups: tail --- */
 		$output .= <<<BLOCK
 </tbody>
 </table>
+BLOCK;
+        $after_selecting_groups = "after selecting groups.";
+        if (!$listed_any_groups) {
+            $request_button = preg_replace('{>Submit request<}', '>Request account activation<', $request_button);
+            $after_selecting_groups = "";
+        }
+		$output .= <<<BLOCK
 <p>
-{$request_button} after selecting groups.
+{$request_button} {$after_selecting_groups}
 <span id="group_request_loader"></span></p>
 <div id="group_request_message" class="ui-helper-hidden" />
 </form>
@@ -455,6 +475,9 @@ BLOCK;
 {$hidden_claim_dialog}
 <script language="JavaScript">
 	$(function(){
+        if ($("#grouplist{$uid} tbody tr").length == 0) {
+            $("#grouplist{$uid}").hide();
+        }
 		$("#grouplist{$uid} input[type=text]")
 		.focus( function(){ 
 			$(this).parent().prev().find("input[type=checkbox]").attr('checked', 'true');
@@ -1547,12 +1570,22 @@ EOT;
 				$p["value"] = null;
 		$this->setUserPrefs ($prefs);
 
-		if ($did_not_have_basics && $this->getUserEmail() && $this->getUserRealname())
-			return array ("success" => true,
-				      "redirect" => "/");
+		if ($did_not_have_basics && $this->getUserEmail() && $this->getUserRealname()) {
+            if (count($this->getRegularGroups()) == 0) {
+                // If the only groups are "users" and "ADMIN", request
+                // activation (i.e., "users" membership) immediately.
+                $this->requestGroup(array('users'));
+                return array ("success" => true,
+                              "redirect" => "/?tabActive=myaccount");
+            } else {
+                // Show the "request groups" tab.
+                return array ("success" => true,
+                              "redirect" => "/");
+            }
+        }
 		else
 			return array ("success" => true,
-				      "message" => "Changes saved.");
+                          "message" => "Changes saved.");
 	}
 
 	function ajax_approve_request ($post) {

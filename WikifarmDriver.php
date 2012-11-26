@@ -459,7 +459,15 @@ SELECT users.userid, CASE WHEN usergroups.groupname=userid_or_groupname THEN use
 		$this->_preloadMyRequests();
 		return $this->_cache["requested_group"];
 	}
-		
+
+    function getRegularGroups() {
+        $groups = array();
+        foreach ($this->getAllGroups(false) as $g => $v)
+            if ($g != 'users')
+                $groups[$g] = $v;
+        return $groups;
+    }
+
 	function getAllGroups($with_admin=false) {
 		if (!array_key_exists ("allgroups:$with_admin", $this->_cache)) {
 			$this->_preloadMyRequests();
