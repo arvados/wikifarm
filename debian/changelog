@@ -1,3 +1,11 @@
+wikifarm (0.10) stable; urgency=low
+
+  * fixes for installing with mediawiki-1.18
+  * hide "claim with username/password" behind a config option
+  * Request activation directly from the My Account tab if no groups are defined
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Mon, 26 Nov 2012 12:38:31 -0800
+
 wikifarm (0.9) stable; urgency=low
 
   * use wfSetupSession() instead of User::SetupSession() in newer MW
