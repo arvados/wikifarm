@@ -177,7 +177,7 @@ Create wiki number 01 for yourself
 
 (Optional) customize site appearance
 
-* Set site slogain in /etc/wikifarm/config.php
+* Set site slogan in /etc/wikifarm/config.php
   (see /etc/wikifarm/config.php.example)
 * Install logo graphic in /var/lib/wikifarm/www/serverlogo.png
   (64 pixels high for best results)
