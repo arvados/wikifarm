@@ -1,15 +1,24 @@
 #!/bin/sh
 
-if [ "ok" != "$(sudo -u ubuntu sh -c 'sudo -k; sudo -n echo -n ok')" ]
+if ! (groups ubuntu | grep -w adm) || [ "ok" != "$(sudo -u ubuntu sh -c 'sudo -k; sudo -n echo -n ok')" ]
 then
   cat >&2 <<EOF
 ***
 
 The wikifarm software requires a user account named 'ubuntu' which can
-run 'sudo' without a password.  Create this account and use visudo to
-add this line before installing this package:
+run 'sudo' without a password, and is a member of the 'adm' group.
 
-ubuntu  ALL=(ALL) NOPASSWD:ALL
+To create the ubuntu account, run:
+
+ sudo useradd ubuntu
+
+To add the account to the adm group, run:
+
+ sudo usermod -a -G adm ubuntu
+
+To add sudo privileges, run "visudo" and add this line:
+
+ ubuntu  ALL=(ALL) NOPASSWD:ALL
 
 ***
 EOF

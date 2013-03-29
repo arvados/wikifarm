@@ -27,14 +27,21 @@ An even quicker method is to use a pre-built AMI -- see README-ami.
 
 ===================================================================
 
-Installing on AWS
-=================
-
-Create instance
+Create instance (if you are installing on AWS).
 
 * use ami-714ba518
 * Select a suitable private key, so you can log in
 * Select a security policy with ports 22, 80, and 443 open
+
+Create a privileged user called "ubuntu" (if you used ami-714ba518,
+you can skip this step.)
+
+  sudo useradd ubuntu
+  sudo usermod -a -G adm ubuntu
+
+  # This should print "ok" without asking for ubuntu's password:
+  sudo -u ubuntu sudo -k echo ok
+  # If not, use visudo to add "ubuntu  ALL=(ALL) NOPASSWD:ALL" to sudoers.
 
 Update your OS
 
