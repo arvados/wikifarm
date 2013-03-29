@@ -12,6 +12,24 @@ a:hover { text-decoration: underline; }
 // -->
 </style></head>
 
+<?
+if ($_GET["modauthopenid_referrer"]) {
+  $referrer = $_GET["modauthopenid_referrer"];
+  if (preg_match('{^https://}', $_SERVER['SCRIPT_URI']) &&
+      preg_match('{^http://}', $referrer)) {
+    $referrer = preg_replace('{http://}', 'https://', $referrer);
+  }
+}
+else {
+  $referrer = preg_replace('{(//.*?/).*}', '$1', $_SERVER['SCRIPT_URI']);
+}
+if (@$wikifarmConfig["uri_scheme"]) {
+  $referrer = preg_replace('{^[a-z]+://}',
+                           $wikifarmConfig["uri_scheme"] + '://',
+                           $referrer);
+ }
+?>
+
 <body>
 <div style="margin: 30px; width: 50%">
 <h1><?= @$wikifarmConfig["servertitle"] ? $wikifarmConfig["servertitle"] : $_SERVER['HTTP_HOST']?></h1>
@@ -25,13 +43,13 @@ a:hover { text-decoration: underline; }
 <b class="marg">Log in via:</b>
 <input type="hidden" name="openid_identifier" value="https://www.google.com/accounts/o8/id" />
 <input class="marg" type="submit" value="Google" />
-<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
+<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($referrer)?>" />
 </form>
 
 <form style="display:inline" action="/" method="get" class="openidloginform">
 <input type="hidden" name="openid_identifier" value="http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds" />
 <input class="marg" type="submit" value="Yahoo" />
-<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
+<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($referrer)?>" />
 </form>
 
 <p><b>or</b></p>
@@ -39,7 +57,7 @@ a:hover { text-decoration: underline; }
 <form class="marg" action="/" method="get" class="openidloginform">
 <b>URL:</b> <input type="text" name="openid_identifier" value="" size="30" class="loginbox" />
 <input type="submit" value="Log In" />
-<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($_GET["modauthopenid_referrer"])?>" />
+<input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($referrer)?>" />
 </form>
 
 <p>If you do not have an account, you may request one after logging in.</p>

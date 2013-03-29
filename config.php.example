@@ -7,3 +7,4 @@ $wikifarmConfig["servername"] = "wikifarm.example.com";
 $wikifarmConfig["servertitle"] = "A Wiki Farm";
 $wikifarmConfig["byline"] = "\"i can haz wiki\"";
 $wikifarmConfig["enable_claim_by_password"] = false;
+$wikifarmConfig["uri_scheme"] = "http"; // or you might need "https"
