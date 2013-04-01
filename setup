@@ -11,7 +11,12 @@ then
   perl -pi~ -e 's/{{(.*?)}}/$ENV{$1}/g' /etc/apache2/sites-available/wikifarm
 fi
 
-install /usr/share/doc/awstats/examples/awstats_buildstaticpages.pl $ETC/awstats_buildstaticpages.pl
+if [ -e /usr/share/awstats/tools/awstats_buildstaticpages.pl ]
+then
+  install /usr/share/awstats/tools/awstats_buildstaticpages.pl $ETC/awstats_buildstaticpages.pl
+else
+  install /usr/share/doc/awstats/examples/awstats_buildstaticpages.pl $ETC/awstats_buildstaticpages.pl
+fi
 perl -pi~ -e 's:2>&1:1>&2: if $.==372' $ETC/awstats_buildstaticpages.pl
 
 if [ ! -e $DB/wikis.db ]
