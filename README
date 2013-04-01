@@ -13,11 +13,11 @@ published by the Free Software Foundation.
 
 Wikifarm is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with wikifarm.  If not, see <http://www.gnu.org/licenses/>.
+along with wikifarm. If not, see <http://www.gnu.org/licenses/>.
 ===================================================================
 
 NOTE: This file documents how to set up a wikifarm on a plain Linux
@@ -75,7 +75,9 @@ Create an administrator account
 * Provide your email address and real name on the "my account" page
 * Click "Save changes"
 
-Create /var/lib/wikifarm/www/mediawiki/AdminSettings.php
+Make sure /var/lib/wikifarm/www/mediawiki/AdminSettings.php contains
+credentials for a privileged database user. Normally this is
+accomplished by the wikifarm installer. Example:
 
  <?
  $wgDBadminuser = 'root';
@@ -83,7 +85,7 @@ Create /var/lib/wikifarm/www/mediawiki/AdminSettings.php
 
 Create the base wiki config and database
 
-* Visit http://{your.wiki.farm}/00 and click "set up the wiki".  Fill in the form:
+* Visit http://{your.wiki.farm}/00 and click "set up the wiki". Fill in the form:
 * wiki name: Wiki (won't be used)
 * random password for WikiSysop (won't be used)
 * database name "wikidb00"
@@ -152,9 +154,9 @@ Ensure your users always access your server with the same hostname.
 
 * Some OpenID providers (including Google) do not supply the same
   OpenID URL when the same user signs in to different OpenID consumer
-  sites.  This means your users must always access your wikifarm using
+  sites. This means your users must always access your wikifarm using
   the same domain name (i.e., only one of "http://example.com",
-  "https://secure.example.com", "http://1.2.3.4").  The following code
+  "https://secure.example.com", "http://1.2.3.4"). The following code
   can be used in /etc/apache2/sites-available/wikifarm to accomplish
   this.
 
@@ -163,9 +165,17 @@ Ensure your users always access your server with the same hostname.
       RewriteRule (.*) https://your.canonical.host.name$1 [R,L]
     </Limit>
 
+Create and customize /etc/wikifarm/config.php -- in particular, to
+ensure the OpenID login process works correctly:
+* set uri_scheme to "https" if you are using SSL.
+* set servername to your.canonical.host.name.
+
+  sudo cp -i /etc/wikifarm/config.php.example /etc/wikifarm/config.php
+  sudo nano /etc/wikifarm/config.php
+
 Create wiki number 01 for yourself
 
-* Visit http://{your.wiki.farm}.
+* Visit http://{your.wiki.farm} or https://{your.wiki.farm}.
 * Click "My Wikis"
 * Complete the form
   (Name this wiki "docs" so the link to "/docs/Wiki_Tutorial" on the
