@@ -22,7 +22,7 @@
 
 require_once ('WikifarmDriver.php');
 require_once ('classTextile.php');
-@require_once ('/etc/wikifarm/config.php');
+@include_once ('/etc/wikifarm/config.php');
 
 class WikifarmPageMachine extends WikifarmDriver {
 	public $tabNames, $js_tabNames, $textile;
