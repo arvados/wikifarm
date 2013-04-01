@@ -1,3 +1,21 @@
+wikifarm (0.11) stable; urgency=low
+
+  * fix typo
+  * add "create privileged ubuntu user" step to install guide and
+  improve debian preinst script to detect missing adm group
+  membership. refs #1449
+  * add detection and config override for http/https in openid
+  referrer. fixes #1450
+  * install docs - add "set up config.php" step, and mention that MW
+  normally writes AdminSettings for you. refs #1450
+  * check for awstats_buildstaticpages.pl in alt location (debian
+  squeeze compatibility)
+  * avoid failing on mwdisext
+  * use defaults instead of sending an empty response when
+  /etc/wikifarm/config.php does not exist
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Mon, 01 Apr 2013 14:05:20 -0700
+
 wikifarm (0.10) stable; urgency=low
 
   * fixes for installing with mediawiki-1.18
