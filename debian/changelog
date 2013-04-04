@@ -1,3 +1,9 @@
+wikifarm (0.12) stable; urgency=low
+
+  * fix use of concatenation operator in wrong language
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Thu, 04 Apr 2013 13:10:32 -0700
+
 wikifarm (0.11) stable; urgency=low
 
   * fix typo
