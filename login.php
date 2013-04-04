@@ -25,7 +25,7 @@ else {
 }
 if (@$wikifarmConfig["uri_scheme"]) {
   $referrer = preg_replace('{^[a-z]+://}',
-                           $wikifarmConfig["uri_scheme"] + '://',
+                           $wikifarmConfig["uri_scheme"] . '://',
                            $referrer);
  }
 ?>
