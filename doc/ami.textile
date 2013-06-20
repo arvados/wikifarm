@@ -1,6 +1,3 @@
----
----
-
 h1. Using a pre-built AMI
 
 Create an AWS instance using a pre-built wikifarm AMI (search for wikifarm, owner id 766185585730).

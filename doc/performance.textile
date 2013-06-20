@@ -1,6 +1,3 @@
----
----
-
 Install patched php-apc to improve performance.
 
 Patch and install

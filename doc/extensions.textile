@@ -1,6 +1,3 @@
----
----
-
 The extensions in the mediawiki-extensions package can be added to all wikis at once using the "mwenext" script:
 
 <pre>

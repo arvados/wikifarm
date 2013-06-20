@@ -1,6 +1,3 @@
----
----
-
 h1. Restoring / importing an existing wiki to a wikifarm
 
 Requirements:

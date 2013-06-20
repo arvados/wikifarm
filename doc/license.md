@@ -1,6 +1,3 @@
----
----
-
 Copyright 2010 President and Fellows of Harvard College
 
 Authors:

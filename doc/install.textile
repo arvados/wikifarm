@@ -1,6 +1,3 @@
----
----
-
 NOTE: This file documents how to set up a wikifarm on a plain Linux system, like the Ubuntu Lucid image available on AWS.
 
 <i>An even quicker method is to "use a pre-built AMI":ami.textile.</i>

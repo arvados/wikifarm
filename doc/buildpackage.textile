@@ -1,6 +1,3 @@
----
----
-
 To build a debian package, run
 
 <pre>
