@@ -1,0 +1,44 @@
+---
+---
+
+h1. Using a pre-built AMI
+
+Create an AWS instance using a pre-built wikifarm AMI (search for wikifarm, owner id 766185585730).
+
+Point your browser to your new instance's public DNS name and log in with your OpenID.
+
+Copy your OpenID URL from your "My Account" tab.
+
+Log in to your new instance.
+
+<pre>
+ssh ubuntu@{your.instance.dns.name}
+</pre>
+
+Change your MySQL root password from "password" to something reasonable (details not covered here).
+
+Update packages.
+
+<pre>
+sudo apt-get update
+sudo apt-get upgrade
+</pre>
+
+Give your OpenID administrator privileges for the wikifarm.
+
+* Visit @http://{your.wiki.farm}@
+* Log in with your OpenID
+* Copy your OpenID from the "my account" screen
+* Run: @/etc/wikifarm/make_admin_user.php http://{your.openid.url}@
+
+Configure your instance so it can send email notifications.
+
+<pre>
+sudo dpkg-reconfigure exim4-config
+</pre>
+
+Either relay all outgoing mail through a smarthost elsewhere, or attach an elastic IP address to your instance (details not covered here).  Otherwise, gmail.com (and others) will refuse mail from you.
+
+Go back to your browser, fill in your user details on the "My Account" tab, and click "Save changes".  The "Admin Help" tab will appear, indicating that you have admin powers.
+
+Now, go back to the "installation instructions":install.html and continue from "turn off the deleteOnTermination attribute".

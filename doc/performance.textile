@@ -1,19 +1,27 @@
+---
+---
+
 Install patched php-apc to improve performance.
 
 Patch and install
 
+<pre>
   sudo apt-get install debhelper php5-dev apache2-prefork-dev
   apt-get source php-apc
   (cd php-apc-3.1.3p1/APC-3.1.3p1 && patch -p2 -l </usr/share/doc/wikifarm/php-apc-patch)
   apt-get source -b php-apc
   sudo dpkg -i php-apc_3.1.3p1-2_i386.deb
+</pre>
 
 Enable patch
 
+<pre>
   echo 'apc.slam_defense=off' | sudo tee /etc/php5/conf.d/apc-conf.ini
+</pre>
 
 Enable caching in MediaWiki by adding to /var/lib/wikifarm/www/FarmSettings.php
 
+<pre>
   /* warning: using cache on multiple wikis causes problems!
   $wgMainCacheType = CACHE_ACCEL;
   $wgMessageCacheType = CACHE_ACCEL;
@@ -32,8 +40,11 @@ Enable caching in MediaWiki by adding to /var/lib/wikifarm/www/FarmSettings.php
   $wgRevisionCacheExpiry = 3*86400;
   $wgParserCacheExpireTime = 14*86400;
   */
+</pre>
 
 References:
 
+<pre>
   http://pecl.php.net/bugs/bug.php?id=16814
   http://www.mediawiki.org/wiki/User:Aaron_Schulz/How_to_make_MediaWiki_fast
+</pre>

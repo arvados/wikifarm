@@ -1,0 +1,86 @@
+---
+---
+
+h1. Upgrading MediaWiki
+
+Notes:
+* MediaWiki >= 1.18 requires wikifarm >= 0.9 
+
+h3. Version?
+
+<pre>
+VERSION=1.18.4
+</pre>
+
+h3. Download and extract.
+
+<pre>
+cd
+wget http://dumps.wikimedia.org/mediawiki/1.18/mediawiki-$VERSION.tar.gz
+md5sum mediawiki-$VERSION.tar.gz
+</pre>
+
+* @95d7309eb97ea7696f0910b48fad9b0c@ -- mediawiki-1.18.3.tar.gz
+* @2af91f83e4a83da15de332e8b309cf7a@ -- mediawiki-1.18.4.tar.gz
+
+<pre>
+cd /var/lib/wikifarm/www
+tar xzf ~/mediawiki-$VERSION.tar.gz
+</pre>
+
+h3. Copy extensions and AdminSettings to new installation.
+
+<pre>
+cp -ip mediawiki/AdminSettings.php mediawiki-$VERSION/
+rsync -avP mediawiki/extensions/ mediawiki-$VERSION/extensions.migrated/
+mv -i mediawiki-$VERSION/extensions.migrated/* mediawiki-$VERSION/extensions/ </dev/null
+</pre>
+
+h3. Update symlinks to point to new version.
+
+<pre>
+cd /var/lib/wikifarm/www
+ln -sfn mediawiki-$VERSION mediawiki
+</pre>
+
+h3. Add symlinks for new MW files and run MW upgrade (one test wiki)
+
+<pre>
+wikiid=42
+(cd $wikiid; ln -s ../mediawiki/* .)
+(cd mediawiki-$VERSION/maintenance && sudo -u www-data php update.php --conf /var/lib/wikifarm/www/$wikiid/LocalSettings.php --aconf ../AdminSettings.php)
+</pre>
+
+h3. Add symlinks for new MW files and run MW upgrade (all wikis)
+
+<pre>
+(
+set -e -x
+sqlite3 /var/lib/wikifarm/db/wikis.db 'select id from wikis' | while read wikiid; do 
+  wikiid=`printf %02d $wikiid`;
+  cd /var/lib/wikifarm/www/$wikiid
+  ln -s -v ../mediawiki/* . || true
+done
+)
+
+(
+set -e -x
+cd /var/lib/wikifarm/www/mediawiki-$VERSION/maintenance
+sqlite3 /var/lib/wikifarm/db/wikis.db 'select id from wikis' | while read wikiid; do 
+  wikiid=`printf %02d $wikiid`;
+  sudo -u www-data php update.php --quick --conf /var/lib/wikifarm/www/$wikiid/LocalSettings.php --aconf ../AdminSettings.php;
+done
+)
+</pre>
+
+h1. Version-specific notes
+
+h3. MediaWiki 1.17 / 1.18
+
+Consider using the Vector skin.  Add to @/var/lib/wikifarm/www/FarmSettings.php@:
+
+<pre>
+require_once( "$IP/extensions/Vector/Vector.php" );
+$wgVectorUseSimpleSearch = true;
+$wgDefaultSkin = 'vector';
+</pre>

@@ -1,31 +1,9 @@
-===================================================================
-Copyright 2010 President and Fellows of Harvard College
+---
+---
 
-Authors:
-Tom Clegg <tom@clinicalfuture.com>
-Jer Ratcliffe <jer@clinicalfuture.com>
+NOTE: This file documents how to set up a wikifarm on a plain Linux system, like the Ubuntu Lucid image available on AWS.
 
-This file is part of wikifarm.
-
-Wikifarm is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License version 2 as
-published by the Free Software Foundation.
-
-Wikifarm is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with wikifarm. If not, see <http://www.gnu.org/licenses/>.
-===================================================================
-
-NOTE: This file documents how to set up a wikifarm on a plain Linux
-system, like the Ubuntu Lucid image available on AWS.
-
-An even quicker method is to use a pre-built AMI -- see README-ami.
-
-===================================================================
+<i>An even quicker method is to "use a pre-built AMI":ami.html.</i>
 
 Create instance (if you are installing on AWS).
 
@@ -33,45 +11,53 @@ Create instance (if you are installing on AWS).
 * Select a suitable private key, so you can log in
 * Select a security policy with ports 22, 80, and 443 open
 
-Create a privileged user called "ubuntu" (if you used ami-714ba518,
-you can skip this step.)
+Create a privileged user called "ubuntu" (if you used ami-714ba518, you can skip this step.)
 
+<pre>
   sudo useradd ubuntu
   sudo usermod -a -G adm ubuntu
 
   # This should print "ok" without asking for ubuntu's password:
   sudo -u ubuntu sudo -k echo ok
   # If not, use visudo to add "ubuntu  ALL=(ALL) NOPASSWD:ALL" to sudoers.
+</pre>
 
 Update your OS
 
+<pre>
   sudo aptitude update && sudo aptitude full-upgrade
+</pre>
 
 Add the wikifarm repository to your apt sources
 
+<pre>
   wget -q -O- http://apt.clinicalfuture.com/clinicalfuture-key.gpg | sudo apt-key add -
   echo deb http://apt.clinicalfuture.com/wikifarm lucid main | sudo tee /etc/apt/sources.list.d/wikifarm.list
   sudo apt-get update
+</pre>
 
 Install and enable wikifarm
 
+<pre>
   sudo apt-get install wikifarm
   sudo a2dissite default
   sudo a2ensite wikifarm
   sudo /etc/init.d/apache2 restart
+</pre>
 
 Change your default mysql character set to utf8
 
+<pre>
   sudo cp /etc/wikifarm/mysql-utf8.cnf /etc/mysql/conf.d/utf8.cnf
   sudo /etc/init.d/mysql restart
+</pre>
 
 Create an administrator account
 
 * Visit http://{your.wiki.farm}
 * Log in with your OpenID
 * Copy your OpenID from the "my account" screen
-* Run:
- /etc/wikifarm/make_admin_user.php http://YOUR.OPENID.HERE
+* Run: @/etc/wikifarm/make_admin_user.php http://YOUR.OPENID.HERE@
 * Provide your email address and real name on the "my account" page
 * Click "Save changes"
 
@@ -79,13 +65,15 @@ Make sure /var/lib/wikifarm/www/mediawiki/AdminSettings.php contains
 credentials for a privileged database user. Normally this is
 accomplished by the wikifarm installer. Example:
 
+<pre>
  <?
  $wgDBadminuser = 'root';
  $wgDBadminpassword = 'YOUR.MYSQL.ROOT.PW';
+</pre>
 
 Create the base wiki config and database
 
-* Visit http://{your.wiki.farm}/00 and click "set up the wiki". Fill in the form:
+* Visit @http://{your.wiki.farm}/00@ and click "set up the wiki". Fill in the form:
 * wiki name: Wiki (won't be used)
 * random password for WikiSysop (won't be used)
 * database name "wikidb00"
@@ -98,11 +86,15 @@ Create the base wiki config and database
 If MediaWiki provided LocalSettings.php via browser download, copy it
 to /home/ubuntu/00-LocalSettings.php on the server now.
 
+<pre>
   scp ~/Downloads/LocalSettings.php ubuntu@WIKIFARM:00-LocalSettings.php
+</pre>
 
 Copy the config file to the template wiki and lock it down
 
+<pre>
   /etc/wikifarm/wikifarm-template-save
+</pre>
 
 Configure your server so it can send email notifications
 
@@ -115,22 +107,31 @@ Fix PHP session garbage collection
 * Run /usr/lib/php5/maxlifetime
 * If it reports "24" it is not reading the wikifarm.ini.
 * Edit /usr/lib/php5/maxlifetime as follows:
-  -for ini in /etc/php5/*/php.ini; do
-  +for ini in /etc/php5/*/*.ini; do
+
+<pre>
+        -for ini in /etc/php5/*/php.ini; do
+        +for ini in /etc/php5/*/*.ini; do
+</pre>
 
 (Optional) install mediawiki-math
 
+<pre>
   sudo apt-get install mediawiki-math
+</pre>
 
 (Optional) create an AMI
 
 * Delete any OpenID accounts you created during testing/setup:
   sqlite3 /var/lib/wikifarm/db/wikis.db 'delete from users; delete from usergroups;'
 * Delete some history, cache, etc.
-  sudo apt-get clean
-  rm -rf ~/.*_history ~/.cache ~/.sudo_as*
-  unset HISTFILE
-  exit
+
+<pre>
+        sudo apt-get clean
+        rm -rf ~/.*_history ~/.cache ~/.sudo_as*
+        unset HISTFILE
+        exit
+</pre>
+
 * Shut down (not terminate) your instance
 * Create an AMI from your instance (takes ~ 1/2 hour)
 * Start an instance using the new AMI and test it (see README-ami)
@@ -147,8 +148,10 @@ Turn off deleteOnTermination attribute on your EBS volume
 
 * Create/obtain a signed site certificate
 * Enable ssl:
+<pre>
   sudo a2enmod ssl
   sudo /etc/init.d/apache2 restart
+</pre>
 
 Ensure your users always access your server with the same hostname.
 
@@ -160,18 +163,22 @@ Ensure your users always access your server with the same hostname.
   can be used in /etc/apache2/sites-available/wikifarm to accomplish
   this.
 
+<pre>
     <Limit GET HEAD>
       RewriteCond %{HTTP_HOST} !your.canonical.host.name
       RewriteRule (.*) https://your.canonical.host.name$1 [R,L]
     </Limit>
+</pre>
 
 Create and customize /etc/wikifarm/config.php -- in particular, to
 ensure the OpenID login process works correctly:
 * set uri_scheme to "https" if you are using SSL.
 * set servername to your.canonical.host.name.
 
+<pre>
   sudo cp -i /etc/wikifarm/config.php.example /etc/wikifarm/config.php
   sudo nano /etc/wikifarm/config.php
+</pre>
 
 Create wiki number 01 for yourself
 
@@ -186,11 +193,11 @@ Create wiki number 01 for yourself
 
 (Optional) install other mediawiki extensions
 
-* see README-extensions
+* see "extensions page":extensions.html
 
 (Optional) improve performance
 
-* see README-performance
+* see "performance page":performance.html
 
 (Optional) customize site appearance
 
