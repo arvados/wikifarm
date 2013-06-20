@@ -13,10 +13,11 @@ Features / raisons d'&ecirc;tre:
 
 Documentation:
 
-* "How to install":doc/install.html on a debian system
-* "Pre-built AMI":doc/ami.html
-* "Performance tuning":doc/performance.html
-* "Restoring or importing":doc/restore.html an existing wiki to a wikifarm
-* "Building a debian package":doc/buildpackage.html
-* "Notes on a few MediaWiki extensions":doc/extensions.html
-* "Upgrading the MediaWikis":doc/mediawiki-upgrade.html on a wikifarm
+* "License (GPL)":doc/license.md
+* "How to install":doc/install.textile on a debian system
+* "Pre-built AMI":doc/ami.textile
+* "Performance tuning":doc/performance.textile
+* "Restoring or importing":doc/restore.textile an existing wiki to a wikifarm
+* "Building a debian package":doc/buildpackage.textile
+* "Notes on a few MediaWiki extensions":doc/extensions.textile
+* "Upgrading the MediaWikis":doc/mediawiki-upgrade.textile on a wikifarm

@@ -3,7 +3,7 @@
 
 NOTE: This file documents how to set up a wikifarm on a plain Linux system, like the Ubuntu Lucid image available on AWS.
 
-<i>An even quicker method is to "use a pre-built AMI":ami.html.</i>
+<i>An even quicker method is to "use a pre-built AMI":ami.textile.</i>
 
 Create instance (if you are installing on AWS).
 
@@ -193,11 +193,11 @@ Create wiki number 01 for yourself
 
 (Optional) install other mediawiki extensions
 
-* see "extensions page":extensions.html
+* see "extensions page":extensions.textile
 
 (Optional) improve performance
 
-* see "performance page":performance.html
+* see "performance page":performance.textile
 
 (Optional) customize site appearance
 

@@ -41,4 +41,4 @@ Either relay all outgoing mail through a smarthost elsewhere, or attach an elast
 
 Go back to your browser, fill in your user details on the "My Account" tab, and click "Save changes".  The "Admin Help" tab will appear, indicating that you have admin powers.
 
-Now, go back to the "installation instructions":install.html and continue from "turn off the deleteOnTermination attribute".
+Now, go back to the "installation instructions":install.textile and continue from "turn off the deleteOnTermination attribute".
