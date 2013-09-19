@@ -1163,7 +1163,7 @@ EOT;
 	// AJAX handlers
 
 	// Parent Ajax handler, returns objects from any ajax_* methods to be dispatched as json-encoded data
-	function dispatch_ajax ($post) {
+	function dispatch_ajax (&$post) {
 		if (!isset($post["ga_action"]))
 			return $this->fail ("Client side error: no action requested.");
 		if (!method_exists ($this, "ajax_" . $post["ga_action"]))

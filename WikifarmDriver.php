@@ -228,7 +228,7 @@ class WikifarmDriver {
 		if (array_key_exists ("allwikis", $this->_cache))
 			return $this->_cache["allwikis"];
 
-		$wikis =& $this->query(
+		$wikis = $this->query(
 			"SELECT wikis.id as id,
 			wikis.wikiname as wikiname,
 			wikis.realname as realname,

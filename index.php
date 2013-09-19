@@ -31,7 +31,7 @@ if (preg_match ('{application/json}', $_SERVER["HTTP_ACCEPT"]) ||
 	ini_set ('display_errors', false);
 	header ("Content-type: application/json");
 	$response = array_merge(array ("request" => $_POST),
-				$wf->dispatch_ajax(&$_POST));
+				$wf->dispatch_ajax($_POST));
 	print json_encode($response);
 	exit;
 }
