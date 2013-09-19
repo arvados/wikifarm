@@ -27,7 +27,7 @@ $db->exec ('CREATE TABLE sitepref (
  prefid varchar(64),
  value varchar(255),
  description varchar(255))');
-if ($db->exec ('CREATE UNIQUE INDEX sp ON sitepref (prefid)')) {
+if (@$db->exec ('CREATE UNIQUE INDEX sp ON sitepref (prefid)')) {
     $db->exec ('INSERT INTO sitepref (prefid, value) VALUES ("allow_mw_native_login", "0")');
     $db->exec ('INSERT INTO sitepref (prefid, value) VALUES ("unreadable_wikis_visible", "1")');
 }
@@ -36,6 +36,10 @@ $db->exec ('INSERT OR IGNORE INTO sitepref (prefid, value) VALUES ("default_wiki
 @$db->exec ('ALTER TABLE usergroups ADD isadmin INTEGER DEFAULT 0');
 if(@$db->exec ('ALTER TABLE pref ADD defaultvalue varchar(255)')) {
     $db->exec ('UPDATE pref SET defaultvalue=1 WHERE prefid="admin_notify_requests"');
+}
+
+if(@$db->exec ('ALTER TABLE wikis ADD isactive INTEGER DEFAULT 1')) {
+    $db->exec ('UPDATE wikis SET isactive=0 WHERE userid not like "%://%"');
 }
 
 if (!@$db->exec ('CREATE TABLE userpref (
@@ -74,8 +78,9 @@ if (!$db->exec ('CREATE TABLE wikis (
  wikiname varchar(32),
  userid varchar(255),
  realname varchar(128),
- unique (wikiname)
- )'))
+ unique (wikiname),
+ isactive INTEGER DEFAULT 1
+)'))
     die ($db->lastErrorMsg());
 
 if (!$db->exec ('CREATE TABLE users (

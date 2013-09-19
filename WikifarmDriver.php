@@ -234,6 +234,7 @@ class WikifarmDriver {
 			wikis.realname as realname,
 			wikis.userid as userid,
 			wikis.userid as owner_userid,
+            wikis.isactive as isactive,
 			users.realname as owner_realname
 			FROM wikis 
 			LEFT JOIN users ON users.userid = wikis.userid
@@ -399,6 +400,12 @@ class WikifarmDriver {
 			return false;
 		return true;
 	}
+
+    function setActiveFlag ($wikiid, $isactive=true) {
+        $wikiid += 0;
+        $isactive = $isactive ? 1 : 0;
+		$this->DB->exec ("update wikis set isactive='$isactive' where id=$wikiid");
+    }
 
 	// Affects a group's relationship with a wiki
 	function inviteGroup ($wikiid, $groupid, $readonly=true) {

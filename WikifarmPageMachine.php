@@ -232,7 +232,6 @@ BLOCK;
 		$wikiArray = $this->getAllWikis();
 		foreach ($wikiArray as $row) {
 			extract ($row);
-			$active = preg_match('{://}', $userid);
 			$requested_writable = $requested_autologin;
 			$writable = !!($autologin && $autologin[0]);
 			if ($realname == '')
@@ -240,7 +239,7 @@ BLOCK;
 			$q_realname = htmlspecialchars($realname);
 			$show_edit = ($this->openid == $owner_userid && !$this->isAdmin() ? '' : 'ui-helper-hidden');
 			$show_admin_edit = ($this->isAdmin() ? '' : 'ui-helper-hidden');
-			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . (!$active ? 'inactive' : '') . "'>".
+			$output .= "\t<tr class='" .($this->openid == $owner_userid ? 'mine ' : '') . (!$readable ? 'nonreadable ' : '') . (!$writable ? 'nonwritable' : '') . (!$isactive ? 'inactive' : '') . "'>".
 				"<td class='minwidth nowrap' style='text-align:right'>$wikiid</td>".
 				"<td class='minwidth nowrap'>".($readable ? "<a href=\"/$wikiname/\">$wikiname</a>" : $wikiname)."</td>".
 				"<td class='minwidth nowrap'>".($writable ? "<span class='ui-icon ui-icon-pencil' style='float:right; vertical-align:bottom;'></span>" : "" )."</td>".
@@ -862,6 +861,13 @@ BLOCK;
 		}
 		$html .= "</tbody></table>";
 
+		$html .= "<div style=\"min-height: 8px;\" />";
+		$html .= $this->textHighlight ("By default, inactive wikis are not shown in list of wikis on the dashboard.", "home");
+        $checked = $isactive ? "checked" : "";
+		$html .= <<<BLOCK
+        <input type="checkbox" class="generic_ajax" ga_form_id="mwf{$wikiid}" ga_action="managewiki_isactive" id="mw{$wikiid}_isactive" name="mw{$wikiid}_isactive" value="1" refresh_tab="#tabs" $checked />This wiki is active
+BLOCK;
+
 		$html .= "<br /><div style=\"min-height: 12px;\" /><br />";
 
 		$html .= "</form>";
@@ -1280,6 +1286,23 @@ EOT;
                       "refreshtab" => $refreshrule,
                       "refreshdiv" => $refreshdiv);
     }
+
+	function ajax_managewiki_isactive ($post) {
+		$wikiid = $post["wikiid"];
+		$wikiid0 = sprintf ("%02d", $wikiid);
+		$wiki = $this->getWiki($wikiid);
+		if (!is_array ($wiki))
+			return $this->fail ("No wiki specified.");
+		if (!$this->isAdmin() && $wiki["userid"] != $this->openid)
+			return $this->fail ("You are not allowed to do that.");
+
+        $isactive = @$post[$post["ga_button_id"]];
+        $this->setActiveFlag($wikiid, $isactive);
+
+		return array ("success" => true,
+                      "check" => $isactive ? [$post["ga_button_id"]] : [],
+                      "uncheck" => !$isactive ? [$post["ga_button_id"]] : []);
+	}
 
 	function ajax_managewiki_groups ($post) {
 		$wikiid = $post["wikiid"];
