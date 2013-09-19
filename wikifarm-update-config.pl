@@ -6,13 +6,21 @@ open STDOUT, ">", "$ENV{DB}/apache2.conf.$$" or die "$ENV{DB}/apache2.conf.$$: $
 $OPENID_DB_FILE = "/tmp/mod_auth_openid.db";
 $WIKIFARM_DB_FILE = "$ENV{DB}/wikis.db";
 
+if (`strings /usr/lib/apache2/modules/mod_auth_openid.so` =~ /AuthOpenIDEnabled/s) {
+    $enable_auth_openid = "AuthOpenIDEnabled On";
+    $disable_auth_openid = "AuthOpenIDEnabled Off";
+} else {
+    $enable_auth_openid = "AuthType OpenID\n  require valid-user";
+    $disable_auth_openid = "Allow from all\n  Satisfy any";
+}
+
 print qq{
 #RewriteLog /tmp/rewrite.log
 #RewriteLogLevel 9
 CustomLog "|$ENV{ETC}/wikifarm-log-split.pl $ENV{WWW}/{}/private/access_log.txt /var/log/apache2/wikifarm-access.log $ENV{DB}/wikis.db" combined
 
 <Location />
-  AuthOpenIDEnabled On
+  $enable_auth_openid
   # This sets cookie lifetime = 0 but server session lifetime = 86400
   AuthOpenIDCookieLifespan 0
   AuthOpenIDCookiePath /
@@ -20,7 +28,7 @@ CustomLog "|$ENV{ETC}/wikifarm-log-split.pl $ENV{WWW}/{}/private/access_log.txt 
   AuthOpenIDLoginPage /login.php
 </Location>
 <LocationMatch ^/log(in|out).*>
-  AuthOpenIDEnabled Off
+  $disable_auth_openid
 </LocationMatch>
 <LocationMatch ^/mediawiki.*>
   Deny from all
