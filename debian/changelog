@@ -1,3 +1,15 @@
+wikifarm (0.13) stable; urgency=low
+
+  * move docs to textile/md
+  * fix links
+  * remove front matter
+  * Resolve PHP deprecation notices
+  * Check mod_auth_openid version before writing Apache configuration file.
+  * fix doc paths in deb package rules
+  * Allow admins and wiki owners to control the per-wiki "active" flag
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Thu, 19 Sep 2013 12:26:34 -0400
+
 wikifarm (0.12) stable; urgency=low
 
   * fix use of concatenation operator in wrong language
