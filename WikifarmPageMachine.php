@@ -1300,8 +1300,8 @@ EOT;
         $this->setActiveFlag($wikiid, $isactive);
 
 		return array ("success" => true,
-                      "check" => $isactive ? [$post["ga_button_id"]] : [],
-                      "uncheck" => !$isactive ? [$post["ga_button_id"]] : []);
+                      "check" => $isactive ? array($post["ga_button_id"]) : array(),
+                      "uncheck" => !$isactive ? array($post["ga_button_id"]) : array());
 	}
 
 	function ajax_managewiki_groups ($post) {
