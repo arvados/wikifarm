@@ -6,7 +6,7 @@ open STDOUT, ">", "$ENV{DB}/apache2.conf.$$" or die "$ENV{DB}/apache2.conf.$$: $
 $OPENID_DB_FILE = "/tmp/mod_auth_openid.db";
 $WIKIFARM_DB_FILE = "$ENV{DB}/wikis.db";
 
-if (`strings /usr/lib/apache2/modules/mod_auth_openid.so` =~ /AuthOpenIDEnabled/s) {
+if (0 == system('grep -q AuthOpenIDEnabled /usr/lib/apache2/modules/mod_auth_openid.so >/dev/null')) {
     $enable_auth_openid = "AuthOpenIDEnabled On";
     $disable_auth_openid = "AuthOpenIDEnabled Off";
 } else {
