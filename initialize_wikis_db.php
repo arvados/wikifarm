@@ -46,15 +46,15 @@ if (!@$db->exec ('CREATE TABLE userpref (
  userid varchar(255),
  prefid varchar(64),
  value varchar(255))'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 if (!$db->exec ('CREATE UNIQUE INDEX up ON userpref (userid,prefid)'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 if (!$db->exec ('CREATE TABLE pref (
  prefid varchar(64) primary key,
  type varchar(64),
  description varchar(255),
  defaultvalue varchar(255))'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 $db->exec ('INSERT INTO pref (prefid,type,description) VALUES ("notify_requests", "checkbox", "Notify me by email when someone requests access to my wikis")');
 $db->exec ('INSERT INTO pref (prefid,type,description,defaultvalue) VALUES ("admin_notify_requests", "checkbox", "Notify me by email about account activation and group membership requests", "1")');
 
@@ -65,13 +65,13 @@ if (!$db->exec ('CREATE TABLE request (
  mwusername varchar(255),
  groupname varchar(255)
  )'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 if (!$db->exec ('CREATE INDEX ru ON request (userid)'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 if (!$db->exec ('CREATE INDEX rw ON request (wikiid)'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 if (!$db->exec ('CREATE UNIQUE INDEX runique ON request (userid,wikiid,groupname)'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!$db->exec ('CREATE TABLE wikis (
  id integer primary key autoincrement,
@@ -81,7 +81,7 @@ if (!$db->exec ('CREATE TABLE wikis (
  unique (wikiname),
  isactive INTEGER DEFAULT 1
 )'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!$db->exec ('CREATE TABLE users (
  userid varchar(255) primary key,
@@ -91,27 +91,27 @@ if (!$db->exec ('CREATE TABLE users (
  mwusername varchar(255),
  wikiquota integer default 5
  )'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!$db->exec ('CREATE TABLE usergroups (
  userid varchar(255),
  groupname varchar(255),
  isadmin INTEGER DEFAULT 0
  )'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!$db->exec ('CREATE UNIQUE INDEX ug ON usergroups (userid,groupname)'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!$db->exec ('CREATE TABLE wikipermission (
  wikiid varchar(255),
  userid_or_groupname varchar(255),
  readonly integer default 1
  )'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!$db->exec ('CREATE UNIQUE INDEX uw ON wikipermission (wikiid,userid_or_groupname)'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!$db->exec ('CREATE TABLE autologin (
  wikiid integer,
@@ -120,10 +120,10 @@ if (!$db->exec ('CREATE TABLE autologin (
  lastlogintime integer,
  sysop integer
  )'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!$db->exec ('CREATE UNIQUE INDEX wu ON autologin (wikiid,userid,mwusername)'))
-    die ($db->lastErrorMsg());
+    die ($db->lastErrorMsg() . "\n");
 
 if (!file_exists ("$etcdir/legacy-wiki.list"))
     exit (0);
@@ -136,7 +136,7 @@ while ($row = fgets ($fh)) {
 	$x = SQLite3::escapeString ($x);
     }
     if (!$db->exec ("insert into wikis (id, wikiname, userid) values ('$row[0]', '$row[1]', '$row[2]')"))
-	die ($db->lastErrorMsg());
+	die ($db->lastErrorMsg() . "\n");
     print ".";
 }
 fclose ($fh);
