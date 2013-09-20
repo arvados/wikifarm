@@ -1,2 +1,5 @@
 wikifarm
 *.debhelper.log
+build-stamp
+files
+wikifarm.substvars
