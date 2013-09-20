@@ -1,3 +1,13 @@
+wikifarm (0.14) stable; urgency=low
+
+  * remove dependency on "strings" program
+  * update apache config file using dpkg trigger if mod_auth_openid.so changes
+  * ignore generated debian files
+  * add final newline when erroring out
+  * fix array syntax (bug introduced in 0.13)
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Fri, 20 Sep 2013 17:17:49 -0400
+
 wikifarm (0.13) stable; urgency=low
 
   * move docs to textile/md
