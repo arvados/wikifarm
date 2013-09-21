@@ -13,6 +13,7 @@ pwd=$(cd $(dirname $0)/. && pwd)
 export SOURCEDIR=${SOURCEDIR:-$pwd}
 
 mkdir -p $DESTDIR$ETC
+mkdir -p $DESTDIR/etc/php5/wikifarm
 install $SOURCEDIR/awstats.00.conf $DESTDIR$ETC/
 install $SOURCEDIR/awstats.all.conf $DESTDIR$ETC/
 install $SOURCEDIR/wikifarm-apache2.conf.in $DESTDIR/etc/apache2/sites-available/wikifarm
@@ -23,6 +24,7 @@ install $SOURCEDIR/wikifarm-backup.sh $DESTDIR$ETC/
 install $SOURCEDIR/wikifarm-log-split.pl $DESTDIR$ETC/
 install $SOURCEDIR/wikifarm-create-wiki $DESTDIR$ETC/
 install $SOURCEDIR/wikifarm-php.ini $DESTDIR/etc/php5/conf.d/
+install $SOURCEDIR/wikifarm-php.ini $DESTDIR/etc/php5/wikifarm/php.ini
 install $SOURCEDIR/wikifarm-sudo-enable $DESTDIR$ETC/
 install $SOURCEDIR/wikifarm-sudo-disable $DESTDIR$ETC/
 install $SOURCEDIR/wikifarm-template-save $DESTDIR$ETC/

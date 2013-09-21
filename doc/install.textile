@@ -99,17 +99,6 @@ Configure your server so it can send email notifications
 * Example:
   sudo dpkg-reconfigure exim4-config
 
-Fix PHP session garbage collection
-
-* Run /usr/lib/php5/maxlifetime
-* If it reports "24" it is not reading the wikifarm.ini.
-* Edit /usr/lib/php5/maxlifetime as follows:
-
-<pre>
-        -for ini in /etc/php5/*/php.ini; do
-        +for ini in /etc/php5/*/*.ini; do
-</pre>
-
 (Optional) install mediawiki-math
 
 <pre>
