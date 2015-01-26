@@ -1,5 +1,18 @@
 #!/bin/sh
 
+set -e
+
+if [[ "$1" == upgrade ]] && [[ -e /etc/apache2/sites-available/wikifarm ]]; then
+    # a2*site now require that site configs end in .conf
+    mv /etc/apache2/sites-available/wikifarm{,.conf}
+    if [[ -e /etc/apache2/sites-enabled/wikifarm ]]; then
+        ln -s wikifarm.conf /etc/apache2/sites-available/wikifarm
+        a2dissite wikifarm
+        rm /etc/apache2/sites-available/wikifarm
+        a2ensite wikifarm.conf
+    fi
+fi
+
 if ! (groups ubuntu | grep -w adm) || [ "ok" != "$(sudo -u ubuntu sh -c 'sudo -k; sudo -n echo -n ok')" ]
 then
   cat >&2 <<EOF

@@ -146,8 +146,8 @@ Ensure your users always access your server with the same hostname.
   sites. This means your users must always access your wikifarm using
   the same domain name (i.e., only one of "http://example.com",
   "https://secure.example.com", "http://1.2.3.4"). The following code
-  can be used in /etc/apache2/sites-available/wikifarm to accomplish
-  this.
+  can be used in /etc/apache2/sites-available/wikifarm.conf to
+  accomplish this.
 
 <pre>
     <Limit GET HEAD>

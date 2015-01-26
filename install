@@ -16,7 +16,7 @@ mkdir -p $DESTDIR$ETC
 mkdir -p $DESTDIR/etc/php5/wikifarm
 install $SOURCEDIR/awstats.00.conf $DESTDIR$ETC/
 install $SOURCEDIR/awstats.all.conf $DESTDIR$ETC/
-install $SOURCEDIR/wikifarm-apache2.conf.in $DESTDIR/etc/apache2/sites-available/wikifarm
+install $SOURCEDIR/wikifarm-apache2.conf.in $DESTDIR/etc/apache2/sites-available/wikifarm.conf
 install $SOURCEDIR/wikifarm-auth.pl $DESTDIR$ETC/
 install $SOURCEDIR/wikifarm-update-config.pl $DESTDIR$ETC/
 install $SOURCEDIR/wikifarm-update-stats.sh $DESTDIR$ETC/

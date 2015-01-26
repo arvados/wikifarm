@@ -6,9 +6,9 @@ export ETC=$(cd $(dirname $0)/. && pwd)
 . $ETC/env
 
 export HOSTNAME="`hostname`"
-if fgrep '{{' /etc/apache2/sites-available/wikifarm
+if fgrep '{{' /etc/apache2/sites-available/wikifarm.conf
 then
-  perl -pi~ -e 's/{{(.*?)}}/$ENV{$1}/g' /etc/apache2/sites-available/wikifarm
+  perl -pi~ -e 's/{{(.*?)}}/$ENV{$1}/g' /etc/apache2/sites-available/wikifarm.conf
 fi
 
 if [ -e /usr/share/awstats/tools/awstats_buildstaticpages.pl ]
