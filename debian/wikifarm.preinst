@@ -13,7 +13,7 @@ if [[ "$1" == upgrade ]] && [[ -e /etc/apache2/sites-available/wikifarm ]]; then
     fi
 fi
 
-if ! (groups ubuntu | grep -w adm) || [ "ok" != "$(sudo -u ubuntu sh -c 'sudo -k; sudo -n echo -n ok')" ]
+if ! (groups ubuntu | grep -wq adm) || [ "ok" != "$(sudo -u ubuntu sh -c 'sudo -k; sudo -n echo -n ok')" ]
 then
   cat >&2 <<EOF
 ***
