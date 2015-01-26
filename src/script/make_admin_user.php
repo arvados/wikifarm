@@ -10,3 +10,5 @@ if (!$userid) {
 }
 $q_userid = SQLite3::escapeString ($userid);
 $db->exec ("INSERT OR IGNORE INTO usergroups (userid, groupname) VALUES ('$q_userid', 'ADMIN')");
+
+?>
