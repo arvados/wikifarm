@@ -6,7 +6,7 @@ Notes:
 h3. Version?
 
 <pre>
-VERSION=1.18.4
+VERSION=1.19.21
 </pre>
 
 h3. Download and extract.
@@ -19,6 +19,7 @@ md5sum mediawiki-$VERSION.tar.gz
 
 * @95d7309eb97ea7696f0910b48fad9b0c@ -- mediawiki-1.18.3.tar.gz
 * @2af91f83e4a83da15de332e8b309cf7a@ -- mediawiki-1.18.4.tar.gz
+* @cede13be78db0995b460d92415f3013c@ -- mediawiki-1.19.21.tar.gz
 
 <pre>
 cd /var/lib/wikifarm/www
@@ -33,22 +34,22 @@ rsync -avP mediawiki/extensions/ mediawiki-$VERSION/extensions.migrated/
 mv -i mediawiki-$VERSION/extensions.migrated/* mediawiki-$VERSION/extensions/ </dev/null
 </pre>
 
-h3. Update symlinks to point to new version.
+h3. Add symlinks for new MW files and run MW upgrade (one test wiki)
+
+<pre>
+wikiid=42
+(cd $wikiid; ln -sfv ../mediawiki-$VERSION/* .)
+(cd mediawiki-$VERSION/maintenance && sudo -u www-data php update.php --conf /var/lib/wikifarm/www/$wikiid/LocalSettings.php --aconf ../AdminSettings.php)
+</pre>
+
+h3. Update default "mediawiki" symlink to point to new version.
 
 <pre>
 cd /var/lib/wikifarm/www
 ln -sfn mediawiki-$VERSION mediawiki
 </pre>
 
-h3. Add symlinks for new MW files and run MW upgrade (one test wiki)
-
-<pre>
-wikiid=42
-(cd $wikiid; ln -s ../mediawiki/* .)
-(cd mediawiki-$VERSION/maintenance && sudo -u www-data php update.php --conf /var/lib/wikifarm/www/$wikiid/LocalSettings.php --aconf ../AdminSettings.php)
-</pre>
-
-h3. Add symlinks for new MW files and run MW upgrade (all wikis)
+h3. Make sure all wikis point to the new (now default) version's MW files.
 
 <pre>
 (
@@ -56,10 +57,14 @@ set -e -x
 sqlite3 /var/lib/wikifarm/db/wikis.db 'select id from wikis' | while read wikiid; do 
   wikiid=`printf %02d $wikiid`;
   cd /var/lib/wikifarm/www/$wikiid
-  ln -s -v ../mediawiki/* . || true
+  ln -sfv ../mediawiki/* . || true
 done
 )
+</pre>
 
+h3. Run mediawiki upgrade on all wikis.
+
+<pre>
 (
 set -e -x
 cd /var/lib/wikifarm/www/mediawiki-$VERSION/maintenance
