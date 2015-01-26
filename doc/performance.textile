@@ -5,7 +5,7 @@ Patch and install
 <pre>
   sudo apt-get install debhelper php5-dev apache2-prefork-dev
   apt-get source php-apc
-  (cd php-apc-3.1.3p1/APC-3.1.3p1 && patch -p2 -l </usr/share/doc/wikifarm/php-apc-patch)
+  (cd php-apc-3.1.3p1/APC-3.1.3p1 && patch -p2 -l </usr/share/doc/wikifarm/php-apc-slam-defense-config.patch)
   apt-get source -b php-apc
   sudo dpkg -i php-apc_3.1.3p1-2_i386.deb
 </pre>

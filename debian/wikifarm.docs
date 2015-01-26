@@ -1,6 +1,6 @@
 COPYING
 README.textile
 doc/*.textile
-php-apc-patch
-commonist-0.3.43-wikifarm-1.15.patch.sh
-commonist-0.3.43-wikifarm-1.15.patch
+patch/php-apc-slam-defense-config.patch
+patch/commonist-0.3.43-wikifarm-1.15.patch.sh
+patch/commonist-0.3.43-wikifarm-1.15.patch
