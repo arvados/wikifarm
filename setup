@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -41,6 +41,11 @@ a2ensite wikifarm
 [ -e /etc/apache2/mods-enabled/rewrite.load ] || a2enmod rewrite
 [ -e /etc/apache2/mods-enabled/auth_openid.load ] || a2enmod auth_openid
 mwenext WikifarmAuthPlugin.php
+
+if [[ "$(a2query -v)" =~ ^2.[0-3] ]]; then
+    # Use RewriteLock instead of Mutex if Apache <2.4
+    perl -pi~ -e 's/Mutex .* rewrite-map/RewriteLock \/tmp\/rewritelock/' /etc/apache2/sites-available/wikifarm.conf
+fi
 
 WIKIFARM_ETC="$ETC" $ETC/wikifarm-update-config.pl
 VISUAL="$ETC/wikifarm-sudo-enable" visudo

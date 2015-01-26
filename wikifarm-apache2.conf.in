@@ -1,4 +1,4 @@
-RewriteLock /tmp/rewritelock
+Mutex file:${APACHE_LOCK_DIR} rewrite-map
 
 <VirtualHost *:80>
   ServerName {{HOSTNAME}}
