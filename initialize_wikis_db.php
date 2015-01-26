@@ -78,8 +78,8 @@ if (!$db->exec ('CREATE TABLE wikis (
  wikiname varchar(32),
  userid varchar(255),
  realname varchar(128),
- unique (wikiname),
- isactive INTEGER DEFAULT 1
+ isactive INTEGER DEFAULT 1,
+ unique (wikiname)
 )'))
     die ($db->lastErrorMsg() . "\n");
 
