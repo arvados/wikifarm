@@ -22,7 +22,7 @@ This usually looks like:
   require_once("extensions/ExtensionName/ExtensionName.php");
 </pre>
 
-Example: Labeled Section Transclusion
+h3. Example: Labeled Section Transclusion
 
 <pre>
   sudo mwenext ParserFunctions.php
@@ -38,4 +38,21 @@ Example: Labeled Section Transclusion
   )
 </pre>
 
-For more examples, see "wikifarm wiki on github":https://github.com/tomclegg/wikifarm/wiki
+h3. Example: ExtensionInstaller
+
+Download:
+
+<pre>
+cd /home/wikifarm/www/mediawiki/extensions
+git clone https://github.com/JeroenDeDauw/ExtensionInstaller.git
+</pre>
+
+Add to @/home/wikifarm/www/FarmSettings.php@:
+
+<pre>
+require_once "$IP/extensions/ExtensionInstaller/ExtensionInstaller.php";
+</pre>
+
+h3. More examples
+
+See "wikifarm wiki on github":https://github.com/tomclegg/wikifarm/wiki
