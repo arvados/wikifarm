@@ -20,3 +20,5 @@ $wgMiserMode = true;
 $wgCompressRevisions = true;
 $wgRevisionCacheExpiry = 3*86400;
 $wgParserCacheExpireTime = 14*86400;
+
+?>

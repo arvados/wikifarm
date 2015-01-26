@@ -1,4 +1,4 @@
-<?;
+<?php ; // -*- mode: java; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: nil; -*-
 
 if ($_SERVER["REQUEST_METHOD"] == "GET" && array_key_exists ("w", $_GET)) {
     printf ("<h2>Success</h2><p>Transferred %d wiki%s, %d group membership%s, and %d wiki access rule%s to %s.</p><p>Return to <a href=\"./\">wiki index</a>.</p>",

@@ -54,6 +54,7 @@ then
 <?php
 \$wgDBadminuser = '$rootuser';
 \$wgDBadminpassword = '$rootpw';
+?>
 EOF
 fi
 
@@ -61,7 +62,10 @@ chown ubuntu:ubuntu $WWW
 chown -R ubuntu:ubuntu $WWW/mediawiki
 if [ ! -s $WWW/FarmSettings.php ]
 then
-  echo '<?php' | sudo -u ubuntu tee $WWW/FarmSettings.php >/dev/null
+  sudo -u ubuntu tee $WWW/FarmSettings.php >/dev/null <<EOF
+<?php
+?>
+EOF
 fi
 
 if [ ! -e $WWW/00 ]

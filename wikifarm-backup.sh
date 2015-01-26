@@ -11,7 +11,7 @@ mv dump-wikis.db.sql.$$ dump-wikis.db.sql
 ls -l dump-wikis.db.sql
 
 cd $WWW
-mysqlrootpw="$(echo '<? require("mediawiki/AdminSettings.php"); print $wgDBadminpassword;' | php)"
+mysqlrootpw="$(echo '<?php require("mediawiki/AdminSettings.php"); print $wgDBadminpassword; ?>' | php)"
 
 cd $DB
 sqlite3 -separator , wikis.db 'select id from wikis' | while read id

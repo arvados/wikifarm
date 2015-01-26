@@ -162,9 +162,9 @@ if (isset ($_GET["tabActive"]))
 <div id="pageheader"><div id="byline"><h3><?=$wikifarmConfig["servername"]?></h3><?=$wikifarmConfig["byline"]?></div>
 <div>
 <a href="logout.php" class="logoutinfo">Log out</a>
-<? if (preg_match ('{^https?://(\w+\.)?google\.com/}i', $_SERVER["REMOTE_USER"])) { ?>
+<?php if (preg_match ('{^https?://(\w+\.)?google\.com/}i', $_SERVER["REMOTE_USER"])) { ?>
 <a href="logout.php?logout_google=1">Log out of here <strong>and</strong> Google</a>
-<? } ?>
+<?php } ?>
 </div>
 </div>
 

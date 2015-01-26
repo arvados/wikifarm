@@ -1,5 +1,5 @@
 <html><head>
-<? @include(getenv('WIKIFARM_ETC').'/config.php'); ?>
+<?php @include(getenv('WIKIFARM_ETC').'/config.php'); ?>
 <title><?=$_SERVER['HTTP_HOST']?></title>
 <style type="text/css"><!--
 #msg { border: 1px solid #ff0000; background: #ffaaaa; font-weight: bold; padding: 10px; }
@@ -12,7 +12,7 @@ a:hover { text-decoration: underline; }
 // -->
 </style></head>
 
-<?
+<?php
 if ($_GET["modauthopenid_referrer"]) {
   $referrer = $_GET["modauthopenid_referrer"];
   if (preg_match('{^https://}', $_SERVER['SCRIPT_URI']) &&
@@ -35,9 +35,9 @@ if (@$wikifarmConfig["uri_scheme"]) {
 <h1><?= @$wikifarmConfig["servertitle"] ? $wikifarmConfig["servertitle"] : $_SERVER['HTTP_HOST']?></h1>
 <p>This site is protected and requires that you identify yourself with an <a href="http://openid.net">OpenID</a> login.</p>
 
-<? if(isset($_GET["modauthopenid_error"])) { ?>
+<?php if(isset($_GET["modauthopenid_error"])) { ?>
 <div style="background: #fdd; border: 1px dashed #b00">Login failed (error code: <?=$_GET["modauthopenid_error"]?>)</div>
-<? } ?>
+<?php } ?>
 
 <form style="display:inline" action="/" method="get" class="openidloginform">
 <b class="marg">Log in via:</b>

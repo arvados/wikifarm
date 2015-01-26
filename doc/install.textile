@@ -63,9 +63,10 @@ credentials for a privileged database user. Normally this is
 accomplished by the wikifarm installer. Example:
 
 <pre>
- <?
+ <?php
  $wgDBadminuser = 'root';
  $wgDBadminpassword = 'YOUR.MYSQL.ROOT.PW';
+ ?>
 </pre>
 
 Create the base wiki config and database

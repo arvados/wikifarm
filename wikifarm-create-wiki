@@ -37,8 +37,8 @@ else
   perl -pi~ -e "s/00/$wikiid/g; s/xxx/$wikishortname/g; s/^#// if /createaccount/;" $WWW/$wikiid/LocalSettings.php
 fi
 
-mysqlrootpw=$(echo '<? require("'$WWW'/'$wikiid'/AdminSettings.php"); print $wgDBadminpassword;' | php)
-mysqlrootuser=$(echo '<? require("'$WWW'/'$wikiid'/AdminSettings.php"); print $wgDBadminuser;' | php)
+mysqlrootpw=$(echo '<?php require("'$WWW'/'$wikiid'/AdminSettings.php"); print $wgDBadminpassword; ?>' | php)
+mysqlrootuser=$(echo '<?php require("'$WWW'/'$wikiid'/AdminSettings.php"); print $wgDBadminuser; ?>' | php)
 mysqlrootuser=${mysqlrootuser:-root}
 
 if [ "$wikiid" = "00" ]

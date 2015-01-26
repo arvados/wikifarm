@@ -33,9 +33,14 @@ h3. Example: Labeled Section Transclusion
   svn co http://svn.wikimedia.org/svnroot/mediawiki/trunk/extensions/LabeledSectionTransclusion \
     || (cd LabeledSectionTransclusion && svn update)
   cd /var/lib/wikifarm/www
-  echo 'require_once("extensions/LabeledSectionTransclusion/lst.php");' | tee -a FarmSettings.php
-  echo 'require_once("extensions/LabeledSectionTransclusion/lsth.php");' | tee -a FarmSettings.php
   )
+</pre>
+
+Add to /var/lib/wikifarm/www/FarmSettings.php:
+
+<pre>
+  require_once("extensions/LabeledSectionTransclusion/lst.php");
+  require_once("extensions/LabeledSectionTransclusion/lsth.php");
 </pre>
 
 h3. Example: ExtensionInstaller
