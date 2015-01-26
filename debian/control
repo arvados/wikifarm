@@ -1,5 +1,5 @@
 Source: wikifarm
-Build-Depends: wget, awstats, php5-cli, php5-sqlite
+Build-Depends: wget
 Maintainer: Tom Clegg <tom@clinicalfuture.com>
 
 Package: wikifarm
