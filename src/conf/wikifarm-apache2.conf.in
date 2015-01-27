@@ -1,4 +1,9 @@
-Mutex file:${APACHE_LOCK_DIR} rewrite-map
+<IfVersion >= 2.4>
+  Mutex file:${APACHE_LOCK_DIR} rewrite-map
+</IfVersion>
+<IfVersion < 2.4>
+  RewriteLock /tmp/rewritelock
+</IfVersion>
 
 <VirtualHost *:80>
   ServerName {{HOSTNAME}}
