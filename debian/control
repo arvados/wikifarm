@@ -1,6 +1,6 @@
 Source: wikifarm
 Build-Depends: wget
-Maintainer: Tom Clegg <tom@clinicalfuture.com>
+Maintainer: Tom Clegg <tom@curoverse.com>
 
 Package: wikifarm
 Section: web
