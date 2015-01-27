@@ -151,7 +151,7 @@ BLOCK;
 <table>
 <thead></thead><tbody>
 <tr>
-<td class="minwidth formlabelleft">OpenID</td><td>$q_openid</td>
+<td class="minwidth formlabelleft">ID</td><td>$q_openid</td>
 </tr><tr>
 <td class="minwidth formlabelleft">Session cookie</td><td>$q_cookie</td>
 </tr><tr>

@@ -5,6 +5,12 @@ set -e
 export ETC=$(cd $(dirname $0)/. && pwd)
 . $ETC/env
 
+if ! [[ -e "$ETC/site_secret" ]]; then
+    (umask 077; head -c2000 /dev/urandom | sha256sum | head -c64 >"$ETC/site_secret.tmp")
+    mv "$ETC/site_secret.tmp" "$ETC/site_secret"
+    chown www-data "$ETC/site_secret"
+fi
+
 export HOSTNAME="`hostname`"
 if fgrep -q '{{' /etc/apache2/sites-available/wikifarm.conf
 then

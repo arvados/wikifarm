@@ -27,22 +27,34 @@ if (@$wikifarmConfig["uri_scheme"]) {
   $referrer = preg_replace('{^[a-z]+://}',
                            $wikifarmConfig["uri_scheme"] . '://',
                            $referrer);
- }
+}
 ?>
 
 <body>
 <div style="margin: 30px; width: 50%">
 <h1><?= @$wikifarmConfig["servertitle"] ? $wikifarmConfig["servertitle"] : $_SERVER['HTTP_HOST']?></h1>
-<p>This site is protected and requires that you identify yourself with an <a href="http://openid.net">OpenID</a> login.</p>
+<p>Please identify yourself using a Google or <a href="http://openid.net">OpenID</a> account.</p>
 
 <?php if(isset($_GET["modauthopenid_error"])) { ?>
 <div style="background: #fdd; border: 1px dashed #b00">Login failed (error code: <?=$_GET["modauthopenid_error"]?>)</div>
 <?php } ?>
 
-<form style="display:inline" action="/" method="get" class="openidloginform">
+<form style="display:inline" action="https://accounts.google.com/o/oauth2/auth" method="get" class="openidloginform">
 <b class="marg">Log in via:</b>
+<input type="hidden" name="response_type" value="code" />
+<input type="hidden" name="client_id" value="<?= htmlspecialchars($wikifarmConfig['oauth2_google_client_id']) ?>" />
+<input type="hidden" name="redirect_uri" value="<?= htmlspecialchars($wikifarmConfig["uri_scheme"] . '://' . $wikifarmConfig["servername"] . '/login2.php') ?>" />
+<input type="hidden" name="state" value="<?=htmlspecialchars($referrer)?>" />
+<input type="hidden" name="scope" value="email openid profile" />
+<input type="hidden" name="access_type" value="offline" />
+<input type="hidden" name="approval_prompt" value="auto" />
+<input type="hidden" name="openid.realm" value="<?= htmlspecialchars($wikifarmConfig["uri_scheme"] . '://' . $wikifarmConfig["servername"] . '/') ?>" />
+<input class="marg" type="submit" value="Google+" />
+</form>
+
+<form style="display:inline" action="/" method="get" class="openidloginform">
 <input type="hidden" name="openid_identifier" value="https://www.google.com/accounts/o8/id" />
-<input class="marg" type="submit" value="Google" />
+<input class="marg" type="submit" value="Google OpenID" />
 <input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($referrer)?>" />
 </form>
 

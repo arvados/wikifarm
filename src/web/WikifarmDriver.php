@@ -1047,6 +1047,28 @@ WHERE wikiid IN (SELECT id FROM wikis WHERE userid='$q_openid')");
 		return true;
 	}
 
+    function migrateUser($old_id, $new_id) {
+        // If $old_id is an existing user but $new_id isn't, rename
+        // $old_id to $new_id.
+
+        if (!$this->is_a_user($old_id))
+            return;
+        if ($this->is_a_user($new_id)) {
+            // This user has two accounts now. Good luck.
+            error_log("Warning: seeing OAuth2 id $new_id with legacy OpenID $old_id but both users already exist. Can't migrate.");
+            return;
+        }
+        error_log("Migrating user $old_id to $new_id");
+        $q_old_id = SQLite3::escapeString($old_id);
+        $q_new_id = SQLite3::escapeString($new_id);
+        // Migrate the user table last: if case anything goes wrong, we
+        // might be able to get back here again someday.
+        foreach (explode(' ', 'autologin request usergroups userpref wikipermission wikis users') as $table) {
+            $this->DB->exec("UPDATE $table SET userid='$q_new_id' WHERE userid='$q_old_id'");
+        }
+        error_log("Finished migrating user $old_id to $new_id");
+    }
+
 }  // WikifarmDriver class ends
 
 

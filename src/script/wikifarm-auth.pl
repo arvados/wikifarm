@@ -24,8 +24,8 @@ while (defined ($_ = <STDIN>)) {
     if ($uri =~ m:^/[^/]*$: ||
 	$uri =~ m:^/\w+/(skins): ||
 	$uri =~ m:^/(css|js|images|help)/:) {
-	print X "uri $uri > yes\n";
-	print "yes\n";
+	print X "uri $uri > anonymous\n";
+	print "anonymous\n";
 	next;
     }
 
@@ -34,7 +34,7 @@ while (defined ($_ = <STDIN>)) {
 	db_connect (\$openid_db, $auth_openid_db_file);
 	if (!$openid_db) {
 	    print X "openid db not connected yet -- uri $uri\n" if $debug;
-	    print "no\n";
+	    print "-\n";
 	    next;
 	}
     }
@@ -44,7 +44,7 @@ while (defined ($_ = <STDIN>)) {
 	db_connect (\$wikifarm_db, $wikifarm_db_file);
 	if (!$wikifarm_db) {
 	    print X "wikifarm db not connected yet -- uri $uri\n" if $debug;
-	    print "no\n";
+	    print "-\n";
 	    next;
 	}
     }
@@ -64,19 +64,19 @@ while (defined ($_ = <STDIN>)) {
 	"SELECT identity, session_id FROM sessionmanager WHERE session_id=?",
 	undef, $session_id);
 
-    my $yesno = "no";
+    my $result = "-";
     if (!defined $session_exists) {
 	# allow mod_auth_openid to show a login page
-	$yesno = "yes";
+	$result = "anonymous";
     }
     elsif ($uri =~ m:^/test.php:) {
-	$yesno = "yes";
+	$result = "$user_id";
     }
     elsif ($why = user_can_see_wiki ($wikifarm_db, $user_id, $wikiid, $uri)) {
-	$yesno = "yes";
+	$result = "$user_id";
     }
-    printf X ("%.3f s %s", tv_interval ($t0), "wiki $wikiid > session $session_id > user $user_id > uri $uri > $yesno ($why)\n") if $debug;
-    print "$yesno\n";
+    printf X ("%.3f s %s", tv_interval ($t0), "wiki $wikiid > session $session_id > user $user_id > uri $uri > $result ($why)\n") if $debug;
+    print "$result\n";
 }
 
 exit 0;

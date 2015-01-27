@@ -27,7 +27,7 @@ CustomLog "|$ENV{ETC}/wikifarm-log-split.pl $ENV{WWW}/{}/private/access_log.txt 
   AuthOpenIDDBLocation $OPENID_DB_FILE
   AuthOpenIDLoginPage /login.php
 </Location>
-<LocationMatch ^/log(in|out).*>
+<LocationMatch ^/(login2?\.php|logout\.php|css/|images/|js/).*>
   $disable_auth_openid
 </LocationMatch>
 <LocationMatch ^/mediawiki.*>
@@ -64,7 +64,8 @@ if (!close STDIN) {
 }
 
 print HTACCESS qq{
-RewriteCond \${wikifarm_auth:${WIKIFARM_DB_FILE}:::${OPENID_DB_FILE}:::%{ENV:WIKIID}:::%{REQUEST_URI}:::%{HTTP_COOKIE}} !=yes
+RewriteRule .* - [E=REMOTE_USER:\${wikifarm_auth:${WIKIFARM_DB_FILE}:::${OPENID_DB_FILE}:::%{ENV:WIKIID}:::%{REQUEST_URI}:::%{HTTP_COOKIE}}]
+RewriteCond %{REMOTE_USER} ^-
 RewriteRule .* . [F]
 
 # Prevent direct access to mediawiki installations

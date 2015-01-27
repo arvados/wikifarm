@@ -1,5 +1,4 @@
-<?php
-    ;
+<?php ; // -*- mode: php; indent-tabs-mode: nil; -*-
 
 // Save this as config.php and edit to suit your installation.
 
@@ -8,3 +7,9 @@ $wikifarmConfig["servertitle"] = "A Wiki Farm";
 $wikifarmConfig["byline"] = "\"i can haz wiki\"";
 $wikifarmConfig["enable_claim_by_password"] = false;
 $wikifarmConfig["uri_scheme"] = "http"; // or you might need "https"
+
+// See https://developers.google.com/+/web/signin/server-side-flow
+// $wikifarmConfig["oauth2_google_client_id"] = "copy-client-id-from-dev-console";
+// $wikifarmConfig["oauth2_google_client_secret"] = "copy-secret-from-dev-console";
+
+?>

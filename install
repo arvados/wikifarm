@@ -31,8 +31,10 @@ install $SRC/script/wikifarm-sudo-enable $DESTDIR$ETC/
 install $SRC/script/wikifarm-sudo-disable $DESTDIR$ETC/
 install $SRC/script/wikifarm-template-save $DESTDIR$ETC/
 install $SRC/script/make_admin_user.php $DESTDIR$ETC/
-install $SRC/web/{login,logout,index,claim-wiki-by-password}.php $DESTDIR$WWW/
+install $TREE/deps/jwt_helper.php $DESTDIR$WWW/
+install $SRC/web/{login,login2,logout,index,claim-wiki-by-password}.php $DESTDIR$WWW/
 install $SRC/web/login-bg.gif $DESTDIR$WWW/
+install $SRC/web/WikifarmAuth.php $DESTDIR$WWW/
 install $SRC/web/WikifarmDriver.php $DESTDIR$WWW/
 install $SRC/web/WikifarmPageMachine.php $DESTDIR$WWW/
 install $SRC/web/DefaultFarmSettings.php $DESTDIR$WWW/
