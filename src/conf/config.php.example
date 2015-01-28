@@ -9,9 +9,14 @@ $wikifarmConfig["enable_claim_by_password"] = false;
 $wikifarmConfig["uri_scheme"] = "http"; // or you might need "https"
 
 // To enable Google OAuth2 login, you need a client ID and a client secret.
-// See https://developers.google.com/+/web/signin/server-side-flow
-// $wikifarmConfig["oauth2_google_client_id"] = "copy-client-id-from-dev-console";
-// $wikifarmConfig["oauth2_google_client_secret"] = "copy-secret-from-dev-console";
+// Make these at https://console.developers.google.com/ and read more at
+// https://developers.google.com/accounts/docs/OAuth2WebServer
+// Application type:                   Web application
+// Your authorized javascript origins: https://wikifarm.example.com/
+// Your authorized redirect URIs:      https://wikifarm.example.com/login2.php
+//
+//$wikifarmConfig["oauth2_google_client_id"] = "copy-client-id-from-dev-console";
+//$wikifarmConfig["oauth2_google_client_secret"] = "copy-secret-from-dev-console";
 
 // Enable/disable OpenID buttons for Google (EOL!) and Yahoo.
 $wikifarmConfig["openid2_google"] = false;
