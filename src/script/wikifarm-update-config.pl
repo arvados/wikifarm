@@ -15,8 +15,6 @@ if (0 == system('grep -q AuthOpenIDEnabled /usr/lib/apache2/modules/mod_auth_ope
 }
 
 print qq{
-#RewriteLog /tmp/rewrite.log
-#RewriteLogLevel 9
 CustomLog "|$ENV{ETC}/wikifarm-log-split.pl $ENV{WWW}/{}/private/access_log.txt /var/log/apache2/wikifarm-access.log $ENV{DB}/wikis.db" combined
 
 <Location />
