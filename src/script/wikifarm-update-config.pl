@@ -25,7 +25,7 @@ CustomLog "|$ENV{ETC}/wikifarm-log-split.pl $ENV{WWW}/{}/private/access_log.txt 
   AuthOpenIDDBLocation $OPENID_DB_FILE
   AuthOpenIDLoginPage /login.php
 </Location>
-<LocationMatch ^/(login2?\.php|logout\.php|css/|images/|js/).*>
+<LocationMatch ^/(login2?\.php|logout\.php|css/|images/|js/|serverlogo\.).*>
   $disable_auth_openid
 </LocationMatch>
 <LocationMatch ^/mediawiki.*>
