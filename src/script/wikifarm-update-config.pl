@@ -63,7 +63,7 @@ if (!close STDIN) {
 
 print HTACCESS qq{
 RewriteRule .* - [E=REMOTE_USER:\${wikifarm_auth:${WIKIFARM_DB_FILE}:::${OPENID_DB_FILE}:::%{ENV:WIKIID}:::%{REQUEST_URI}:::%{HTTP_COOKIE}}]
-RewriteCond %{REMOTE_USER} ^-
+RewriteCond %{ENV:REMOTE_USER} ^-
 RewriteRule .* . [F]
 
 # Prevent direct access to mediawiki installations
