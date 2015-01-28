@@ -39,31 +39,39 @@ if (@$wikifarmConfig["uri_scheme"]) {
 <div style="background: #fdd; border: 1px dashed #b00">Login failed (error code: <?=$_GET["modauthopenid_error"]?>)</div>
 <?php } ?>
 
+<p><b>Log in via:</b></p>
+
+<?php if ($wikifarmConfig['oauth2_google_client_id']) { ?>
 <form style="display:inline" action="https://accounts.google.com/o/oauth2/auth" method="get" class="openidloginform">
-<b class="marg">Log in via:</b>
 <input type="hidden" name="response_type" value="code" />
 <input type="hidden" name="client_id" value="<?= htmlspecialchars($wikifarmConfig['oauth2_google_client_id']) ?>" />
 <input type="hidden" name="redirect_uri" value="<?= htmlspecialchars($wikifarmConfig["uri_scheme"] . '://' . $wikifarmConfig["servername"] . '/login2.php') ?>" />
 <input type="hidden" name="state" value="<?=htmlspecialchars($referrer)?>" />
 <input type="hidden" name="scope" value="email openid profile" />
-<input type="hidden" name="access_type" value="offline" />
+<input type="hidden" name="access_type" value="online" />
 <input type="hidden" name="approval_prompt" value="auto" />
 <input type="hidden" name="openid.realm" value="<?= htmlspecialchars($wikifarmConfig["uri_scheme"] . '://' . $wikifarmConfig["servername"] . '/') ?>" />
-<input class="marg" type="submit" value="Google+" />
+<input class="marg" type="submit" value="Google" />
 </form>
+<?php } ?>
 
+<?php if (!$wikifarmConfig['oauth2_google_client_id'] || @$wikifarmConfig['openid2_google']) { /* default=disabled */ ?>
 <form style="display:inline" action="/" method="get" class="openidloginform">
 <input type="hidden" name="openid_identifier" value="https://www.google.com/accounts/o8/id" />
 <input class="marg" type="submit" value="Google OpenID" />
 <input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($referrer)?>" />
 </form>
+<?php } ?>
 
+<?php if (@$wikifarmConfig['openid2_yahoo'] !== false) { ?>
 <form style="display:inline" action="/" method="get" class="openidloginform">
 <input type="hidden" name="openid_identifier" value="http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds" />
 <input class="marg" type="submit" value="Yahoo" />
 <input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($referrer)?>" />
 </form>
+<?php } ?>
 
+<?php if (@$wikifarmConfig['openid2_custom'] !== false) { ?>
 <p><b>or</b></p>
 
 <form class="marg" action="/" method="get" class="openidloginform">
@@ -71,8 +79,9 @@ if (@$wikifarmConfig["uri_scheme"]) {
 <input type="submit" value="Log In" />
 <input type="hidden" name="modauthopenid_referrer" value="<?=htmlspecialchars($referrer)?>" />
 </form>
+<?php } ?>
 
-<p>If you do not have an account, you may request one after logging in.</p>
+<p><?= @$wikifarmConfig['login_motd_html'] ?></p>
 
 </div>
 <body>
