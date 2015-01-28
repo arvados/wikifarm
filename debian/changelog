@@ -1,3 +1,16 @@
+wikifarm (0.15) stable; urgency=low
+
+  * Install maxlifetime workaround, delete manual install step, improve docs
+  * Add ExtensionInstaller example.
+  * Update upgrade docs for 1.19
+  * Fix PHP shorttags and missing endtags.
+  * Fix Apache configs for Apache 2.4.
+  * Tidy up source tree.
+  * Add Google+ OAuth2 login and auto-migrate.
+  * Add config vars to enable login buttons and set custom motd.
+
+ -- Tom Clegg <tom@clinicalfuture.com>  Tue, 27 Jan 2015 22:09:51 -0500
+
 wikifarm (0.14) stable; urgency=low
 
   * remove dependency on "strings" program
