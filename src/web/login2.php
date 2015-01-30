@@ -36,7 +36,6 @@ function verify_token() {
     $access_token = $resp->access_token;
     $id_token = $resp->id_token;
     $id_payload = JWT::decode($resp->id_token, null, false);
-    error_log(json_encode($id_payload)); // XXX
     if (!$id_payload->sub) {
         error_log(json_encode($id_payload));
         error_out('No subscriber ID provided in ID token! See error log for details.');
