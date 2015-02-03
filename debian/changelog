@@ -1,3 +1,14 @@
+wikifarm (0.16) stable; urgency=low
+
+  * Remove debug printf.
+  * Bump php memory limit.
+  * Compatibility fix for older mod_auth_openid / older PHP.
+  * Fix up config file name change.
+  * Enable mod_version during setup.
+  * Fix wrong site conf name.
+
+ -- Tom Clegg <tom@curoverse.com>  Mon, 02 Feb 2015 21:21:50 -0500
+
 wikifarm (0.15) stable; urgency=low
 
   * Install maxlifetime workaround, delete manual install step, improve docs
