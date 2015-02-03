@@ -7,6 +7,7 @@
 require_once('WikifarmDriver.php');
 
 function setUserId($uid, $username="") {
+    global $wikifarmConfig;
     $site_secret = file_get_contents(getenv('WIKIFARM_ETC').'/site_secret');
     setcookie('wikifarm_sig_ts', $_COOKIE['wikifarm_sig_ts'] = $ts = ''.time());
     setcookie('wikifarm_user_id', $_COOKIE['wikifarm_user_id'] = $uid);
@@ -16,7 +17,7 @@ function setUserId($uid, $username="") {
         $session_id = substr($_COOKIE['wikifarm_sig'], 0, 32);
         setcookie('open_id_session_id', $session_id);
         $db = new SQLite3($dbfile);
-        $db->exec("insert into sessionmanager (identity,session_id,expires_on,username,hostname,path) values ('".SQLite3::escapeString($uid)."','".SQLite3::escapeString($session_id)."',".(time()+86400*7).",'".SQLite3::escapeString($username)."','".explode(':',$_SERVER['HTTP_HOST'])[0]."','/')");
+        $db->exec("insert into sessionmanager (identity,session_id,expires_on,hostname,path) values ('".SQLite3::escapeString($uid)."','".SQLite3::escapeString($session_id)."',".(time()+86400*7).",'".SQLite3::escapeString($wikifarmConfig['servername'])."','/')");
     }
 }
 
