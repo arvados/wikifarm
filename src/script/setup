@@ -43,7 +43,8 @@ then
   echo "LoadModule authopenid_module /usr/lib/apache2/modules/mod_auth_openid.so" >/etc/apache2/mods-available/auth_openid.load
 fi
 
-a2ensite wikifarm
+a2enmod version
+a2ensite wikifarm.conf
 [ -e /etc/apache2/mods-enabled/rewrite.load ] || a2enmod rewrite
 [ -e /etc/apache2/mods-enabled/auth_openid.load ] || a2enmod auth_openid
 mwenext WikifarmAuthPlugin.php
