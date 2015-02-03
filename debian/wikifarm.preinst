@@ -2,13 +2,11 @@
 
 set -e
 
-if [[ "$1" == upgrade ]] && [[ -e /etc/apache2/sites-available/wikifarm ]]; then
+if [[ "$1" == upgrade ]] && [[ -e /etc/apache2/sites-available/wikifarm ]] && ! [[ -e /etc/apache2/sites-available/wikifarm.conf ]]; then
     # a2*site now require that site configs end in .conf
-    mv /etc/apache2/sites-available/wikifarm{,.conf}
+    cp /etc/apache2/sites-available/wikifarm{,.conf}
     if [[ -e /etc/apache2/sites-enabled/wikifarm ]]; then
-        ln -s wikifarm.conf /etc/apache2/sites-available/wikifarm
         a2dissite wikifarm
-        rm /etc/apache2/sites-available/wikifarm
         a2ensite wikifarm.conf
     fi
 fi
