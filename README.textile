@@ -11,7 +11,7 @@ Features / raisons d'&ecirc;tre:
 Documentation:
 
 * "License (GPL)":doc/license.md
-* "How to install":doc/install.textile on a debian system
+* "How to install":doc/install.textile on a debian/ubuntu system
 * "Pre-built AMI":doc/ami.textile
 * "Performance tuning":doc/performance.textile
 * "Restoring or importing":doc/restore.textile an existing wiki to a wikifarm
