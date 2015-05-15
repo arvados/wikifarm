@@ -3,7 +3,7 @@
 // Copyright 2011 President and Fellows of Harvard College
 //
 // Author:
-// Tom Clegg <tom@clinicalfuture.com>
+// Tom Clegg <tom@curoverse.com>
 //
 // This file is part of wikifarm.
 //

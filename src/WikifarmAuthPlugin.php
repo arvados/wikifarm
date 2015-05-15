@@ -3,8 +3,8 @@
 // Copyright 2010 President and Fellows of Harvard College
 //
 // Authors:
-// Tom Clegg <tom@clinicalfuture.com>
-// Jer Ratcliffe <jer@clinicalfuture.com>
+// Tom Clegg <tom@curoverse.com>
+// Jer Ratcliffe
 //
 // This file is part of wikifarm.
 //

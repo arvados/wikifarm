@@ -1,8 +1,8 @@
 Copyright 2010 President and Fellows of Harvard College
 
 Authors:
-* Tom Clegg <tom@clinicalfuture.com>
-* Jer Ratcliffe <jer@clinicalfuture.com>
+* Tom Clegg <tom@curoverse.com>
+* Jer Ratcliffe
 
 Wikifarm is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License version 2 as
