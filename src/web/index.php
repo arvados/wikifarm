@@ -29,6 +29,11 @@ if (isset($_GET["modauthopenid_referrer"]) &&
 if (preg_match ('{application/json}', $_SERVER["HTTP_ACCEPT"]) ||
     array_key_exists ("ga_action", $_POST)) {
 	ini_set ('display_errors', false);
+    if (!preg_match ("{://" . preg_quote($wikifarmConfig["servername"]) . "(:.*)?/?$}", $_SERVER["HTTP_ORIGIN"])) {
+        // Deny cross-origin request / CSRF attempt.
+        header("Content-Type: text/plain", true, 403);
+        exit;
+    }
 	header ("Content-type: application/json");
 	$response = array_merge(array ("request" => $_POST),
 				$wf->dispatch_ajax($_POST));
