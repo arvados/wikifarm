@@ -3,9 +3,15 @@
 set -e
 
 a2dissite wikifarm
-mwdisext WikifarmAuthPlugin.php || ! [ -e /etc/mediawiki-extensions/extensions-enabled/WikifarmAuthPlugin.php ]
+if [ -h /var/lib/mediawiki/extensions/WikifarmAuthPlugin.php ]; then
+  rm /var/lib/mediawiki/extensions/WikifarmAuthPlugin.php
+fi
 
-VISUAL="/etc/wikifarm/wikifarm-sudo-disable" visudo
+if [ -h /etc/php/7.4/apache2/conf.d/30-wikifarm.ini ]; then
+  rm /etc/php/7.4/apache2/conf.d/30-wikifarm.ini
+fi
+
+/etc/wikifarm/wikifarm-sudo-disable
 
 if apache2ctl configtest
 then

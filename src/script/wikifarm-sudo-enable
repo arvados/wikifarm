@@ -1,6 +1,5 @@
 #!/bin/sh
 
-if ! fgrep /etc/wikifarm/wikifarm-create-wiki "$1"
-then
-  echo 'www-data ALL = (ubuntu) NOPASSWD: /etc/wikifarm/wikifarm-create-wiki' >> "$1"
+if ! [ -e /etc/sudoers.d/90-wikifarm ]; then
+  echo 'www-data ALL = (ubuntu) NOPASSWD: /etc/wikifarm/wikifarm-create-wiki' > /etc/sudoers.d/90-wikifarm
 fi

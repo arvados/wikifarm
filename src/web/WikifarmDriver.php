@@ -3,7 +3,7 @@
 // Copyright 2011 President and Fellows of Harvard College
 //
 // Authors:
-// Tom Clegg <tom@curoverse.com>
+// Tom Clegg <tom@curii.com>
 // Jer Ratcliffe
 //
 // This file is part of wikifarm.
@@ -358,7 +358,9 @@ class WikifarmDriver {
 
 	function getWikiQuota() {
 		if (!$this->isActivated()) return 0;
-		$quota = $this->_cache["user"]["wikiquota"];
+		if ($this->_cache["user"] && $this->_cache["user"]["wikiquota"]) {
+			$quota = $this->_cache["user"]["wikiquota"];
+		}
 		if (!isset($quota)) $quota = 5;
 		return $quota;
 	}
