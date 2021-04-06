@@ -3,7 +3,7 @@
 // Copyright 2011 President and Fellows of Harvard College
 //
 // Authors:
-// Tom Clegg <tom@curoverse.com>
+// Tom Clegg <tom@curii.com>
 // Jer Ratcliffe
 //
 // This file is part of wikifarm.
@@ -252,13 +252,13 @@ BLOCK;
 	/* --- The Increasingly-Complicated Button Bar --- */
 			$output .= "<td class='minwidth nowrap'>";
 			// these are prepared in a way that we can use as little or as much Ajax as we like.
-			$show_login = ($autologin[0] ? '' : 'ui-helper-hidden');
+			$show_login = ($autologin && $autologin[0] ? '' : 'ui-helper-hidden');
 			$show_view = (!$writable && $readable ? '' : 'ui-helper-hidden');
 			$show_requestpending = ($requested_writable || $requested_readable ? '' : 'ui-helper-hidden');
 			$show_requestwrite = (!$writable && !$requested_writable && ($readable || $requested_readable) ? '' : 'ui-helper-hidden');
 			$show_request = (!$readable && !$requested_readable ? '' : 'ui-helper-hidden');
 			$output .= "<select id='loginselect-$wikiid' name='loginselect-$wikiid' wikiid='$wikiid' class='wf-button loginselect $show_login' ga_form_id='allwikisform' ga_action='loginas'><option value=''>Login as...</option>";
-			if ($autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
+			if ($autologin && $autologin[0]) foreach ($autologin as $alogin) { $output .= "<option value='$alogin'>$alogin</option>"; }
 			$output .= "<option value='0'>Manual sign-in</option></select>" .
 				"<a icon='ui-icon-play' id='button-viewwiki-$wikiid' class='linkbutton $show_view' link='/$wikiname/'>View</a>" .
 				"</td><td class='minwidth nowrap'>" .

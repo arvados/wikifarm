@@ -21,19 +21,17 @@ while (defined ($_ = <STDIN>)) {
     my $t0 = [gettimeofday];
     my ($wikifarm_db_file, $auth_openid_db_file, $wikiid, $uri, $cookie) = split (":::", $_, 5);
 
-    if ($uri =~ m:^/[^/]*$: ||
-	$uri =~ m:^/\w+/(skins): ||
-	$uri =~ m:^/(css|js|images|help)/:) {
-	print X "uri $uri > anonymous\n";
-	print "anonymous\n";
-	next;
+    if ($uri =~ m:^/login2?\.php$:) {
+        print X "uri $uri > anonymous\n";
+        print "anonymous\n";
+        next;
     }
 
     if (!$openid_db) {
 	print X "connect to $auth_openid_db_file\n" if $debug;
 	db_connect (\$openid_db, $auth_openid_db_file);
 	if (!$openid_db) {
-	    print X "openid db not connected yet -- uri $uri\n" if $debug;
+	    print X "ERROR: openid db not connected yet -- uri $uri\n" if $debug;
 	    print "-\n";
 	    next;
 	}
@@ -43,38 +41,59 @@ while (defined ($_ = <STDIN>)) {
 	print X "connect to $wikifarm_db_file\n" if $debug;
 	db_connect (\$wikifarm_db, $wikifarm_db_file);
 	if (!$wikifarm_db) {
-	    print X "wikifarm db not connected yet -- uri $uri\n" if $debug;
+	    print X "ERROR: wikifarm db not connected yet -- uri $uri\n" if $debug;
 	    print "-\n";
 	    next;
 	}
     }
 
     my ($session_id) = $in =~ /open_id_session_id=(\w+)/;
+    print X "session_id is $session_id\n" if $debug;
 
     # extend session expiry time so it can't expire without N seconds
     # of inactivity
     my $now = scalar time;
     my $minexpire = $now + 86400 * 4;
     $openid_db->do (
-	"UPDATE sessionmanager SET expires_on=?
-	 WHERE session_id=? and expires_on>=? and expires_on<?",
-	undef, $minexpire, $session_id, $now, $minexpire);
+        "UPDATE sessionmanager SET expires_on=?
+         WHERE session_id=? and expires_on>=? and expires_on<?",
+        undef, $minexpire, $session_id, $now, $minexpire);
+    if ($DBI::err) {
+        print X "ERROR: $DBI::errstr\n";
+        print "-\n";
+        next;
+    }
 
     my ($user_id, $session_exists) = $openid_db->selectrow_array (
 	"SELECT identity, session_id FROM sessionmanager WHERE session_id=?",
 	undef, $session_id);
+    if ($DBI::err) {
+	print X "ERROR: $DBI::errstr\n";
+        print "-\n";
+        next;
+    }
+
+    print X "user_id is $user_id\n" if $debug;
+    print X "session_exists is $session_exists\n" if $debug;
 
     my $result = "-";
     if (!defined $session_exists) {
-	# allow mod_auth_openid to show a login page
-	$result = "anonymous";
-    }
-    elsif ($uri =~ m:^/test.php:) {
+	# redirect to /
+	$result = "/";
+        print X "returning / because session_id is not set\n" if $debug;
+    } elsif ($uri =~ m:^/[^/]*$: ||
+             $uri =~ m:^/(css|js|images|help)/:) {
+	# Authenticated users have access to the control panel
+	$result = "$user_id";
+    } elsif ($uri =~ m:^/test.php:) {
 	$result = "$user_id";
     }
     elsif ($why = user_can_see_wiki ($wikifarm_db, $user_id, $wikiid, $uri)) {
 	$result = "$user_id";
     }
+
+
+    printf X "wikiid: $wikiid\n";
     printf X ("%.3f s %s", tv_interval ($t0), "wiki $wikiid > session $session_id > user $user_id > uri $uri > $result ($why)\n") if $debug;
     print "$result\n";
 }
@@ -85,11 +104,14 @@ sub db_connect
 {
     my $db = shift;
     my $file = shift;
-    return undef unless -r $file;
+    # return undef unless -r $file;
+    if (! -r $file) {
+	    return undef;
+    }
     $$db = DBI->connect("dbi:SQLite:dbname=$file",
 			"",
 			"",
-			{ RaiseError => 1 });
+			{ RaiseError => 0 });
 }
 
 sub user_can_see_wiki

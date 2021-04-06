@@ -3,33 +3,20 @@
 open STDIN, "sqlite3 $ENV{DB}/wikis.db 'select id,wikiname from wikis' |" or die "sqlite3 $ENV{DB}/wikis.db: $!";
 open STDOUT, ">", "$ENV{DB}/apache2.conf.$$" or die "$ENV{DB}/apache2.conf.$$: $!";
 
-$OPENID_DB_FILE = "/tmp/mod_auth_openid.db";
+$OPENID_DB_FILE = "$ENV{DB}/sessions.db";
 $WIKIFARM_DB_FILE = "$ENV{DB}/wikis.db";
-
-if (0 == system('grep -q AuthOpenIDEnabled /usr/lib/apache2/modules/mod_auth_openid.so >/dev/null')) {
-    $enable_auth_openid = "AuthOpenIDEnabled On";
-    $disable_auth_openid = "AuthOpenIDEnabled Off";
-} else {
-    $enable_auth_openid = "AuthType OpenID\n  require valid-user";
-    $disable_auth_openid = "Allow from all\n  Satisfy any";
-}
 
 print qq{
 CustomLog "|$ENV{ETC}/wikifarm-log-split.pl $ENV{WWW}/{}/private/access_log.txt /var/log/apache2/wikifarm-access.log $ENV{DB}/wikis.db" combined
 
 <Location />
-  $enable_auth_openid
-  # This sets cookie lifetime = 0 but server session lifetime = 86400
-  AuthOpenIDCookieLifespan 0
-  AuthOpenIDCookiePath /
-  AuthOpenIDDBLocation $OPENID_DB_FILE
-  AuthOpenIDLoginPage /login.php
+  Require all granted
 </Location>
 <LocationMatch ^/(login2?\.php|logout\.php|css/|images/|js/|serverlogo\.).*>
-  $disable_auth_openid
+  Require all granted
 </LocationMatch>
 <LocationMatch ^/mediawiki.*>
-  Deny from all
+  Require all denied
 </LocationMatch>
 
 SetEnv WIKIFARM_DB_FILE $WIKIFARM_DB_FILE
@@ -49,9 +36,9 @@ while (<STDIN>)
     $wikiid = sprintf "%02d", $wikiid;
     print HTACCESS qq{
 RewriteCond %{ENV:WIKIID} !.
-RewriteRule ^$wikiid(/(.*))?\$ $wikiid/\$2 [E=WIKIID:$wikiid]
+RewriteRule ^$wikiid(/(.*))?\$ $wikiid/\$2 [E=WIKIID:$wikiid,E=MW_INSTALL_PATH:$ENV{WWW}/$wikiid]
 RewriteCond %{ENV:WIKIID} !.
-RewriteRule ^$wikiname(/(.*))?\$ $wikiid/index.php?title=\$2 [E=WIKIID:$wikiid,QSA]
+RewriteRule ^$wikiname(/(.*))?\$ $wikiid/index.php?title=\$2 [E=WIKIID:$wikiid,E=MW_INSTALL_PATH:$ENV{WWW}/$wikiid,QSA]
 };
 }
 if (!close STDIN) {

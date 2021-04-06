@@ -4,7 +4,7 @@ set -e
 . $(dirname $0)/env
 
 templatesettings=$WWW/00/LocalSettings.php
-sudo mv /var/lib/mediawiki/config/LocalSettings.php $templatesettings
+sudo mv ~ubuntu/00-LocalSettings.php $templatesettings
 find $WWW/00 -user root -print0 | xargs -0 sudo chown ubuntu:ubuntu
 sudo chown ubuntu:ubuntu $WWW/00
 sudo chmod 644 $templatesettings
@@ -16,4 +16,4 @@ require_once(dirname(__FILE__)."/../FarmSettings.php");
 EOF
 sudo perl -pi~ -e 's/^/#/ if /^define.*MW_INSTALL_PATH/' $templatesettings
 
-echo 'Deny from all' | sudo tee $WWW/00/.htaccess
+echo 'Require all denied' | sudo tee $WWW/00/.htaccess
