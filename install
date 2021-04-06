@@ -42,7 +42,7 @@ install $SRC/conf/config.php.example $DESTDIR$ETC/
 install $SRC/conf/mysql-utf8.cnf $DESTDIR$ETC/
 
 make -C $TREE dist
-install $TREE/dist/textile-2.0.0/classTextile.php $DESTDIR$WWW/
+install $TREE/dist/php-textile-2.5.5/classTextile.php $DESTDIR$WWW/
 install $SRC/web/help.textile $DESTDIR$WWW/
 install $SRC/web/adminhelp.textile $DESTDIR$WWW/
 rsync -av $SRC/web/help/ $DESTDIR$WWW/help/
