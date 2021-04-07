@@ -61,10 +61,14 @@ mkdir -p $DESTDIR$WWW/css
 cp -r $SRC/web/css/* $DESTDIR$WWW/css/
 install $SRC/web/style.css $DESTDIR$WWW/
 
-for ext in $DEPS/SimpleTable.php $DEPS/GeSHiHighlight.php $SRC/WikifarmAuthPlugin.php
+for ext in $DEPS/SimpleTable.php $DEPS/GeSHiHighlight.php
 do
   install "$ext" "$DESTDIR$ETC/"
-  extbase="$(basename "$ext")"
+done
+
+for ext in $SRC/WikifarmAuthPlugin $TREE/dist/Auth_remoteuser
+do
+  cp -r "$ext" "$DESTDIR$ETC/"
 done
 
 install $SRC/script/initialize_wikis_db.php $DESTDIR$ETC/

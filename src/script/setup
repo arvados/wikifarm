@@ -42,7 +42,8 @@ a2ensite wikifarm.conf
 [ -e /etc/apache2/mods-enabled/rewrite.load ] || a2enmod rewrite
 [ -e /etc/apache2/mods-enabled/auth_openid.load ] || a2enmod auth_openid
 
-ln -s $ETC/WikifarmAuthPlugin.php /var/lib/mediawiki/extensions/
+ln -s $ETC/WikifarmAuthPlugin /var/lib/mediawiki/extensions/
+ln -s $ETC/Auth_remoteuser /var/lib/mediawiki/extensions/
 
 WIKIFARM_ETC="$ETC" $ETC/wikifarm-update-config.pl
 $ETC/wikifarm-sudo-enable

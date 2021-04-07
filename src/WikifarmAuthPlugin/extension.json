@@ -1,0 +1,47 @@
+{
+  "name": "WikifarmAuthPlugin",
+  "author": [
+    "Tom Clegg <tom@curii.com>"
+  ],
+  "url": "https://github.com/arvados/wikifarm",
+  "descriptionmsg": "wikifarmauthplugin-desc",
+  "license-name": "GPL-2.0",
+  "version": "1.0",
+  "type": "other",
+  "requires": {
+    "MediaWiki": ">= 1.35.0"
+  },
+  "AutoloadNamespaces": {
+    "MediaWiki\\Extension\\WikifarmAuthPlugin\\": "includes/"
+  },
+  "config": {
+  },
+  "HookHandlers": {
+    "WikifarmAuthPluginHooks": {
+	    "class": "MediaWiki\\Extension\\WikifarmAuthPlugin\\Hooks"
+    }
+  },
+  "Hooks": {
+    "UserLoginComplete": "WikifarmAuthPluginHooks",
+    "UserGetRights": "WikifarmAuthPluginHooks",
+    "UserLogout": "WikifarmAuthPluginHooks"
+  },
+  "MessagesDirs": {
+    "WikifarmAuthPlugin": [
+      "i18n"
+    ]
+  },
+  "ResourceFileModulePaths": {
+    "localBasePath": "resources",
+    "remoteExtPath": "WikifarmAuthPlugin/resources"
+  },
+  "ResourceModules": {
+    "ext.wikifarmAuthPlugin": {
+      "dependencies": [],
+      "messages": [],
+      "styles": [],
+      "scripts": []
+    }
+  },
+  "manifest_version": 2
+}
