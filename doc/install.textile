@@ -22,7 +22,15 @@ Create a privileged user called "ubuntu" (if you used ami-714ba518, you can skip
 Update your OS
 
 <pre>
-  sudo aptitude update && sudo aptitude full-upgrade
+  sudo apt update && sudo apt upgrade
+</pre>
+
+Add the mediawiki-lts PPA
+
+<pre>
+  sudo apt install software-properties-common
+  sudo add-apt-repository ppa:legoktm/mediawiki-lts
+  sudo apt update
 </pre>
 
 Add the wikifarm repository to your apt sources
@@ -30,7 +38,7 @@ Add the wikifarm repository to your apt sources
 <pre>
   wget -q -O- http://apt.clinicalfuture.com/clinicalfuture-key.gpg | sudo apt-key add -
   echo deb http://apt.clinicalfuture.com/wikifarm lucid main | sudo tee /etc/apt/sources.list.d/wikifarm.list
-  sudo apt-get update
+  sudo apt update
 </pre>
 
 Install and enable wikifarm

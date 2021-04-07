@@ -21,4 +21,24 @@ $wgCompressRevisions = true;
 $wgRevisionCacheExpiry = 3*86400;
 $wgParserCacheExpireTime = 14*86400;
 
+wfLoadExtension( 'WikifarmAuthPlugin' );
+wfLoadExtension( 'Auth_remoteuser' );
+
+// Account creation by anonymous users is forbidden.
+$wgGroupPermissions['*']['createaccount'] = false;
+// Auto-create authorized user accounts.
+$wgGroupPermissions['*']['autocreateaccount'] = true;
+
+function mapUserName() {
+        $wgAuth = new MediaWiki\Extension\WikifarmAuthPlugin\Hooks();
+        return $wgAuth->mwusername;
+}
+
+$wgAuthRemoteuserUserName = function() {
+  if (! $_SERVER['REMOTE_USER']) {
+    return "";
+  }
+  return mapUserName();
+}
+
 ?>
