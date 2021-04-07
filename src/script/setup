@@ -40,7 +40,6 @@ sudo chmod a+x /var/log/apache2
 
 a2ensite wikifarm.conf
 [ -e /etc/apache2/mods-enabled/rewrite.load ] || a2enmod rewrite
-[ -e /etc/apache2/mods-enabled/auth_openid.load ] || a2enmod auth_openid
 
 [ -e /var/lib/mediawiki/extensions/WikifarmAuthPlugin ] || ln -s $ETC/WikifarmAuthPlugin /var/lib/mediawiki/extensions/
 [ -e /var/lib/mediawiki/extensions/Auth_remoteuser ] || ln -s $ETC/Auth_remoteuser /var/lib/mediawiki/extensions/
@@ -79,15 +78,4 @@ fi
 if apache2ctl configtest
 then
   /etc/init.d/apache2 restart
-fi
-
-if [ ! -e /etc/mysql/conf.d/utf8.cnf ]
-then
-  cat <<EOF
-
-*** I recommend installing $ETC/mysql-utf8.cnf into
-*** /etc/mysql/conf.d/utf8.cnf and restarting mysql before creating
-*** any databases.
-
-EOF
 fi

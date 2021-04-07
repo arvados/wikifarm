@@ -30,7 +30,7 @@ EOF
         cat <<EOF
 
 ***
-*** To set up your wiki farm, refer to /usr/share/doc/wikifarm/README
+*** To set up your wiki farm, refer to /usr/share/doc/wikifarm/README.textile
 *** 
 
 EOF

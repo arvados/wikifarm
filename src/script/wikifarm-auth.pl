@@ -7,7 +7,7 @@ $debug = 0;
 
 $|=1;
 
-my $openid_db;
+my $sessions_db;
 my $wikifarm_db;
 
 if ($debug) {
@@ -19,7 +19,7 @@ while (defined ($_ = <STDIN>)) {
     chomp;
     my $in = $_;
     my $t0 = [gettimeofday];
-    my ($wikifarm_db_file, $auth_openid_db_file, $wikiid, $uri, $cookie) = split (":::", $_, 5);
+    my ($wikifarm_db_file, $sessions_db_file, $wikiid, $uri, $cookie) = split (":::", $_, 5);
 
     if ($uri =~ m:^/login2?\.php$:) {
         print X "uri $uri > anonymous\n";
@@ -27,11 +27,11 @@ while (defined ($_ = <STDIN>)) {
         next;
     }
 
-    if (!$openid_db) {
-	print X "connect to $auth_openid_db_file\n" if $debug;
-	db_connect (\$openid_db, $auth_openid_db_file);
-	if (!$openid_db) {
-	    print X "ERROR: openid db not connected yet -- uri $uri\n" if $debug;
+    if (!$sessions_db) {
+	print X "connect to $sessions_db_file\n" if $debug;
+	db_connect (\$sessions_db, $sessions_db_file);
+	if (!$sessions_db) {
+	    print X "ERROR: sessions db not connected yet -- uri $uri\n" if $debug;
 	    print "-\n";
 	    next;
 	}
@@ -54,7 +54,7 @@ while (defined ($_ = <STDIN>)) {
     # of inactivity
     my $now = scalar time;
     my $minexpire = $now + 86400 * 4;
-    $openid_db->do (
+    $sessions_db->do (
         "UPDATE sessionmanager SET expires_on=?
          WHERE session_id=? and expires_on>=? and expires_on<?",
         undef, $minexpire, $session_id, $now, $minexpire);
@@ -64,7 +64,7 @@ while (defined ($_ = <STDIN>)) {
         next;
     }
 
-    my ($user_id, $session_exists) = $openid_db->selectrow_array (
+    my ($user_id, $session_exists) = $sessions_db->selectrow_array (
 	"SELECT identity, session_id FROM sessionmanager WHERE session_id=?",
 	undef, $session_id);
     if ($DBI::err) {

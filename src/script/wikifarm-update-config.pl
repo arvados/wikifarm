@@ -53,6 +53,9 @@ RewriteRule .* - [E=REMOTE_USER:\${wikifarm_auth:${WIKIFARM_DB_FILE}:::${OPENID_
 RewriteCond %{ENV:REMOTE_USER} ^-
 RewriteRule .* . [F]
 
+RewriteCond %{ENV:REMOTE_USER} ^/\$
+RewriteRule .* /login.php [L]
+
 # Prevent direct access to mediawiki installations
 RewriteCond %{REQUEST_URI} ^mediawiki
 RewriteRule . / [F]

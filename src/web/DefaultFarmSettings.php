@@ -13,8 +13,6 @@ $wgFileExtensions = array_merge ($wgFileExtensions, array('tar', 'gz', 'png', 'g
 $wgVerifyMimeType = false;
 $wgFileBlacklist = preg_grep ('/^(php|php3|php4|php5|phps|phtml|shtml|jhtml|pl|py|cgi)$/', $wgFileBlacklist, PREG_GREP_INVERT);
 
-require_once( "/etc/mediawiki-extensions/extensions.php" );
-
 $wgDisableCounters = true;
 $wgMiserMode = true;
 $wgCompressRevisions = true;

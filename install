@@ -39,7 +39,6 @@ install $SRC/web/DefaultFarmSettings.php $DESTDIR$WWW/
 install $SRC/web/serverlogo.png $DESTDIR$WWW/serverlogo.png.example
 install $SRC/web/favicon.ico $DESTDIR$WWW/favicon.ico.example
 install $SRC/conf/config.php.example $DESTDIR$ETC/
-install $SRC/conf/mysql-utf8.cnf $DESTDIR$ETC/
 
 make -C $TREE dist
 install $TREE/dist/php-textile-2.5.5/classTextile.php $DESTDIR$WWW/

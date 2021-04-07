@@ -16,8 +16,15 @@ function setUserId($uid, $username="") {
         // Make mod_auth_openid recognize this signature as a session ID.
         $session_id = substr($_COOKIE['wikifarm_sig'], 0, 32);
         setcookie('open_id_session_id', $session_id);
-        $db = new SQLite3($dbfile);
-        $db->exec("insert into sessionmanager (identity,session_id,expires_on,hostname,path) values ('".SQLite3::escapeString($uid)."','".SQLite3::escapeString($session_id)."',".(time()+86400*7).",'".SQLite3::escapeString($wikifarmConfig['servername'])."','/')");
+	$db = new SQLite3($dbfile);
+	if(!$db){
+          error_log("Error opening database file $dbfile: ",$db->lastErrorMsg());
+	}
+	$db->exec("CREATE TABLE if not exists sessionmanager (session_id VARCHAR(33), hostname VARCHAR(255), path VARCHAR(255), identity VARCHAR(255), username VARCHAR(255), expires_on INT)");
+	$rv = $db->exec("insert into sessionmanager (identity,session_id,expires_on,hostname,path) values ('".SQLite3::escapeString($uid)."','".SQLite3::escapeString($session_id)."',".(time()+86400*7).",'".SQLite3::escapeString($wikifarmConfig['servername'])."','/')");
+	if(!$rv) {
+          error_log("ERROR inserting session: ", $db->lastErrorMsg());
+	}
     }
 }
 
