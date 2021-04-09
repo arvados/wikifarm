@@ -54,7 +54,7 @@ RewriteCond %{ENV:REMOTE_USER} ^-
 RewriteRule .* . [F]
 
 RewriteCond %{ENV:REMOTE_USER} ^/\$
-RewriteRule .* /login.php [L]
+RewriteRule .* /login.php [R,L]
 
 # Prevent direct access to mediawiki installations
 RewriteCond %{REQUEST_URI} ^mediawiki

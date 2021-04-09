@@ -33,7 +33,11 @@ function mapUserName() {
 }
 
 $wgAuthRemoteuserUserName = function() {
-  if (! $_SERVER['REMOTE_USER']) {
+  // if REMOTE_USER is empty or does not start with a word, set $wgAuthRemoteuserUserName
+  // to the empty string.
+  // This will catch '-' and '/' etc which are used internally in the Apache Rewritemap.
+  // They should never persist to this point, but we handle them here just in case.
+  if (! $_SERVER['REMOTE_USER'] || !preg_match("/^\\w/", $_SERVER['REMOTE_USER'])) {
     return "";
   }
   return mapUserName();

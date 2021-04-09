@@ -49,7 +49,7 @@ $ETC/wikifarm-sudo-enable
 
 if [ ! -e $WWW/mediawiki ]
 then
-  rsync -a --exclude AdminSettings.php /usr/share/mediawiki/ $WWW/mediawiki/
+  rsync -a --exclude AdminSettings.php --exclude LocalSettings.php /usr/share/mediawiki/ $WWW/mediawiki/
   rootuser=$(perl -ne 'do { print $1; exit 0 } if /^ *user *= *(.*)/' </etc/mysql/debian.cnf)
   rootpw=$(perl -ne 'do { print $1; exit 0 } if /^ *password *= *(.*)/' </etc/mysql/debian.cnf)
   cat >$WWW/mediawiki/AdminSettings.php <<EOF
