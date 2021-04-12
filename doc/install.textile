@@ -1,14 +1,12 @@
-NOTE: This file documents how to set up a wikifarm on a plain Linux system, like the Ubuntu Lucid image available on AWS.
-
-<i>An even quicker method is to "use a pre-built AMI":ami.textile.</i>
+NOTE: This file documents how to set up a wikifarm on a plain Linux system, like the Ubuntu Focal (20.04) image available on AWS.
 
 Create instance (if you are installing on AWS).
 
-* use ami-714ba518
+* use the latest Ubuntu Focal Fossa (20.04) AMI for your AWS region
 * Select a suitable private key, so you can log in
 * Select a security policy with ports 22, 80, and 443 open
 
-Create a privileged user called "ubuntu" (if you used ami-714ba518, you can skip this step.)
+Create a privileged user called "ubuntu" (if you used an official Ubuntu AMI, you can skip this step.)
 
 <pre>
   sudo useradd ubuntu
@@ -33,38 +31,31 @@ Add the mediawiki-lts PPA
   sudo apt update
 </pre>
 
-Add the wikifarm repository to your apt sources
+Check out the wikifarm source
 
 <pre>
-  wget -q -O- http://apt.clinicalfuture.com/clinicalfuture-key.gpg | sudo apt-key add -
-  echo deb http://apt.clinicalfuture.com/wikifarm lucid main | sudo tee /etc/apt/sources.list.d/wikifarm.list
-  sudo apt update
+  cd /usr/src
+  git clone https://github.com/arvados/wikifarm.git
+  cd wikifarm
+  sudo apt install build-essentials
+  make dep
 </pre>
 
 Install and enable wikifarm
 
 <pre>
-  sudo apt-get install wikifarm
+  sudo dpkg -i wikifarm*deb
   sudo a2dissite 000-default.conf
-  sudo /etc/init.d/apache2 restart
-</pre>
-
-Create and customize /etc/wikifarm/config.php -- in particular, to
-ensure the oauth2 login process works correctly:
-* set uri_scheme to "https" if you are using SSL.
-* set servername to your.canonical.host.name.
-
-<pre>
-  sudo cp -i /etc/wikifarm/config.php.example /etc/wikifarm/config.php
-  sudo nano /etc/wikifarm/config.php
+  sudo a2ensite wikifarm
+  sudo systemctl apache2 restart
 </pre>
 
 Create an administrator account
 
 * Visit http://{your.wiki.farm}
-* Log in with your oauth2
-* Copy your oauth ID from the "my account" screen
-* Run: @/etc/wikifarm/make_admin_user.php YOUR-OAUTH-ID@
+* Log in with OAuth2
+* Copy your OAuth2 id from the "my account" screen
+* Run: @/etc/wikifarm/make_admin_user.php http://YOUR.OAUTH.ID.HERE@
 * Provide your email address and real name on the "my account" page
 * Click "Save changes"
 
@@ -82,15 +73,13 @@ accomplished by the wikifarm installer. Example:
 Create the base wiki config and database
 
 * Visit @http://{your.wiki.farm}/00@ and click "set up the wiki". Fill in the form:
-* database name "wikidb00"
-* User account for installation:
-* provide the database username/password you used when installing mysql-server
-* Database account for web access: uncheck the box "Use the same account as for installation"
-** db username "wikiuser"
-** db password "wikipass"
 * wiki name: Wiki (won't be used)
-* Your username: WikiSysop
-* random password for WikiSysop (minimum 10 characters, won't be used)
+* random password for WikiSysop (won't be used)
+* database name "wikidb00"
+* db username "wikiuser"
+* db password "wikipass"
+* yes, use superuser account.
+* provide the MySQL root password you used when installing mysql-server.
 * Click "Install MediaWiki!"
 
 If MediaWiki provided LocalSettings.php via browser download, copy it
@@ -118,9 +107,18 @@ Configure your server so it can send email notifications
   sudo apt-get install mediawiki-math
 </pre>
 
+(Optional, but highly recommended) switch to SSL
+
+* Create/obtain a signed site certificate
+* Enable ssl:
+<pre>
+  sudo a2enmod ssl
+  sudo systemctl apache2 restart
+</pre>
+
 (Optional) create an AMI
 
-* Delete any OpenID accounts you created during testing/setup:
+* Delete any OAuth2 accounts you created during testing/setup:
   sqlite3 /var/lib/wikifarm/db/wikis.db 'delete from users; delete from usergroups;'
 * Delete some history, cache, etc.
 
@@ -143,20 +141,9 @@ Turn off deleteOnTermination attribute on your EBS volume
 * Turn off deleteOnTermination flag:
   ec2-modify-instance-attribute i-ef5eb785 -b /dev/sda1=vol-9a1980f3:false -v
 
-(Optional) switch to SSL
-
-* Create/obtain a signed site certificate
-* Enable ssl:
-<pre>
-  sudo a2enmod ssl
-  sudo /etc/init.d/apache2 restart
-</pre>
-
 Ensure your users always access your server with the same hostname.
 
-* Some OpenID providers (including Google) do not supply the same
-  OpenID URL when the same user signs in to different OpenID consumer
-  sites. This means your users must always access your wikifarm using
+* Ideally, your users always access your wikifarm using
   the same domain name (i.e., only one of "http://example.com",
   "https://secure.example.com", "http://1.2.3.4"). The following code
   can be used in /etc/apache2/sites-available/wikifarm.conf to
@@ -167,6 +154,16 @@ Ensure your users always access your server with the same hostname.
       RewriteCond %{HTTP_HOST} !your.canonical.host.name
       RewriteRule (.*) https://your.canonical.host.name$1 [R,L]
     </Limit>
+</pre>
+
+Create and customize /etc/wikifarm/config.php -- in particular, to
+ensure the login process works correctly:
+* set uri_scheme to "https" if you are using SSL.
+* set servername to your.canonical.host.name.
+
+<pre>
+  sudo cp -i /etc/wikifarm/config.php.example /etc/wikifarm/config.php
+  sudo nano /etc/wikifarm/config.php
 </pre>
 
 Create wiki number 01 for yourself
@@ -196,3 +193,4 @@ Create wiki number 01 for yourself
   (64 pixels high for best results)
 * Install favicon in /var/lib/wikifarm/www/favicon.ico
   (16x16 pixels for best results)
+

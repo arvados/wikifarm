@@ -2,7 +2,7 @@ h1. Wikifarm
 
 Features / raisons d'&ecirc;tre:
 
-* OpenID / OAuth2 (Google) login
+* OAuth2 (Google) login
 * Users create their own wikis
 * Wikis are private by default
 * Users can control who (other users/groups) can read their wikis, and who can edit them.
