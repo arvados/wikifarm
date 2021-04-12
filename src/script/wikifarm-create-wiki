@@ -55,19 +55,25 @@ else
 fi
 
 mysql -u "$mysqlrootuser" -p"$mysqlrootpw" <<EOF
-create database wikidb$wikiid;
+create database if not exists wikidb$wikiid;
 use wikidb$wikiid;
 source $blanksql
-GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@'%' IDENTIFIED BY 'wikipass';
-GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@localhost IDENTIFIED BY 'wikipass';
-GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@localhost.localdomain IDENTIFIED BY 'wikipass';
+CREATE USER if not exists 'wikiuser'@'%' IDENTIFIED BY 'wikipass';
+CREATE USER if not exists 'wikiuser'@'localhost' IDENTIFIED BY 'wikipass';
+CREATE USER if not exists 'wikiuser'@'localhost.localdomain' IDENTIFIED BY 'wikipass';
+EOF
+
+mysql -u "$mysqlrootuser" -p"$mysqlrootpw" <<EOF
+GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@'%';
+GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@'localhost';
+GRANT DELETE,INSERT,SELECT,UPDATE ON wikidb$wikiid.* TO 'wikiuser'@'localhost.localdomain';
 EOF
 
 if [ "$wikiid" != "00" ]
 then
  (
   cd $WWW/mediawiki/maintenance
-  php update.php --quick --conf $WWW/$wikiid/LocalSettings.php --aconf ../AdminSettings.php
+  php update.php --quick --conf $WWW/$wikiid/LocalSettings.php --dbuser "$mysqlrootuser" --dbpass "$mysqlrootpw"
  )
 fi
 

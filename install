@@ -15,7 +15,6 @@ export SRC="$TREE/src"
 export DEPS="$TREE/deps"
 
 mkdir -p $DESTDIR$ETC
-mkdir -p $DESTDIR/etc/php5/wikifarm
 install $SRC/conf/awstats.00.conf $DESTDIR$ETC/
 install $SRC/conf/awstats.all.conf $DESTDIR$ETC/
 install $SRC/conf/wikifarm-apache2.conf.in $DESTDIR/etc/apache2/sites-available/wikifarm.conf
@@ -25,8 +24,7 @@ install $SRC/script/wikifarm-update-stats.sh $DESTDIR$ETC/
 install $SRC/script/wikifarm-backup.sh $DESTDIR$ETC/
 install $SRC/script/wikifarm-log-split.pl $DESTDIR$ETC/
 install $SRC/script/wikifarm-create-wiki $DESTDIR$ETC/
-install $SRC/script/wikifarm-php.ini $DESTDIR/etc/php5/conf.d/
-install $SRC/script/wikifarm-php.ini $DESTDIR/etc/php5/wikifarm/php.ini
+install $SRC/script/wikifarm-php.ini $DESTDIR/etc/php/7.4/mods-available/wikifarm.ini
 install $SRC/script/wikifarm-sudo-enable $DESTDIR$ETC/
 install $SRC/script/wikifarm-sudo-disable $DESTDIR$ETC/
 install $SRC/script/wikifarm-template-save $DESTDIR$ETC/
@@ -41,10 +39,9 @@ install $SRC/web/DefaultFarmSettings.php $DESTDIR$WWW/
 install $SRC/web/serverlogo.png $DESTDIR$WWW/serverlogo.png.example
 install $SRC/web/favicon.ico $DESTDIR$WWW/favicon.ico.example
 install $SRC/conf/config.php.example $DESTDIR$ETC/
-install $SRC/conf/mysql-utf8.cnf $DESTDIR$ETC/
 
 make -C $TREE dist
-install $TREE/dist/textile-2.0.0/classTextile.php $DESTDIR$WWW/
+install $TREE/dist/php-textile-2.5.5/classTextile.php $DESTDIR$WWW/
 install $SRC/web/help.textile $DESTDIR$WWW/
 install $SRC/web/adminhelp.textile $DESTDIR$WWW/
 rsync -av $SRC/web/help/ $DESTDIR$WWW/help/
@@ -63,11 +60,14 @@ mkdir -p $DESTDIR$WWW/css
 cp -r $SRC/web/css/* $DESTDIR$WWW/css/
 install $SRC/web/style.css $DESTDIR$WWW/
 
-for ext in $DEPS/SimpleTable.php $DEPS/GeSHiHighlight.php $SRC/WikifarmAuthPlugin.php
+for ext in $DEPS/SimpleTable.php $DEPS/GeSHiHighlight.php
 do
   install "$ext" "$DESTDIR$ETC/"
-  extbase="$(basename "$ext")"
-  ln -sf $ETC/$extbase "$DESTDIR"/etc/mediawiki-extensions/extensions-available/
+done
+
+for ext in $SRC/WikifarmAuthPlugin $TREE/dist/Auth_remoteuser
+do
+  cp -r "$ext" "$DESTDIR$ETC/"
 done
 
 install $SRC/script/initialize_wikis_db.php $DESTDIR$ETC/

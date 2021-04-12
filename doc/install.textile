@@ -22,7 +22,15 @@ Create a privileged user called "ubuntu" (if you used ami-714ba518, you can skip
 Update your OS
 
 <pre>
-  sudo aptitude update && sudo aptitude full-upgrade
+  sudo apt update && sudo apt upgrade
+</pre>
+
+Add the mediawiki-lts PPA
+
+<pre>
+  sudo apt install software-properties-common
+  sudo add-apt-repository ppa:legoktm/mediawiki-lts
+  sudo apt update
 </pre>
 
 Add the wikifarm repository to your apt sources
@@ -30,7 +38,7 @@ Add the wikifarm repository to your apt sources
 <pre>
   wget -q -O- http://apt.clinicalfuture.com/clinicalfuture-key.gpg | sudo apt-key add -
   echo deb http://apt.clinicalfuture.com/wikifarm lucid main | sudo tee /etc/apt/sources.list.d/wikifarm.list
-  sudo apt-get update
+  sudo apt update
 </pre>
 
 Install and enable wikifarm
@@ -38,23 +46,25 @@ Install and enable wikifarm
 <pre>
   sudo apt-get install wikifarm
   sudo a2dissite 000-default.conf
-  sudo a2ensite wikifarm
   sudo /etc/init.d/apache2 restart
 </pre>
 
-Change your default mysql character set to utf8
+Create and customize /etc/wikifarm/config.php -- in particular, to
+ensure the oauth2 login process works correctly:
+* set uri_scheme to "https" if you are using SSL.
+* set servername to your.canonical.host.name.
 
 <pre>
-  sudo cp /etc/wikifarm/mysql-utf8.cnf /etc/mysql/conf.d/utf8.cnf
-  sudo /etc/init.d/mysql restart
+  sudo cp -i /etc/wikifarm/config.php.example /etc/wikifarm/config.php
+  sudo nano /etc/wikifarm/config.php
 </pre>
 
 Create an administrator account
 
 * Visit http://{your.wiki.farm}
-* Log in with your OpenID
-* Copy your OpenID from the "my account" screen
-* Run: @/etc/wikifarm/make_admin_user.php http://YOUR.OPENID.HERE@
+* Log in with your oauth2
+* Copy your oauth ID from the "my account" screen
+* Run: @/etc/wikifarm/make_admin_user.php YOUR-OAUTH-ID@
 * Provide your email address and real name on the "my account" page
 * Click "Save changes"
 
@@ -72,13 +82,15 @@ accomplished by the wikifarm installer. Example:
 Create the base wiki config and database
 
 * Visit @http://{your.wiki.farm}/00@ and click "set up the wiki". Fill in the form:
-* wiki name: Wiki (won't be used)
-* random password for WikiSysop (won't be used)
 * database name "wikidb00"
-* db username "wikiuser"
-* db password "wikipass"
-* yes, use superuser account.
-* provide the MySQL root password you used when installing mysql-server.
+* User account for installation:
+* provide the database username/password you used when installing mysql-server
+* Database account for web access: uncheck the box "Use the same account as for installation"
+** db username "wikiuser"
+** db password "wikipass"
+* wiki name: Wiki (won't be used)
+* Your username: WikiSysop
+* random password for WikiSysop (minimum 10 characters, won't be used)
 * Click "Install MediaWiki!"
 
 If MediaWiki provided LocalSettings.php via browser download, copy it
@@ -155,16 +167,6 @@ Ensure your users always access your server with the same hostname.
       RewriteCond %{HTTP_HOST} !your.canonical.host.name
       RewriteRule (.*) https://your.canonical.host.name$1 [R,L]
     </Limit>
-</pre>
-
-Create and customize /etc/wikifarm/config.php -- in particular, to
-ensure the OpenID login process works correctly:
-* set uri_scheme to "https" if you are using SSL.
-* set servername to your.canonical.host.name.
-
-<pre>
-  sudo cp -i /etc/wikifarm/config.php.example /etc/wikifarm/config.php
-  sudo nano /etc/wikifarm/config.php
 </pre>
 
 Create wiki number 01 for yourself

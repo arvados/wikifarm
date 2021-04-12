@@ -33,7 +33,7 @@ if (@$wikifarmConfig["uri_scheme"]) {
 <body>
 <div style="margin: 30px; width: 50%">
 <h1><?= @$wikifarmConfig["servertitle"] ? $wikifarmConfig["servertitle"] : $_SERVER['HTTP_HOST']?></h1>
-<p>Please identify yourself using a Google or <a href="http://openid.net">OpenID</a> account.</p>
+<p>Please identify yourself.</p>
 
 <?php if(isset($_GET["modauthopenid_error"])) { ?>
 <div style="background: #fdd; border: 1px dashed #b00">Login failed (error code: <?=htmlspecialchars($_GET["modauthopenid_error"])?>)</div>

@@ -5,8 +5,6 @@
 /var/lib/wikifarm/ssl
 /var/lib/wikifarm/www
 /etc/apache2/sites-available
-/etc/php5/conf.d
+/etc/php/7.4/apache2/conf.d
+/etc/php/7.4/mods-available
 /etc/cron.d
-/etc/mediawiki-extensions
-/etc/mediawiki-extensions/extensions-available
-/etc/mediawiki-extensions/extensions-enabled

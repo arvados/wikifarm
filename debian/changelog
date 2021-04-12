@@ -1,3 +1,10 @@
+wikifarm (0.17) stable; urgency=low
+
+  * Updates for Ubuntu 20.04
+  * Fix unescaped user input in HTML (login page)
+
+ -- Ward Vandewege <ward@curii.com>  Mon, 05 Apr 2021 21:21:00 -0500
+
 wikifarm (0.16) stable; urgency=low
 
   * Remove debug printf.
@@ -7,7 +14,7 @@ wikifarm (0.16) stable; urgency=low
   * Enable mod_version during setup.
   * Fix wrong site conf name.
 
- -- Tom Clegg <tom@curoverse.com>  Mon, 02 Feb 2015 21:21:50 -0500
+ -- Tom Clegg <tom@curii.com>  Mon, 02 Feb 2015 21:21:50 -0500
 
 wikifarm (0.15) stable; urgency=low
 
@@ -20,7 +27,7 @@ wikifarm (0.15) stable; urgency=low
   * Add Google+ OAuth2 login and auto-migrate.
   * Add config vars to enable login buttons and set custom motd.
 
- -- Tom Clegg <tom@curoverse.com>  Tue, 27 Jan 2015 22:09:51 -0500
+ -- Tom Clegg <tom@curii.com>  Tue, 27 Jan 2015 22:09:51 -0500
 
 wikifarm (0.14) stable; urgency=low
 
@@ -30,7 +37,7 @@ wikifarm (0.14) stable; urgency=low
   * add final newline when erroring out
   * fix array syntax (bug introduced in 0.13)
 
- -- Tom Clegg <tom@curoverse.com>  Fri, 20 Sep 2013 17:17:49 -0400
+ -- Tom Clegg <tom@curii.com>  Fri, 20 Sep 2013 17:17:49 -0400
 
 wikifarm (0.13) stable; urgency=low
 
@@ -42,13 +49,13 @@ wikifarm (0.13) stable; urgency=low
   * fix doc paths in deb package rules
   * Allow admins and wiki owners to control the per-wiki "active" flag
 
- -- Tom Clegg <tom@curoverse.com>  Thu, 19 Sep 2013 12:26:34 -0400
+ -- Tom Clegg <tom@curii.com>  Thu, 19 Sep 2013 12:26:34 -0400
 
 wikifarm (0.12) stable; urgency=low
 
   * fix use of concatenation operator in wrong language
 
- -- Tom Clegg <tom@curoverse.com>  Thu, 04 Apr 2013 13:10:32 -0700
+ -- Tom Clegg <tom@curii.com>  Thu, 04 Apr 2013 13:10:32 -0700
 
 wikifarm (0.11) stable; urgency=low
 
@@ -66,7 +73,7 @@ wikifarm (0.11) stable; urgency=low
   * use defaults instead of sending an empty response when
   /etc/wikifarm/config.php does not exist
 
- -- Tom Clegg <tom@curoverse.com>  Mon, 01 Apr 2013 14:05:20 -0700
+ -- Tom Clegg <tom@curii.com>  Mon, 01 Apr 2013 14:05:20 -0700
 
 wikifarm (0.10) stable; urgency=low
 
@@ -74,13 +81,13 @@ wikifarm (0.10) stable; urgency=low
   * hide "claim with username/password" behind a config option
   * Request activation directly from the My Account tab if no groups are defined
 
- -- Tom Clegg <tom@curoverse.com>  Mon, 26 Nov 2012 12:38:31 -0800
+ -- Tom Clegg <tom@curii.com>  Mon, 26 Nov 2012 12:38:31 -0800
 
 wikifarm (0.9) stable; urgency=low
 
   * use wfSetupSession() instead of User::SetupSession() in newer MW
 
- -- Tom Clegg <tom@curoverse.com>  Fri, 22 Jun 2012 23:10:09 -0400
+ -- Tom Clegg <tom@curii.com>  Fri, 22 Jun 2012 23:10:09 -0400
 
 wikifarm (0.8) stable; urgency=low
 
@@ -88,7 +95,7 @@ wikifarm (0.8) stable; urgency=low
   * get default_wiki_quota from sitepref. refs #883
   * update login page text, add "servertitle" config knob. refs #882
 
- -- Tom Clegg <tom@curoverse.com>  Wed, 11 Apr 2012 15:22:39 -0400
+ -- Tom Clegg <tom@curii.com>  Wed, 11 Apr 2012 15:22:39 -0400
 
 wikifarm (0.7) stable; urgency=low
 
@@ -98,7 +105,7 @@ wikifarm (0.7) stable; urgency=low
   * ignore checkedness of checkboxes other than the one initiating the
     request. refs #814
 
- -- Tom Clegg <tom@curoverse.com>  Thu, 05 Jan 2012 12:59:03 -0800
+ -- Tom Clegg <tom@curii.com>  Thu, 05 Jan 2012 12:59:03 -0800
 
 wikifarm (0.6) stable; urgency=low
 
@@ -108,7 +115,7 @@ wikifarm (0.6) stable; urgency=low
   * remove hardcoded host name from awstats config templates
   * add "group editable" feature. refs #767
 
- -- Tom Clegg <tom@curoverse.com>  Mon, 12 Dec 2011 19:37:00 -0800
+ -- Tom Clegg <tom@curii.com>  Mon, 12 Dec 2011 19:37:00 -0800
 
 wikifarm (0.5) stable; urgency=low
 
@@ -125,7 +132,7 @@ wikifarm (0.5) stable; urgency=low
 
   [ Tom ]
 
- -- Tom <tom@curoverse.com>  Wed, 28 Sep 2011 22:43:42 -0700
+ -- Tom <tom@curii.com>  Wed, 28 Sep 2011 22:43:42 -0700
 
 wikifarm (0.4) unstable; urgency=low
 
@@ -146,7 +153,7 @@ wikifarm (0.4) unstable; urgency=low
 
   [ Tom Clegg ]
 
- -- Tom <tom@curoverse.com>  Fri, 08 Jul 2011 16:40:39 -0700
+ -- Tom <tom@curii.com>  Fri, 08 Jul 2011 16:40:39 -0700
 
 wikifarm (0.3) unstable; urgency=low
 
@@ -154,14 +161,14 @@ wikifarm (0.3) unstable; urgency=low
   * Make logo/byline site-customizable
   * Restart apache after adding/removing wikifarm config
 
- -- Tom Clegg <tom@curoverse.com>  Tue, 16 Nov 2010 14:28:29 -0800
+ -- Tom Clegg <tom@curii.com>  Tue, 16 Nov 2010 14:28:29 -0800
 
 wikifarm (0.2) testing; urgency=low
 
   [ Tom Clegg ]
   * debianize
 
- -- Tom Clegg <tom@curoverse.com>  Tue, 16 Nov 2010 00:13:22 -0800
+ -- Tom Clegg <tom@curii.com>  Tue, 16 Nov 2010 00:13:22 -0800
 
 wikifarm (0.1) testing; urgency=low
 
@@ -528,4 +535,4 @@ wikifarm (0.1) testing; urgency=low
     through index
   * wiki "log out" link redirect to dashboard
 
- -- Tom Clegg <tom@curoverse.com>  Sun, 14 Nov 2010 16:45:57 -0800
+ -- Tom Clegg <tom@curii.com>  Sun, 14 Nov 2010 16:45:57 -0800

@@ -13,12 +13,34 @@ $wgFileExtensions = array_merge ($wgFileExtensions, array('tar', 'gz', 'png', 'g
 $wgVerifyMimeType = false;
 $wgFileBlacklist = preg_grep ('/^(php|php3|php4|php5|phps|phtml|shtml|jhtml|pl|py|cgi)$/', $wgFileBlacklist, PREG_GREP_INVERT);
 
-require_once( "/etc/mediawiki-extensions/extensions.php" );
-
 $wgDisableCounters = true;
 $wgMiserMode = true;
 $wgCompressRevisions = true;
 $wgRevisionCacheExpiry = 3*86400;
 $wgParserCacheExpireTime = 14*86400;
+
+wfLoadExtension( 'WikifarmAuthPlugin' );
+wfLoadExtension( 'Auth_remoteuser' );
+
+// Account creation by anonymous users is forbidden.
+$wgGroupPermissions['*']['createaccount'] = false;
+// Auto-create authorized user accounts.
+$wgGroupPermissions['*']['autocreateaccount'] = true;
+
+function mapUserName() {
+        $wgAuth = new MediaWiki\Extension\WikifarmAuthPlugin\Hooks();
+        return $wgAuth->mwusername;
+}
+
+$wgAuthRemoteuserUserName = function() {
+  // if REMOTE_USER is empty or does not start with a word, set $wgAuthRemoteuserUserName
+  // to the empty string.
+  // This will catch '-' and '/' etc which are used internally in the Apache Rewritemap.
+  // They should never persist to this point, but we handle them here just in case.
+  if (! $_SERVER['REMOTE_USER'] || !preg_match("/^\\w/", $_SERVER['REMOTE_USER'])) {
+    return "";
+  }
+  return mapUserName();
+}
 
 ?>

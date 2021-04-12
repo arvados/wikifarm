@@ -18,10 +18,10 @@ $wikifarmConfig["uri_scheme"] = "http"; // or you might need "https"
 //$wikifarmConfig["oauth2_google_client_id"] = "copy-client-id-from-dev-console";
 //$wikifarmConfig["oauth2_google_client_secret"] = "copy-secret-from-dev-console";
 
-// Enable/disable OpenID buttons for Google (EOL!) and Yahoo.
+// Enable/disable OpenID buttons for Google (EOL!) and Yahoo (EOL!)
 $wikifarmConfig["openid2_google"] = false;
-$wikifarmConfig["openid2_yahoo"] = true;
-$wikifarmConfig["openid2_custom"] = true;
+$wikifarmConfig["openid2_yahoo"] = false;
+$wikifarmConfig["openid2_custom"] = false;
 
 if (time() < 1424700000) {
     // Until Feb 23 2015...
