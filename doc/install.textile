@@ -37,8 +37,8 @@ Check out the wikifarm source
   cd /usr/src
   git clone https://github.com/arvados/wikifarm.git
   cd wikifarm
-  sudo apt install build-essentials
-  make dep
+  sudo apt install build-essential
+  make deb
 </pre>
 
 Install and enable wikifarm
@@ -193,4 +193,3 @@ Create wiki number 01 for yourself
   (64 pixels high for best results)
 * Install favicon in /var/lib/wikifarm/www/favicon.ico
   (16x16 pixels for best results)
-
