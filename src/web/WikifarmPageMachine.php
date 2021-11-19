@@ -86,7 +86,7 @@ BLOCK;
 	// all about the tabs	
 	function tabGet($tab) {
 		if (!method_exists ($this, "page_$tab"))
-			return __METHOD__.": Invalid page request: \"$tab\"";
+			return __METHOD__.": Invalid page request: \"" . htmlspecialchars($tab) . "\"";
 		return call_user_func (array ($this, "page_$tab"));
 	}
 
