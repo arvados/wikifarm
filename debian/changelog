@@ -1,3 +1,9 @@
+wikifarm (0.18) stable; urgency=low
+
+  * Fix an XSS opportunity and reject cross-origin POST requests.
+
+ -- Ward Vandewege <ward@curii.com>  Mon, 22 Nov 2021 10:57:00 -0500
+
 wikifarm (0.17) stable; urgency=low
 
   * Updates for Ubuntu 20.04
