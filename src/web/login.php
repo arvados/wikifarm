@@ -13,7 +13,7 @@ a:hover { text-decoration: underline; }
 </style></head>
 
 <?php
-if ($_GET["modauthopenid_referrer"]) {
+if (isset($_GET["modauthopenid_referrer"])) {
   $referrer = $_GET["modauthopenid_referrer"];
   if (preg_match('{^https://}', $_SERVER['SCRIPT_URI']) &&
       preg_match('{^http://}', $referrer)) {

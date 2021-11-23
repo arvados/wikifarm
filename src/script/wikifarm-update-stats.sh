@@ -29,7 +29,8 @@ do
   then
     adminlink="<li><a href=\"stats/awstats.all.html\">report for all wikis</a></li>"
   fi
-  cat >${WWW}/$wikiid/private/index.html <<EOF
+  if [ -d "$WWW/$wikiid" ]; then
+    cat >${WWW}/$wikiid/private/index.html <<EOF
 <html>
 <head>
 <link rel="stylesheet" type="text/css" href="/style.css">
@@ -41,8 +42,11 @@ do
 </body>
 </html>
 EOF
-  wikidir=$WWW/$wikiid/private/stats
-  cd $wikidir
-  perl -pe "s:/00/:/$wikiid/:g;" <$ETC/awstats.00.conf >awstats.$wikiid.conf
-  perl $builder -awstatsprog=/usr/lib/cgi-bin/awstats.pl -configdir=$wikidir -config=$wikiid -update -dir=$wikidir
+    wikidir=$WWW/$wikiid/private/stats
+    cd $wikidir
+    perl -pe "s:/00/:/$wikiid/:g;" <$ETC/awstats.00.conf >awstats.$wikiid.conf
+    perl $builder -awstatsprog=/usr/lib/cgi-bin/awstats.pl -configdir=$wikidir -config=$wikiid -update -dir=$wikidir
+  else
+    echo "WARNING: $WWW not found, can not run awstats for wiki $wikiid"
+  fi
 done

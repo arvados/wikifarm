@@ -7,28 +7,26 @@
 
 <VirtualHost *:80>
   ServerName {{HOSTNAME}}
-  <IfModule mod_ssl.c>
-    Redirect / https://{{HOSTNAME}}/
-  </IfModule>
   DocumentRoot {{WWW}}
+  # for the ACME protocol (e.g. Let's Encrypt)
+  Alias /.well-known /var/www/.well-known
 
   php_flag register_globals off
 
   RewriteEngine On
-  RewriteMap wikifarm_auth prg:{{ETC}}/wikifarm-auth.pl
+  <IfVersion >= 2.4>
+    RewriteMap wikifarm_auth prg:{{ETC}}/wikifarm-auth.pl www-data:www-data
+  </IfVersion>
+  <IfVersion < 2.4>
+    RewriteMap wikifarm_auth prg:{{ETC}}/wikifarm-auth.pl
+  </IfVersion>
+
+  <IfModule mod_ssl.c>
+    RewriteCond %{REQUEST_URI} !^/.well-known
+    RewriteRule (.*) https://{HOSTNAME}/$1 [R=301,L]
+  </IfModule>
 
   DirectoryIndex index.php index.html
-
-  Include {{DB}}/apache2.conf.inc
-
-  <Directory {{WWW}}>
-    AllowOverride FileInfo
-  </Directory>
-  <Directory {{WWW}}/*/images>
-    php_admin_value engine Off
-    AllowOverride none
-    SetHandler None
-  </Directory>
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -43,10 +41,6 @@
 	    nokeepalive ssl-unclean-shutdown \
 	    downgrade-1.0 force-response-1.0
     BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
-    <Limit GET HEAD>
-      RewriteCond %{HTTP_HOST} !{{HOSTNAME}}
-      RewriteRule (.*) https://{{HOSTNAME}}$1 [R,L]
-    </Limit>
   </IfModule>
 
   php_flag register_globals off
@@ -60,6 +54,10 @@
 
   <Directory {{WWW}}>
     AllowOverride FileInfo
+    <Limit GET HEAD>
+      RewriteCond %{HTTP_HOST} !{{HOSTNAME}}
+      RewriteRule (.*) https://{{HOSTNAME}}$1 [R,L]
+    </Limit>
   </Directory>
   <Directory {{WWW}}/*/images>
     php_admin_value engine Off
